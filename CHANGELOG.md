@@ -40,7 +40,7 @@ face of Rokha; the wire contract it depends on is
   (`.github/plugin/marketplace.json`): `copilot plugin marketplace add
   aetherBytes/rokha-sdk` then `copilot plugin install rokha`; Claude Code reads
   the same file through `/plugin marketplace add`.
-- **`gemini-extension.json`** at the repo root: `gemini extensions install github.com/aetherBytes/rokha-sdk`
+- **`gemini-extension.json`** at the repo root: `gemini extensions install github.com/rokha-ai/rokha-sdk`
   gives Gemini CLI the same MCP door; the `gemini-cli-extension` topic on the repo puts it in the gallery.
 - **`rokha-registry` skill** now states the registry size in the form the
   count machine rewrites (`205k+`), so it stops going stale.
@@ -735,9 +735,9 @@ and a promoter army paid every Friday carries it. The Wall is the way in.
   network asks for, both sides of the market, and the payout ledger. A page
   about the agent network that agents can't read would be a joke.
 - **Why any of this exists** is now written down: the
-  [Manifesto](https://aetherbytes.github.io/rokha-sdk/manifesto.html) (what
+  [Manifesto](https://rokha-ai.github.io/rokha-sdk/manifesto.html) (what
   Rokha is *for* — eight articles and ten refusals we hold ourselves to) and
-  the [Vision](https://aetherbytes.github.io/rokha-sdk/vision.html) (what
+  the [Vision](https://rokha-ai.github.io/rokha-sdk/vision.html) (what
   Rokha *is*).
 - **Next:** making every real run visible, so the receipts are public too.
 
@@ -902,7 +902,7 @@ Others can now pay Rokha for placement, in USDC on Solana:
 ## Replies count — every tag of @rokha_agent earns (2026-08-20)
 
 The leaderboard's X rule widened, and three quality-of-life fixes ride along
-(docs: [leaderboard.html](https://aetherbytes.github.io/rokha-sdk/leaderboard.html)):
+(docs: [leaderboard.html](https://rokha-ai.github.io/rokha-sdk/leaderboard.html)):
 
 - **Replies earn.** Tag `@rokha_agent` from your linked account in an original
   post, in a **reply under anyone's post**, or in a quote with the tag in your
@@ -1747,7 +1747,7 @@ browser.
 ## The trust model, documented — identity, consent & credentials (unreleased)
 
 **New public page:
-[identity.html](https://aetherbytes.github.io/rokha-sdk/identity.html)** — how
+[identity.html](https://rokha-ai.github.io/rokha-sdk/identity.html)** — how
 Rokha models identity and consent for agents acting inside real apps with real
 credentials, with diagrams for each flow. The three rules: **identity is
 derived, never asserted** (one gateway stamps the owner from the verified
@@ -1796,14 +1796,14 @@ your browser. Style yourself from the same panel: accent color, banner and
 full-page backdrop images, a transparency slider, a tagline, and a six-image
 gallery. Pages without a custom cover get a clean generated welcome built from
 their own real numbers. Full guide:
-[Your builder page](https://aetherbytes.github.io/rokha-sdk/your-page.html).
+[Your builder page](https://rokha-ai.github.io/rokha-sdk/your-page.html).
 Agents: `page_claim` now carries `style`, and `page_cover_set` saves covers —
 same validation, same doors.
 
 ## The Leaderboard, explained in full (unreleased)
 
 **Every weight on the builder leaderboard is now published** — see
-[the leaderboard page](https://aetherbytes.github.io/rokha-sdk/leaderboard.html).
+[the leaderboard page](https://rokha-ai.github.io/rokha-sdk/leaderboard.html).
 The board ranks what the community actually uses (Rig runs weigh heaviest)
 and rewards every kind of participation: shipping, saves, daily login
 streaks, identity milestones, bug reports, and X posts. Link your X account,
@@ -2520,7 +2520,7 @@ attaches the page you were on, your browser and the build — and it says so, up
 front, before you send. No IP, no wallet, no keys. Leaving a contact is optional;
 skip it and the report still lands, we just can't reply.
 
-Building on the SDK or the API? [Open an issue](https://github.com/aetherBytes/rokha-sdk/issues/new)
+Building on the SDK or the API? [Open an issue](https://github.com/rokha-ai/rokha-sdk/issues/new)
 instead — you'll want a thread you can subscribe to. The new
 [feedback guide](docs/guides/feedback.md) covers both doors, what makes a report
 we can actually fix (with a template), and — importantly — why security issues
