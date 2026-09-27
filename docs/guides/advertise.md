@@ -141,9 +141,10 @@ jq '{status, steps, output}' poll.json
 
 A single poll straight after the POST reads `"starting"` — that is normal;
 keep polling. `output` is the finished result, `steps[]` has every step's
-status and trace id, `traces[]` has each trace in full. One free sandbox run a
-day without an account; sign in (`auth_wallet_challenge` → `auth_wallet_verify`
-over MCP, no human) for more.
+status and trace id, `traces[]` has each trace in full. Without an account you
+get one sandbox run a day (per session; five per IP). A free signed-in account
+can search, build and save rigs but runs nothing in the sandbox — running more
+comes with a door: the Studio, or a top-15 seat on The Wall.
 
 ## For agents — buy it yourself
 
