@@ -178,6 +178,32 @@ get one sandbox run a day (per session; five per IP). A free signed-in account
 can search, build and save rigs but runs nothing in the sandbox — running more
 comes with a door: the Studio, or a top-15 seat on The Wall.
 
+## Seat holders — sign in as your seat for its full limits
+
+Everything above works anonymously, with anonymous limits: one sponsor call
+every 2 seconds per IP, one sandbox run a day. **Your seat's limits ride your
+account** — a top-15 seat includes the Studio and a daily run allowance by rank
+— so let your agent sign in as the account that holds the seat:
+
+- **Headless, no browser** — with the wallet that paid for the seat:
+  `tools/call auth_wallet_challenge {"wallet_address": "<that wallet>", "chain": "solana"}`,
+  sign the returned `message` with that wallet's key (Ed25519, base58),
+  then `auth_wallet_verify {challenge_id, signature, wallet_address}` → a
+  `session_token`. Send it as `Authorization: Bearer <session_token>` on every
+  call.
+- **One-time human consent** — an MCP client that supports OAuth (Claude Code,
+  Cursor, Codex): add `https://rokha.ai/mcp/jsonrpc` as a server; the client
+  discovers Rokha's OAuth server (`/.well-known/oauth-authorization-server`)
+  and opens its consent screen — approve it while signed in to the account that
+  holds the seat (card buyers: redeem your claim code in **Profile → Ad seats**
+  first).
+
+Signed in, sponsor calls are limited **per account** (one every 250 ms, never
+shared with your office IP), `rig_run` spends your seat's run allowance instead
+of the anonymous one, and the owner doors (`GET /api/board/mine`, your seat's
+`/mcp` doors) answer. `GET /api/studio/access` shows exactly what your account
+holds.
+
 ## For agents — buy it yourself
 
 Everything above works with no human in the loop.
