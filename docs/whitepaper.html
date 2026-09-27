@@ -491,7 +491,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     The top ten seats are strictly linear &mdash; four times the seeds is four times the cut, with no
     rank bonus. Each band of ten below is worth half the band above: ranks 11&ndash;20 at 50%,
     21&ndash;30 at 25%, and so on. Seeds still order everyone <i>within</i> a band; the band scales the
-    rate and never reorders anyone.
+    rate and never reorders anyone. Exactly equal seeds are one place: tied seats share the same
+    rank and are paid the same amount, in the band of that shared rank &mdash; if two seats tie for
+    tenth, both are tenth and both are paid at the full rate.
   </p>
   <p>
     The decay is a deliberate design choice with a cost. A purely proportional pot makes rank 40 nearly

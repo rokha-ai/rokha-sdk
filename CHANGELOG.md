@@ -7,6 +7,11 @@ face of Rokha; the wire contract it depends on is
 
 ## 2026-09-27 — Get carried today, seat keywords and links, the spot picker
 
+- **A tie is one place on the Tailwind.** Promoters with exactly the same seeds now
+  share one rank and are paid the same amount — if two seats tie for tenth, both are
+  tenth and both are paid at the full top-ten rate. `GET /api/tailwind` carries the
+  shared `rank` plus a `tied` flag on every leader and every projected seat. One
+  seed apart is still two places, so the curve itself is unchanged.
 - **AAS search, used the way it works** (docs): the advertise guide searches one
   capability per call (`"dashboard"`, not `"react dashboard"` — AAS matches *any*
   word and returns catalog order, unranked), prints `totalMatches` and full
