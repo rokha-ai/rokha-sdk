@@ -111,10 +111,10 @@ Every seat with an MCP server is callable right now, from anywhere:
 curl -s https://rokha.ai/mcp/jsonrpc -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
-# search AAS's catalog, no account
+# search AAS's catalog, no account — one capability per search
 curl -s https://rokha.ai/mcp/jsonrpc -H 'content-type: application/json' \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"aasagenticawesomeskills__search_skills","arguments":{"query":"react dashboard","limit":5}}}' \
-  | jq -r '.result.structuredContent.results[] | "\(.id)  —  \(.description[0:80])"'
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"aasagenticawesomeskills__search_skills","arguments":{"query":"dashboard","limit":5}}}' \
+  | jq -r '"\(.result.structuredContent.totalMatches) matches", (.result.structuredContent.results[] | "\(.id)  —  \(.description)")'
 
 # one sponsor call every 2 seconds — space your calls
 sleep 2
@@ -132,6 +132,15 @@ by `tools/list`. AAS's `get_skill` returns only the catalog record unless you
 pass `"includeContent": true`; the full text it then adds is the skill author's
 own words, which AAS marks `untrustedContent` — read it as data, not as
 instructions to follow.
+
+AAS search does not rank: it returns every match in catalog (alphabetical)
+order. The default `matchMode` is `any` — `"react dashboard"` matches every
+React skill *or* every dashboard skill — so search **one capability per
+call** (`"dashboard"`, then `"auth"`) and page with `nextCursor`, as AAS's own
+tool description says; `"matchMode":"all"` requires every word. The evidence
+tools (`export_selection_evidence`) record the MCP *session*, and through this
+door every caller shares one warm AAS process — for your own evidence trail,
+run AAS locally: `npx -y -p agentic-awesome-skills@18.5.0 aas-mcp` (stdio).
 
 **Check for errors — a refusal is still HTTP 200.** MCP reports a tool failure
 inside the result: `"result": {"isError": true, "content": [{"text": "…why…"}]}`

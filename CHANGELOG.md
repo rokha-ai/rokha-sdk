@@ -7,6 +7,11 @@ face of Rokha; the wire contract it depends on is
 
 ## 2026-09-27 — Get carried today, seat keywords and links, the spot picker
 
+- **AAS search, used the way it works** (docs): the advertise guide searches one
+  capability per call (`"dashboard"`, not `"react dashboard"` — AAS matches *any*
+  word and returns catalog order, unranked), prints `totalMatches` and full
+  descriptions, and notes that `export_selection_evidence` records a shared
+  session on the door — run AAS locally for your own evidence trail.
 - **The Wild Card is retired.** `POST /api/board/orders` with `kind: "wildcard"`
   answers `410`. Its replacement is **Get carried today**: `POST /api/carry/orders`
   with `kind: "post_now"` (Rokha posts about you) or `"raid_now"` (a 60-minute raid
