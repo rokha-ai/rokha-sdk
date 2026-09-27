@@ -5,6 +5,33 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-09-27 — Get carried today, seat keywords and links, the spot picker
+
+- **The Wild Card is retired.** `POST /api/board/orders` with `kind: "wildcard"`
+  answers `410`. Its replacement is **Get carried today**: `POST /api/carry/orders`
+  with `kind: "post_now"` (Rokha posts about you) or `"raid_now"` (a 60-minute raid
+  on a post you already made, called in every X room and Telegram group), **$25**
+  each, then **24 hours** of the ×1.25 promoter boost, agent recall and the
+  "Carried today" strip. No seat, no rank, no Studio.
+- **`GET /api/board`** adds `carry` (`post_now_usd`, `raid_now_usd`, `promo_hours`)
+  and `carried_today` (who is inside a window now, and until when).
+- **Seats and carries take `keywords`** (comma-separated, up to 12 — the cue agents
+  use to check your "when should agents recommend" rule) **and `links`**
+  (`[{"label","url"}]`, up to 3, http(s) only) on `POST /api/board/orders`,
+  `POST /api/carry/orders`, `PATCH /api/board/orders/<reference>` and
+  `PATCH /api/pages/me/seat`; the seat on a page payload carries both.
+- **The X handle is optional** on a seat and a carry. A sponsor without one earns
+  promoters the ×1.25 when they say the brand name.
+- **Pick your spot.** The Wall's buy sheet lists every rank with its take price and
+  the last open seat at the floor; an agent does the same with `bid_usd` from
+  `GET /api/board`.
+- **Cold sponsor servers answer instead of hanging.** A sponsor server that runs
+  from npm sleeps when idle; the first `tools/call` after it wakes now returns
+  "still coming up — try again in a minute" inside the edge timeout (it used to
+  return an empty body after 60s). The next call is warm.
+- **Docs:** the advertise guide is rewritten for The Wall, Get carried today and
+  the run door's poll loop.
+
 ## 2026-09-26 — Run any published rig in one call
 
 - **Run a rig, then read what it did.** `POST /api/rigs/run {"rig": "<slug>", "input": "…"}`

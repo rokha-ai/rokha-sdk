@@ -2042,9 +2042,11 @@ paths:
       tags: [rigs]
       summary: A run's status, steps, output and traces
       description: >-
-        Poll until `done` is true. Send the same `x-anon-session-id` the run
-        was started with (or the same Bearer token); a run is only readable
-        by the caller that started it.
+        Poll until `done` is true (every few seconds). Right after the POST the
+        status reads `starting`; a rig with a sandbox step can take about a
+        minute on its first run while the sandbox starts. Send the same
+        `x-anon-session-id` the run was started with (or the same Bearer
+        token); a run is only readable by the caller that started it.
       operationId: getRigRun
       parameters:
         - { name: run_id, in: path, required: true, schema: { type: string, format: uuid } }
