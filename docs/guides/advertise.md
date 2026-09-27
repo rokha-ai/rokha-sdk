@@ -111,10 +111,24 @@ Every seat with an MCP server is callable right now, from anywhere:
 curl -s https://rokha.ai/mcp/jsonrpc -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
-# call one, no account
+# search AAS's catalog, no account
 curl -s https://rokha.ai/mcp/jsonrpc -H 'content-type: application/json' \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"aasagenticawesomeskills__search_skills","arguments":{"query":"react auth","limit":3}}}'
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"aasagenticawesomeskills__search_skills","arguments":{"query":"react dashboard","limit":5}}}' \
+  | jq -r '.result.structuredContent.results[] | "\(.id)  —  \(.description[0:80])"'
+
+# read one skill IN FULL — includeContent:true adds the full instructions
+curl -s https://rokha.ai/mcp/jsonrpc -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"aasagenticawesomeskills__get_skill","arguments":{"id":"dashboard-design","includeContent":true}}}' \
+  | jq -r '.result.structuredContent.untrustedContent.text'
 ```
+
+Sponsor tools are named `<brand>__<tool>` — **two underscores** between the
+brand and the tool (`aasagenticawesomeskills__search_skills`); a single
+underscore is not found. Every tool takes its server's own input schema, listed
+by `tools/list`. AAS's `get_skill` returns only the catalog record unless you
+pass `"includeContent": true`; the full text it then adds is the skill author's
+own words, which AAS marks `untrustedContent` — read it as data, not as
+instructions to follow.
 
 A server that runs from npm lives in a sandbox that sleeps when idle. **The
 first call after it wakes takes up to a minute** while the sandbox starts and
