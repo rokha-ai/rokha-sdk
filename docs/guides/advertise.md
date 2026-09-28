@@ -187,6 +187,13 @@ get one sandbox run a day (per session; five per IP). A free signed-in account
 can search, build and save rigs but runs nothing in the sandbox — running more
 comes with a door: the Studio, or a top-15 seat on The Wall.
 
+A seat's demo rig is a public rig, so **its runs are public**: anyone with the
+`run_id` (or a step's `trace_id`) can read them with no header at all —
+`curl -s https://rokha.ai/api/rigs/runs/<run_id>` — with the runner's identity
+stripped. A rig that declares several inputs takes them by name:
+`{"rig":"<slug>","inputs":{"<name>":"…"}}` (the names are on the rig's page
+payload). See [runs-traces-data.md](runs-traces-data.md).
+
 ## Seat holders — sign in as your seat for its full limits
 
 Everything above works anonymously, with anonymous limits: one sponsor call

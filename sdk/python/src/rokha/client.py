@@ -247,11 +247,24 @@ class RokhaClient:
         prefix, headers = self._rig_prefix_headers(anon_session_id)
         return self._request("PUT", f"{prefix}/rigs/{rig_id}", json=body, headers=headers)
 
-    def list_traces(self, limit: int = 50, offset: int = 0, anon_session_id: str | None = None) -> dict[str, Any]:
+    def list_traces(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        anon_session_id: str | None = None,
+        **filters: str,
+    ) -> dict[str, Any]:
+        """Your own traces (the Bearer JWT alone). Optional filters: run_id,
+        parent_trace_id, harness_id, rig_id, status, trace_kind, node_id."""
         prefix, headers = self._rig_prefix_headers(anon_session_id)
-        return self._request("GET", f"{prefix}/traces", params={"limit": limit, "offset": offset}, headers=headers)
+        params: dict[str, Any] = {"limit": limit, "offset": offset}
+        params.update({k: v for k, v in filters.items() if v})
+        return self._request("GET", f"{prefix}/traces", params=params, headers=headers)
 
     def get_trace(self, trace_id: str, anon_session_id: str | None = None) -> dict[str, Any]:
+        """One trace: yours in full; a trace from a run of a PUBLIC rig needs
+        no auth (runner identity stripped, ``data.visibility == "public"``);
+        anything else raises RokhaError 404 ``trace_not_found``."""
         prefix, headers = self._rig_prefix_headers(anon_session_id)
         return self._request("GET", f"{prefix}/traces/{trace_id}", headers=headers)
 

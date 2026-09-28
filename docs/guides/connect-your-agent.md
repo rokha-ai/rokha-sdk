@@ -66,6 +66,11 @@ Two conventions worth teaching your agent:
   written for machine readers and kept current from the live database. The
   extended version at `https://rokha.ai/llms-full.txt` adds copy-paste
   JSON-RPC call bodies and the official catalog as direct links.
+- **A public rig's runs are public.** Anyone holding a run id or trace id of
+  a published rig can read it with no auth — `GET /api/rigs/runs/<run_id>`,
+  `GET /api/traces/<trace_id>`, or MCP `trace_get` — with the runner's
+  identity stripped. Your own traces need only your Bearer token. See
+  [runs-traces-data.md](runs-traces-data.md).
 - **Limit refusals are relayable.** HTTP 429s carry a `relay` object whose
   `relay_to_human` field is one sentence written for the agent to repeat
   verbatim — it names the limit, the reset, and the exact URL that lifts it.

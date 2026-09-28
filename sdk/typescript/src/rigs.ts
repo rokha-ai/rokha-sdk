@@ -11,12 +11,27 @@ export interface TraceRecord {
   id: string;
   harness_id?: string | null;
   rig_id?: string | null;
+  run_id?: string | null;
+  parent_trace_id?: string | null;
   trace_kind?: string;
   status: string;
   input?: unknown;
   result?: unknown;
   metadata?: Record<string, unknown> | null;
   created_at?: string;
+  /** `public` when the trace belongs to a run of a published rig (readable by anyone with its id). */
+  visibility?: 'public' | 'private';
+}
+
+/** Optional filters for `listTraces` — each narrows the caller's own traces. */
+export interface TraceFilters {
+  run_id?: string;
+  parent_trace_id?: string;
+  harness_id?: string;
+  rig_id?: string;
+  status?: string;
+  trace_kind?: string;
+  node_id?: string;
 }
 
 export class RigsClient {
@@ -71,12 +86,26 @@ export class RigsClient {
 
   // --- Traces ---
 
-  async listTraces(limit = 50, offset = 0): Promise<{ data?: TraceRecord[] } & Record<string, unknown>> {
-    return this.req('GET', `/traces?limit=${limit}&offset=${offset}`);
+  /** Your own traces — the bearer JWT alone (limit 1..200). */
+  async listTraces(
+    limit = 50,
+    offset = 0,
+    filters: TraceFilters = {},
+  ): Promise<{ data?: TraceRecord[] } & Record<string, unknown>> {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    for (const [k, v] of Object.entries(filters)) {
+      if (v) qs.set(k, v);
+    }
+    return this.req('GET', `/traces?${qs.toString()}`);
   }
 
-  async getTrace(id: string): Promise<unknown> {
-    return this.req('GET', `/traces/${id}`);
+  /**
+   * One trace. Yours in full; a trace from a run of a PUBLIC rig is readable
+   * with no auth at all (the runner's identity stripped); anything else is a
+   * 404 `trace_not_found`.
+   */
+  async getTrace(id: string): Promise<{ success?: boolean; data?: TraceRecord } & Record<string, unknown>> {
+    return this.req('GET', `/traces/${encodeURIComponent(id)}`);
   }
 
   async createTrace(trace: {

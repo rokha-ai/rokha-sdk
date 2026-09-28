@@ -393,12 +393,25 @@ the skeleton riding `metadata.rig`:
 }
 ```
 
+**Already saved the rig in the Studio or with `rig_author`?** Publish it in
+one call instead — the same converter the Studio's Publish button uses:
+`POST /api/rigs/publish {"rig_id": "<saved rig UUID>"}` (Bearer token) or MCP
+`rig_publish`. The answer names the `slug`, the rig's `inputs[]` and
+`secret_refs[]`, a `content_sha256`, and `notes[]` for anything that did not
+travel. A key a step needs must be named `key-<registrable-domain>` for the
+https host it is declared for (`key-helius-xyz` for `api.helius.xyz`) — it is
+sent only to that host. Details:
+[runs-traces-data.md](runs-traces-data.md).
+
 How anyone runs it after that:
 - **Human**: your page (`rokha.ai/@you`) → the rig → type the input → Run —
   or Builder → templates. Runs always bill the runner, never you.
 - **Agent**: `registry_search` → `registry_adopt` (their own copy) → the run
   stream with `user_context.rig_id` + `run_input` — or in a Rokha chat, one
-  `rig_run` tool call.
+  `rig_run` tool call. Simplest of all: `POST /api/rigs/run {"rig": "<slug>",
+  "input": "…"}` (or `"inputs": {name: value}` for a multi-input rig), then
+  poll the `run_id` it returns — a public rig's runs are readable by anyone
+  holding that id.
 
 ## Step 7 — Give your tool a UI (without breaking the sandbox)
 

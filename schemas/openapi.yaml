@@ -64,6 +64,10 @@ tags:
     description: User MCP gateway — one endpoint aggregating all your servers, credentials injected server-side
   - name: pages
     description: Builder Pages — every builder's public /@handle profile page + the Top Builders leaderboard
+  - name: signet
+    description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
+  - name: data
+    description: Data attachments — your own files, fed to a rig as fenced DATA
 
 security: []  # default: no auth. Routes that need it set their own.
 
@@ -1212,6 +1216,23 @@ paths:
         bearer) and `page_rig_config` (mode / featured / linked for one of
         your published rigs' sub-pages) — mirrors `/api/pages/*`.
 
+        RUNS AND TRACES: `trace_get` takes `id` (a trace UUID) or `run_id`
+        (a run UUID — answered in the run door's shape: status, steps with
+        their trace ids, output, traces); `trace_search` takes `run_id` plus
+        optional `trace_kind`, `status`, `node_id`, `parent_trace_id`,
+        `harness_id`, `rig_id`. Both are callable anonymously for a PUBLIC
+        rig's run (runner identity stripped, `visibility: "public"`); signed
+        in, you read your own traces in full plus any public run. Anything
+        else answers not-found. `rig_run` takes `inputs` (`{name: value}` for
+        a multi-input rig — the names on the rig's page payload) and
+        `input_attachment` (signed-in only: the id of one of YOUR data
+        attachments, fed to the run as fenced data; a `test_input`
+        attachment marks the run as test data, never proven). PAPER TRADING
+        (JWT): `signet_wallet_activity` (a Solana wallet's recent swaps) →
+        `signet_paper_buy` / `signet_paper_sell` → `signet_paper_positions`
+        (open, closed, P&L), and `signet_paper_reset` — real Jupiter quotes,
+        a recorded ledger, no money moves (REST twin POST /api/signet/paper).
+
         Scope is identity-derived, never client-supplied: for the wallet-scoped
         JWT tools (`rig_author`, `create_harness`/`list_harnesses`/`get_harness`/
         `update_harness`/`delete_harness`/`search_harnesses`, the `schedule_*`,
@@ -1557,6 +1578,11 @@ paths:
         One published rig presented under its owner's page — only for rigs
         whose owner opted in (`linked`). Carries the owner's linked X
         (`x_handle` / `x_verified` / `x_verified_type`). Public, no auth.
+        Also carries what a run asks for: `inputs` (one entry per input port,
+        `[{name, label, type, required, placeholder}]` — the names
+        `POST /api/rigs/run` takes in `inputs`) and `secret_refs` (the key
+        NAMES a runner must have saved, `[{alias, host?}]`, never a value),
+        plus `listing_id`, `source_id` and `registry_ref`.
       operationId: pageRigSubpage
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
@@ -1987,6 +2013,62 @@ paths:
       responses:
         '200': { description: Created rig }
 
+  /api/rigs/publish:
+    post:
+      tags: [rigs]
+      summary: Publish a rig to the registry (the Studio's Publish button)
+      description: >-
+        Converts a saved rig (`rig_id`) or raw rig `content` into a registry
+        `rig` listing — the same converter the MCP `rig_publish` tool uses.
+        The publisher is the verified Bearer token, never a body field; a
+        `rig_id` must be a rig in YOUR library (anything else is
+        `rig_not_found`). Every step field travels, or a `notes[]` line says
+        exactly what did not (a credential-shaped header, a key alias that
+        does not name its host). Publishing an existing slug you own updates
+        it. Only a publish from a saved rig can earn the proven stamp, and the
+        stamp is bound to `content_sha256`: editing the rig un-proves it until
+        its next clean run. Registry listings are public; any other
+        `visibility` value is ignored with a note.
+      operationId: publishRig
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Send `rig_id` or `content`.
+              properties:
+                rig_id: { type: string, format: uuid, description: "A saved rig in your library" }
+                content: { type: object, additionalProperties: true, description: "Raw rig content (the canvas graph or a steps[] list), at most 400 KB. Never earns the proven stamp." }
+                title: { type: string, maxLength: 140 }
+                description: { type: string, maxLength: 4000 }
+                visibility: { type: string, description: "Only `public` is a listing option today" }
+      responses:
+        '200':
+          description: Published
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, const: true }
+                  listing_id: { type: [string, 'null'] }
+                  slug: { type: string, description: "The registry slug — what POST /api/rigs/run takes as `rig`" }
+                  url: { type: [string, 'null'] }
+                  version: { type: string }
+                  proven: { type: boolean }
+                  notes: { type: array, items: { type: string }, description: "Everything that did not travel, and why" }
+                  content_sha256: { type: string, description: "Fingerprint of the published content (layout positions and key order ignored)" }
+                  source_id: { type: [string, 'null'], description: "The saved rig it was published from (null for a content publish)" }
+                  inputs: { type: array, items: { $ref: '#/components/schemas/RigInputPort' } }
+                  secret_refs: { type: array, items: { $ref: '#/components/schemas/RigSecretRef' } }
+        '400': { $ref: '#/components/responses/RigDoorError' }
+        '401': { $ref: '#/components/responses/RigDoorError' }
+        '404': { $ref: '#/components/responses/RigDoorError' }
+        '413': { $ref: '#/components/responses/RigDoorError' }
+        '502': { $ref: '#/components/responses/RigDoorError' }
+
   /api/rigs/run:
     post:
       tags: [rigs]
@@ -1998,6 +2080,17 @@ paths:
         send it back when polling). With `Authorization: Bearer <token>` the
         run is billed to that account. Anonymous runs are capped per session
         and per IP (429). The run finishes whether or not the caller stays.
+
+
+        Inputs are checked against the rig's published contract BEFORE
+        anything runs (the rig's `inputs[]` on its page payload, or
+        `inputs` on the publish answer): `inputs` names them, and the legacy
+        `input` string still fills the FIRST declared input. A rig that
+        declares no inputs takes only `input`. If the rig needs keys the
+        runner has not saved (its `secret_refs`), the answer is 409
+        `needs_secret` naming each one — anonymous callers have no key vault,
+        so every key is missing for them. A key is only ever sent to the host
+        it was declared for.
       operationId: runPublishedRig
       parameters:
         - { name: x-anon-session-id, in: header, required: false, schema: { type: string, format: uuid } }
@@ -2010,7 +2103,17 @@ paths:
               required: [rig]
               properties:
                 rig: { type: string, description: "The published rig's registry slug" }
-                input: { type: string, maxLength: 8000, description: "What the run works on — the rig's {{input}}" }
+                input: { type: string, maxLength: 8000, description: "Legacy single input — the rig's {{input}}; fills the first declared input when `inputs` does not name it" }
+                inputs:
+                  type: object
+                  maxProperties: 12
+                  additionalProperties: true
+                  description: >-
+                    Named inputs `{name: value}` — each fills `{{input.<name>}}`
+                    (the first also fills `{{input}}`). Types: `text` and `url`
+                    up to 8,000 bytes (`url` must be http(s)), `number` must
+                    parse as a finite number, `json` must be valid JSON (up to
+                    32,000 bytes); 64,000 bytes across all inputs.
                 provider_id: { type: string, default: rokha }
       responses:
         '202':
@@ -2025,17 +2128,50 @@ paths:
                   run_id: { type: string, format: uuid }
                   rig: { type: string }
                   rig_id: { type: string, format: uuid }
-                  anon_session_id: { type: string, format: uuid, nullable: true }
+                  anon_session_id: { type: [string, 'null'], format: uuid }
                   poll:
                     type: object
                     properties:
                       method: { type: string }
                       url: { type: string }
                       headers: { type: object, additionalProperties: { type: string } }
-        '400': { description: Bad rig slug }
-        '401': { description: The Bearer token is expired or revoked }
+                  next: { type: string }
+        '400':
+          description: "`bad_rig` · `missing_input` · `unknown_input` · `bad_input` · `input_too_large` · `too_many_inputs`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
+        '401':
+          description: "`token_rejected` — the Bearer token is expired or revoked"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
         '404': { description: No published rig by that slug }
+        '409':
+          description: "`needs_secret` — the runner has not saved every key this rig needs"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, const: false }
+                  error: { type: string, const: needs_secret }
+                  message: { type: string }
+                  missing:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        alias: { type: string }
+                        host: { type: string, description: "The one host this key is sent to (author-declared keys)" }
+                        hint: { type: string, description: "Where to add it — Profile → Keys" }
+                      required: [alias, hint]
         '429': { description: Anonymous daily run cap reached }
+        '503':
+          description: "`secret_check_unavailable` — saved keys could not be checked; try again"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
 
   /api/rigs/runs/{run_id}:
     get:
@@ -2044,9 +2180,19 @@ paths:
       description: >-
         Poll until `done` is true (every few seconds). Right after the POST the
         status reads `starting`; a rig with a sandbox step can take about a
-        minute on its first run while the sandbox starts. Send the same
-        `x-anon-session-id` the run was started with (or the same Bearer
-        token); a run is only readable by the caller that started it.
+        minute on its first run while the sandbox starts.
+
+
+        Who reads what: the runner (the same Bearer token, or the same
+        `x-anon-session-id` the run was started with) reads their own run in
+        full. A run of a PUBLIC rig — one bound to an active, published rig
+        listing — is readable by anyone holding its run id, no auth at all;
+        that view strips the runner's identity (owner scope, session ids,
+        IPs, emails, credential-shaped keys). Anything else is 404
+        `run_not_found`. Unpublishing the listing makes its runs private
+        again. A caller that sends an identity and names an id that is
+        neither theirs nor public gets the empty `starting` view (their own
+        run may not have written its first trace yet).
       operationId: getRigRun
       parameters:
         - { name: run_id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -2063,18 +2209,38 @@ paths:
                   run_id: { type: string, format: uuid }
                   status: { type: string, description: "starting · running · success · partial · error" }
                   done: { type: boolean }
+                  visibility: { type: string, enum: [public, private], description: "Absent on the empty `starting` view" }
                   output: { description: "The last step's result, once done (a stage run carries a rokha_app block)" }
                   steps:
                     type: array
                     items:
                       type: object
                       properties:
-                        trace_id: { type: string }
+                        trace_id: { type: string, description: "Readable at GET /api/traces/{id}" }
                         step: { type: string }
                         status: { type: string }
-                        error: { nullable: true }
+                        error: { description: "The step's error object, or null" }
                   traces: { type: array, items: { type: object, additionalProperties: true } }
-        '400': { description: Bad run id, or no caller identity sent }
+        '400':
+          description: "`bad_run_id` — a run id is a UUID"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
+        '401':
+          description: "`token_rejected` — drop the header to read a public run"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
+        '404':
+          description: "`run_not_found` — not your run and not a public rig's run"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
+        '502':
+          description: "`traces_unavailable` — poll again"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RigDoorError' }
 
   /api/rigs/{id}:
     get:
@@ -2133,17 +2299,34 @@ paths:
     get:
       tags: [rigs]
       summary: List the caller's run traces (newest first)
+      description: >-
+        Your own traces. `Authorization: Bearer <token>` alone — no
+        `x-wallet-address` header is needed any more. Without a token: 401.
+        To read a public rig's run, use GET /api/rigs/runs/{run_id} or
+        GET /api/traces/{id}, which need no token.
       operationId: listTraces
       security: [{ bearerAuth: [] }]
       parameters:
-        - { name: limit, in: query, schema: { type: integer, default: 50 } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, minimum: 1, maximum: 200 } }
         - { name: offset, in: query, schema: { type: integer, default: 0 } }
+        - { name: run_id, in: query, schema: { type: string }, description: "Every trace one run wrote" }
+        - { name: parent_trace_id, in: query, schema: { type: string } }
+        - { name: harness_id, in: query, schema: { type: string } }
+        - { name: rig_id, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: trace_kind, in: query, schema: { type: string } }
+        - { name: node_id, in: query, schema: { type: string } }
       responses:
         '200':
           description: "Traces: { success, data, total, limit, offset }"
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
+        '401':
+          description: "`unauthorized` (no token) or `token_rejected`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
     post:
       tags: [rigs]
       summary: Record a trace (one harness/rig × a result)
@@ -2168,13 +2351,63 @@ paths:
   /api/traces/{id}:
     get:
       tags: [rigs]
-      summary: Get a trace
+      summary: Get a trace — yours in full, or any public rig's run
+      description: >-
+        One door for every reader. The owner — `Authorization: Bearer <token>`
+        alone, or the `x-anon-session-id` that ran it — gets the full record.
+        Anyone else, with or without a token, gets the stripped public view
+        when the trace belongs to a run of a PUBLIC rig (bound to an active,
+        published rig listing; decided from the run's root, so one run is
+        public or private as a whole). The public view drops the runner's
+        identity: owner scope, user context, session ids, IPs, emails,
+        credential-shaped keys, and every occurrence of the runner's identity
+        string (replaced by `[runner]`). Everything else answers 404
+        `trace_not_found` — the same answer as an id that never existed.
       operationId: getTrace
-      security: [{ bearerAuth: [] }]
       parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: x-anon-session-id, in: header, required: false, schema: { type: string, format: uuid } }
       responses:
-        '200': { description: Trace }
+        '200':
+          description: The trace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    additionalProperties: true
+                    properties:
+                      id: { type: string }
+                      run_id: { type: [string, 'null'] }
+                      rig_id: { type: [string, 'null'] }
+                      trace_kind: { type: string }
+                      status: { type: string }
+                      input: {}
+                      result: {}
+                      visibility: { type: string, enum: [public, private] }
+        '400':
+          description: "`bad_trace_id` — a trace id is a UUID"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: "`token_rejected` — drop the header to read a public trace"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: "`trace_not_found`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '502':
+          description: "`traces_unavailable` — try again"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   /api/anon/rigs:
     get:
@@ -2194,6 +2427,270 @@ paths:
           schema: { type: string }
       responses:
         '200': { description: Rigs for this anon session }
+
+  # ============================================================
+  # Paper trading — real quotes, a recorded ledger, NO money moves
+  # ============================================================
+
+  /api/signet/paper:
+    post:
+      tags: [signet]
+      summary: Paper trading — watch a wallet, paper buy/sell, read the ledger
+      description: >-
+        PAPER: every fill is priced by a real Jupiter quote (USDC in for a
+        buy, USDC out for a sell) and written to the caller's own durable
+        ledger. No mandate, no signature, no funds — nothing on this door can
+        reach the signer. No quote is a refusal, never a made-up price. The
+        owner is the verified token; ledgers are for signed-in accounts only
+        (an `anon:` scope answers `sign_in_required`). Every paper answer
+        carries `paper: true` — report it as PAPER.
+
+
+        One door, five actions, chosen by `action`:
+
+        - `wallet_activity` `{address, limit? (1..50, default 20), since? (unix secs), before? (a signature)}`
+          → `{address, count, swaps: [{signature, time, token_in: {mint, amount}, token_out: {mint, amount}, source}], as_of}`
+          — a Solana wallet's recent swaps from Helius, newest first; `token_in` is what the
+          wallet gave, `token_out` what it got. `helius_not_configured` means the deployment
+          has no Helius key — it is not an empty wallet.
+
+        - `paper_buy` `{ledger?, mint, amount_usd | amount_tokens, symbol?, reason?, source_signature?}`
+          or `{ledger?, buys: [...]}` (up to 20 fills)
+          → `{paper, ledger, action, fills: [{mint, amount, price_usd, cost_usd, source_signature}], skipped: [{mint, source_signature, reason: "already_mirrored"}]}`.
+          A `source_signature` already in the ledger is skipped, so a copy-trade loop never
+          mirrors a swap twice. `mint` is a full mint address, or `SOL` / `USDC`.
+
+        - `paper_sell` `{ledger?, mint, fraction? ((0,1], default 1 = all) | amount_tokens?, reason?}`
+          or `{ledger?, sells: [...]}`
+          → `{paper, ledger, action, fills: [{mint, amount, exit_price_usd, proceeds_usd, realized_usd}]}`.
+
+        - `paper_positions` `{ledger?}`
+          → `{paper, ledger, open: [{mint, symbol?, amount, entry_price_usd, cost_usd, mark_price_usd, unrealized_usd, opened_at, source_signature?}],
+          closed: [{mint, amount, entry_price_usd, exit_price_usd, realized_usd, opened_at, closed_at, reason?}],
+          totals: {realized_usd, unrealized_usd, open_count, closed_count, win_rate}, as_of}`
+          — open positions marked at a live quote (`mark_price_usd` null when no quote).
+
+        - `paper_reset` `{ledger}` → `{paper, ledger, action, cleared}` — deletes the ledger and every trade in it.
+
+
+        `ledger` is 1–40 characters of a-z, 0-9 and '-' (default `default`).
+        Caps: 20 ledgers per account, 500 open positions per ledger, 20 fills
+        per call, $1,000,000 per fill; 60 calls a minute per action
+        (`wallet_activity`: 20). MCP twins on `/mcp/jsonrpc`:
+        `signet_wallet_activity`, `signet_paper_buy`, `signet_paper_sell`,
+        `signet_paper_positions`, `signet_paper_reset`.
+      operationId: signetPaper
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              additionalProperties: true
+              properties:
+                action: { type: string, enum: [wallet_activity, paper_buy, paper_sell, paper_positions, paper_reset] }
+                ledger: { type: string, pattern: '^[a-z0-9-]{1,40}$', default: default }
+                address: { type: string, description: "wallet_activity: the Solana wallet" }
+                limit: { type: integer, minimum: 1, maximum: 50 }
+                since: { type: integer, description: "wallet_activity: only swaps after this unix time" }
+                before: { type: string, description: "wallet_activity: page back from this signature" }
+                mint: { type: string, description: "Full mint address, or SOL / USDC" }
+                amount_usd: { type: number, exclusiveMinimum: 0, maximum: 1000000 }
+                amount_tokens: { type: number, exclusiveMinimum: 0 }
+                fraction: { type: number, exclusiveMinimum: 0, maximum: 1 }
+                symbol: { type: string, maxLength: 16 }
+                reason: { type: string, maxLength: 200 }
+                source_signature: { type: string, maxLength: 120 }
+                buys: { type: array, maxItems: 20, items: { type: object, additionalProperties: true } }
+                sells: { type: array, maxItems: 20, items: { type: object, additionalProperties: true } }
+      responses:
+        '200':
+          description: The action's answer (shapes above)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422':
+          description: >-
+            Refused — `{paper: true, status: "refused", code, error}`. Codes include
+            `sign_in_required`, `bad_ledger`, `bad_action`, `bad_amount`, `no_quote`,
+            `no_position`, `position_cap`, `too_many_trades`, `bad_address`,
+            `helius_not_configured`, `helius_error`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaperRefusal' }
+        '429':
+          description: "`rate_limited`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaperRefusal' }
+
+  # ============================================================
+  # Data attachments — your own data, fed to a rig as fenced DATA
+  # ============================================================
+
+  /api/data-attachments:
+    get:
+      tags: [data]
+      summary: List your data attachments (newest first, without content)
+      description: >-
+        Your own JSON / CSV / XML / YAML / text files, kept for rigs to read
+        as fenced DATA (never instructions). Owner-scoped: a foreign id is a
+        404. Google sign-ins send the Bearer token alone; a wallet sign-in
+        also sends `x-wallet-address: <the wallet in the token>`.
+      operationId: listDataAttachments
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: "`{data: [DataAttachment], limit: 200, max_bytes: 524288}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/DataAttachment' } }
+                  limit: { type: integer }
+                  max_bytes: { type: integer }
+    post:
+      tags: [data]
+      summary: Create a data attachment
+      description: >-
+        Content is parse-checked for its `format` and a schema is inferred.
+        At most 512 KB each and 200 per account.
+      operationId: createDataAttachment
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, format, content]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 120 }
+                format: { $ref: '#/components/schemas/DataAttachmentFormat' }
+                role: { $ref: '#/components/schemas/DataAttachmentRole' }
+                content: { type: string }
+                source: { type: string, enum: [user, rokha], default: user, description: "`run_output` is minted only by POST /api/data-attachments/from-run" }
+      responses:
+        '201':
+          description: "`{data: DataAttachment}`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DataAttachmentEnvelope' }
+        '400': { $ref: '#/components/responses/DataAttachmentError' }
+        '413': { $ref: '#/components/responses/DataAttachmentError' }
+        '422': { $ref: '#/components/responses/DataAttachmentError' }
+        '429': { $ref: '#/components/responses/DataAttachmentError' }
+
+  /api/data-attachments/templates:
+    get:
+      tags: [data]
+      summary: A starter template per format
+      operationId: dataAttachmentTemplates
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: "`{data: {json, csv, xml, yaml, text}}` — each a template string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: object, additionalProperties: { type: string } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/data-attachments/from-run:
+    post:
+      tags: [data]
+      summary: Save one of your runs' output as an attachment
+      description: >-
+        Name a `trace_id` or a `run_id` (a run's `run` trace, else its first).
+        Only your own traces are read. The output is saved as `json` when it
+        parses, else `text`, with `source: run_output`.
+      operationId: dataAttachmentFromRun
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                trace_id: { type: string, format: uuid }
+                run_id: { type: string, format: uuid }
+                name: { type: string, minLength: 1, maxLength: 120 }
+                role: { $ref: '#/components/schemas/DataAttachmentRole' }
+      responses:
+        '201':
+          description: "`{data: DataAttachment}`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DataAttachmentEnvelope' }
+        '400': { $ref: '#/components/responses/DataAttachmentError' }
+        '404': { $ref: '#/components/responses/DataAttachmentError' }
+        '422':
+          $ref: '#/components/responses/DataAttachmentError'
+
+  /api/data-attachments/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [data]
+      summary: One attachment, with its content
+      operationId: getDataAttachment
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: "`{data: DataAttachment}` including `content`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DataAttachmentEnvelope' }
+        '404': { $ref: '#/components/responses/DataAttachmentError' }
+    put:
+      tags: [data]
+      summary: Update an attachment (any field; the rest are kept)
+      operationId: updateDataAttachment
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 120 }
+                format: { $ref: '#/components/schemas/DataAttachmentFormat' }
+                role: { $ref: '#/components/schemas/DataAttachmentRole' }
+                content: { type: string }
+      responses:
+        '200':
+          description: "`{data: DataAttachment}`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DataAttachmentEnvelope' }
+        '400': { $ref: '#/components/responses/DataAttachmentError' }
+        '404': { $ref: '#/components/responses/DataAttachmentError' }
+        '413': { $ref: '#/components/responses/DataAttachmentError' }
+        '422': { $ref: '#/components/responses/DataAttachmentError' }
+    delete:
+      tags: [data]
+      summary: Delete an attachment
+      operationId: deleteDataAttachment
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: "`{ok: true}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+        '404': { $ref: '#/components/responses/DataAttachmentError' }
 
   # ============================================================
   # Agent choreographies (SSE)
@@ -2641,6 +3138,26 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
+    RigDoorError:
+      description: "`{ok: false, error, message}` — `error` is the machine-readable code"
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/RigDoorError' }
+    DataAttachmentError:
+      description: >-
+        `{error, message}` — `bad_name` · `bad_format` · `bad_role` · `bad_request` (400),
+        `not_found` (404), `too_large` (413), `parse_failed` (422, with `line` and `col`),
+        `empty_output` (422), `limit_reached` (429, 200 per account)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+              message: { type: string }
+              line: { type: [integer, 'null'] }
+              col: { type: [integer, 'null'] }
+            required: [error]
 
   schemas:
     # --- Meta ---
@@ -3395,3 +3912,76 @@ components:
         limit: { type: integer }
         offset: { type: integer }
       required: [items, total_count]
+
+    # --- Published rig contract: inputs + keys (2026-09-28) ---
+
+    RigInputPort:
+      type: object
+      description: One input a published rig asks for — `POST /api/rigs/run` names it in `inputs`.
+      properties:
+        name: { type: string, description: "The key in `inputs`; fills {{input.<name>}}" }
+        label: { type: string }
+        type: { type: string, enum: [text, number, json, url] }
+        required: { type: boolean }
+        placeholder: { type: [string, 'null'] }
+      required: [name, label, type, required]
+
+    RigSecretRef:
+      type: object
+      description: >-
+        A key NAME (never a value) a runner must have saved to run the rig.
+        `oauth-<provider>` = a connected account; `key-gmgn` = a vendor key
+        Rokha knows the host of; any other author-declared key must be named
+        `key-<registrable-domain>` for its declared https `host` (e.g.
+        `key-helius-xyz` for `api.helius.xyz`) and is sent only to that host.
+      properties:
+        alias: { type: string }
+        host: { type: string }
+      required: [alias]
+
+    RigDoorError:
+      type: object
+      properties:
+        ok: { type: boolean, const: false }
+        error: { type: string, description: "Machine-readable code" }
+        message: { type: string }
+      required: [ok, error]
+
+    PaperRefusal:
+      type: object
+      properties:
+        paper: { type: boolean, const: true }
+        status: { type: string, const: refused }
+        code: { type: string }
+        error: { type: string, description: "`<code>: <why>`" }
+      required: [paper, status, code, error]
+
+    DataAttachmentFormat:
+      type: string
+      enum: [json, csv, xml, yaml, text]
+
+    DataAttachmentRole:
+      type: string
+      enum: [input, test_input, expected_output, reference]
+      default: input
+      description: "`test_input` marks a run fed from it as TEST DATA — such a run never earns the proven stamp"
+
+    DataAttachment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        format: { $ref: '#/components/schemas/DataAttachmentFormat' }
+        schema: { description: "Inferred from the content" }
+        role: { $ref: '#/components/schemas/DataAttachmentRole' }
+        source: { type: string, enum: [user, rokha, run_output] }
+        source_run_id: { type: [string, 'null'] }
+        bytes: { type: integer }
+        created_at: { type: [string, 'null'], format: date-time }
+        updated_at: { type: [string, 'null'], format: date-time }
+        content: { type: string, description: "Only on GET /api/data-attachments/{id}" }
+
+    DataAttachmentEnvelope:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/DataAttachment' }

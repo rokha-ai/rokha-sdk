@@ -5,6 +5,58 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-09-28 — Publish in one call, named inputs, public run traces, data attachments, paper trading
+
+- **A public rig's runs are public.** `GET /api/traces/<id>` and
+  `GET /api/rigs/runs/<run_id>` answer anyone — no auth — when the trace or run
+  belongs to a published, active rig; the public view strips the runner's
+  identity (owner scope, session ids, IPs, emails, credential-shaped keys). The
+  owner reads their own with `Authorization: Bearer <token>` alone — **no
+  `x-wallet-address` header any more** — or the `x-anon-session-id` they ran
+  with. Anything else is `404 trace_not_found` / `run_not_found`. Answers carry
+  `visibility` (`public` | `private`); `GET /api/traces/<id>` answers `{success, data}`.
+  `GET /api/traces` (your own) takes Bearer alone and filters by `run_id`,
+  `parent_trace_id`, `harness_id`, `rig_id`, `status`, `trace_kind`, `node_id`.
+- **MCP `trace_get {id | run_id}` and `trace_search {run_id, trace_kind?,
+  status?, node_id?, parent_trace_id?}`** are callable anonymously for a public
+  rig's run; signed in, they read your own traces plus any public run.
+- **`POST /api/rigs/publish`** (JWT) — the Studio's Publish button as an API:
+  `{rig_id | content, title?, description?, visibility?}` →
+  `{ok, listing_id, slug, url, version, proven, notes[], content_sha256,
+  source_id, inputs[], secret_refs[]}`; a refusal is `{ok: false, error, message}`.
+  `notes[]` names everything that did not travel. The proven stamp is bound to
+  the published content's sha256.
+- **Named run inputs.** `POST /api/rigs/run` takes `inputs: {name: value}` (the
+  legacy `input` still fills the first declared input), checked before the run
+  starts: `400` `missing_input` · `unknown_input` · `bad_input` ·
+  `input_too_large` · `too_many_inputs`. A rig whose keys the runner has not
+  saved answers **`409 needs_secret`** `{missing: [{alias, host?, hint}]}`.
+  MCP `rig_run` takes `inputs` and `input_attachment`. The rig sub-page payload
+  (`GET /api/pages/<handle>/rig/<slug>`) carries
+  `inputs: [{name, label, type, required, placeholder}]` and
+  `secret_refs: [{alias, host?}]`.
+- **Author-declared keys name their host.** A published key other than
+  `oauth-*` and `key-gmgn` must be `key-<registrable-domain>` for its declared
+  https host (`key-helius-xyz` for `api.helius.xyz`), and is sent only to that
+  host.
+- **Data attachments** — `/api/data-attachments` (list, create, read, update,
+  delete), `POST /api/data-attachments/from-run` (save a run's output) and
+  `GET /api/data-attachments/templates`: your own JSON / CSV / XML / YAML / text
+  (512 KB each, 200 per account), fed to a run as fenced data via
+  `input_attachment`. A `test_input` attachment marks the run as test data.
+- **Paper trading** — `POST /api/signet/paper` (JWT) with `action`
+  `wallet_activity` · `paper_buy` · `paper_sell` · `paper_positions` ·
+  `paper_reset`, and MCP `signet_wallet_activity`, `signet_paper_buy`,
+  `signet_paper_sell`, `signet_paper_positions`, `signet_paper_reset`. Real
+  Jupiter quotes price every fill, the ledger is recorded, **no money moves**;
+  every answer says `paper: true`.
+- **SDKs:** `listTraces` / `list_traces` take the new filters; `TraceRecord`
+  carries `run_id`, `parent_trace_id` and `visibility`; `getTrace` is typed as
+  `{success, data}`.
+- **Docs:** new guide `docs/guides/runs-traces-data.md`; the OpenAPI file
+  documents every door above (and three pre-existing lint errors in the rigs
+  section are fixed).
+
 ## 2026-09-27 — Get carried today, seat keywords and links, the spot picker
 
 - **A tie is one place on the Tailwind.** Promoters with exactly the same seeds now

@@ -18,7 +18,7 @@ export { HarnessesClient } from './harnesses.js';
 export { MCPClient } from './mcp.js';
 export { MarketplaceClient } from './marketplace.js';
 export { RigsClient } from './rigs.js';
-export type { TraceRecord } from './rigs.js';
+export type { TraceRecord, TraceFilters } from './rigs.js';
 export { RuntimeClient } from './runtime.js';
 export type { TasteRequest, RunRequest, RunAck } from './runtime.js';
 export { WalletsClient } from './wallets.js';

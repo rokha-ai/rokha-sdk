@@ -29,6 +29,10 @@ is the full step-by-step recipe for shipping a real, executable Agent Skill —
 compiled core → npm wrapper → SKILL.md → Rokha registry → Rig — the same
 pattern behind [Solwatch](https://github.com/aetherBytes/solwatch).
 
+**Published a rig?** [docs/guides/runs-traces-data.md](docs/guides/runs-traces-data.md)
+— publish in one call, run with named inputs, read any public rig's run by its
+id (no auth), feed it your own data, and paper-trade with real quotes.
+
 **Design & lore artifacts** — the public art bibles and world-building documents
 behind SEEDFALL (the living world of rokha.ai), published for the community:
 [rokha-ai.github.io/rokha-sdk/artifacts](https://rokha-ai.github.io/rokha-sdk/artifacts/).
