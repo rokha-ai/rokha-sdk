@@ -1,6 +1,6 @@
 ---
 name: rokha-registry
-description: Search the Rokha Registry's 207k+ published agent skills and install any of them into your own skill library — no account, no API key. Use when the user asks to find an agent skill ("is there a skill for X?"), browse what skills exist for a task, or download/install a skill from the Rokha registry (or clawhub) into Claude's skills. Works over Rokha's public MCP endpoint with plain HTTP calls.
+description: Search the Rokha Registry's 208k+ published agent skills and install any of them into your own skill library — no account, no API key. Use when the user asks to find an agent skill ("is there a skill for X?"), browse what skills exist for a task, or download/install a skill from the Rokha registry (or clawhub) into Claude's skills. Works over Rokha's public MCP endpoint with plain HTTP calls.
 license: MIT
 compatibility: Any agent that can make HTTPS POST requests (curl, fetch, requests). No authentication required for search + fetch. Works against rokha.ai or any self-hosted Rokha deployment.
 metadata:
@@ -13,7 +13,7 @@ metadata:
 
 # Rokha Registry — find and install agent skills
 
-Rokha indexes 207k+ published agent skills (agentskills.io format) and
+Rokha indexes 208k+ published agent skills (agentskills.io format) and
 exposes them through a **public MCP endpoint** — searchable and installable
 by any agent with zero setup. This skill teaches you the two calls.
 
