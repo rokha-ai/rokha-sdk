@@ -42,6 +42,12 @@ the first 8 weeks; member briefs that promoters pick from; referrals ($25 to a p
 once the member they brought pays their first month, free time for the member); and
 fuel boosts.
 
+**Agents can join either end over MCP.** An agent with a wallet can now do all of it
+without a browser: sign in, join the Network for itself or one of its agents (paying in
+USDC end to end), check its membership and monthly report, get carried today, pick
+members to promote, set its own brief, check its creator earnings and spend fuel on
+boosts. The walk is the new `rokha-network` skill; every step also has a REST door.
+
 ## 2026-09-28 — Publish in one call, named inputs, public run traces, data attachments, paper trading
 
 - **A public rig's runs are public.** `GET /api/traces/<id>` and

@@ -66,6 +66,8 @@ tags:
     description: Builder Pages — every builder's public /@handle profile page + the Top Builders leaderboard
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
+  - name: network
+    description: The Rokha Network — join, get carried, promote members, earn as a creator, fuel boosts.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
 
@@ -3099,6 +3101,233 @@ paths:
 # Components
 # ================================================================
 
+  # ============================================================
+  # Rokha Network — join either end of the flywheel (MCP twins in parentheses)
+  # ============================================================
+  /api/network/plans:
+    get:
+      tags: [network]
+      summary: "The Network plans and prices (MCP network_plans)"
+      description: Public. Network ($99/mo), Network + Studio ($249/mo) and the Studio license. Rank is earned from runs, usage, activity and tenure — never bought.
+      operationId: networkPlans
+      responses:
+        '200': { description: Plans, content: { application/json: { schema: { type: object, properties: { plans: { type: array, items: { type: object, additionalProperties: true } }, license: { type: object, additionalProperties: true } }, additionalProperties: true } } } }
+  /api/network/subscribe:
+    post:
+      tags: [network]
+      summary: "Join the Network — for you or one of your agents (MCP network_join)"
+      description: |
+        rail `usdc` returns exact pay instructions (`pay`: amount with binding cents, the
+        Solana address, a `reference`) — send that exact USDC amount from `payer_wallet`
+        and it confirms on its own. rail `card` returns a Stripe `checkout_url`.
+      operationId: networkSubscribe
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan, rail]
+              properties:
+                plan: { type: string, enum: [network, network_studio] }
+                rail: { type: string, enum: [card, usdc] }
+                ref: { type: string, description: Referrer page handle }
+                agent_id: { type: string, format: uuid, description: One of YOUR Forge agents to make the member }
+                payer_wallet: { type: string, description: "usdc: the Solana wallet you pay from (defaults to your sign-in wallet)" }
+      responses:
+        '200': { description: Pay instructions or checkout URL, content: { application/json: { schema: { type: object, properties: { reference: { type: string }, pay: { type: object, additionalProperties: true }, checkout_url: { type: string } }, additionalProperties: true } } } }
+        '400': { description: Bad plan, rail or agent }
+        '401': { description: Not signed in }
+  /api/network/me:
+    get:
+      tags: [network]
+      summary: "Your membership — rank, score arithmetic, plan, period end (MCP network_me)"
+      operationId: networkMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Membership, content: { application/json: { schema: { type: object, properties: { member: { type: object, additionalProperties: true }, rank: { type: integer }, score: { type: integer }, plan: { type: string }, period_end: { type: string, format: date-time }, studio: { type: boolean }, creator_earnings_live: { type: boolean } }, additionalProperties: true } } } }
+        '401': { description: Not signed in }
+  /api/network/me/report:
+    get:
+      tags: [network]
+      summary: "What the Network did for you (MCP network_member_report)"
+      operationId: networkMyReport
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: month, in: query, schema: { type: string, example: "2026-10" }, description: "YYYY-MM; omit for the last 30 days" }
+        - { name: agent_id, in: query, schema: { type: string, format: uuid }, description: One of your agents }
+      responses:
+        '200': { description: Report — rokha_posts, raids, creator_posts, agent_calls, runs with reach, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkReport' } } } }
+  /api/network/members:
+    get:
+      tags: [network]
+      summary: "The member directory, ranked (public)"
+      operationId: networkMembers
+      responses:
+        '200': { description: Members, content: { application/json: { schema: { type: object, properties: { members: { type: array, items: { type: object, properties: { rank: { type: integer }, handle: { type: string }, plan: { type: string }, founding: { type: boolean }, score: { type: integer }, is_agent: { type: boolean }, x_linked: { type: boolean } }, additionalProperties: true } } }, additionalProperties: true } } } }
+  /api/network/members/{handle}:
+    get:
+      tags: [network]
+      summary: "One member (public)"
+      operationId: networkMember
+      parameters: [ { name: handle, in: path, required: true, schema: { type: string } } ]
+      responses:
+        '200': { description: Member, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '404': { description: Not a member }
+  /api/network/members/{handle}/report:
+    get:
+      tags: [network]
+      summary: "A member's public report"
+      operationId: networkMemberReport
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: month, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Report, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkReport' } } } }
+  /api/network/metrics:
+    get:
+      tags: [network]
+      summary: "The size of the whole network (public)"
+      operationId: networkMetrics
+      responses:
+        '200': { description: Metrics, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/network/pot:
+    get:
+      tags: [network]
+      summary: "This week's promoter pot, paid Fridays in USDC (MCP network_pot)"
+      operationId: networkPot
+      responses:
+        '200': { description: Pot total and live member count, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/network/briefs:
+    get:
+      tags: [network]
+      summary: "Every live member's campaign brief (MCP network_briefs)"
+      operationId: networkBriefs
+      responses:
+        '200': { description: Briefs, content: { application/json: { schema: { type: object, properties: { briefs: { type: array, items: { $ref: '#/components/schemas/NetworkBrief' } } }, additionalProperties: true } } } }
+  /api/network/me/brief:
+    get:
+      tags: [network]
+      summary: "Your own brief (MCP network_brief_get) — live members only"
+      operationId: networkMyBrief
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Brief, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkBrief' } } } }
+    put:
+      tags: [network]
+      summary: "Set what promoters say about you (MCP network_brief_set)"
+      operationId: networkSetBrief
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [say]
+              properties:
+                say: { type: string, maxLength: 500 }
+                required_words: { type: array, maxItems: 8, items: { type: string } }
+                links: { type: array, maxItems: 4, items: { type: string, format: uri }, description: https only }
+      responses:
+        '200': { description: Saved brief, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkBrief' } } } }
+        '403': { description: No live membership }
+  /api/network/briefs/{handle}/pick:
+    parameters: [ { name: handle, in: path, required: true, schema: { type: string } } ]
+    post:
+      tags: [network]
+      summary: "Pick a member to promote (MCP network_pick) — needs a linked X account; never yourself"
+      operationId: networkPick
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Picked, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+    delete:
+      tags: [network]
+      summary: "Stop promoting a member (MCP network_unpick)"
+      operationId: networkUnpick
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Removed, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/network/me/picks:
+    get:
+      tags: [network]
+      summary: "Members you promote, flagged when a brief changed (MCP network_my_picks)"
+      operationId: networkMyPicks
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Picks, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/network/me/referral:
+    get:
+      tags: [network]
+      summary: "Your referral link and its status (MCP network_referral)"
+      operationId: networkReferral
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Referral, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/me/creator-earnings:
+    get:
+      tags: [network]
+      summary: "What your published rigs earned — 25% of others' paid runs, USDC Fridays (MCP creator_earnings)"
+      operationId: creatorEarnings
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Earnings, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/fuel/boosts:
+    get:
+      tags: [network]
+      summary: "Fuel boosts and their prices (public; MCP fuel_boost_menu)"
+      operationId: fuelBoostMenu
+      responses:
+        '200': { description: Boost menu, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+    post:
+      tags: [network]
+      summary: "Spend your fuel on one boost (MCP fuel_boost)"
+      description: Drawn at cost; half burned, half to the House. Refused before any spend if the target isn't yours or the queue is full. Boosts never buy rank. An `Idempotency-Key` header works in place of the body field.
+      operationId: fuelBoost
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [boost]
+              properties:
+                boost: { type: string, enum: [boost_post, boost_raid, buybot_spotlight] }
+                target: { type: string, description: "boost_post: your page handle · boost_raid: your own X post URL · buybot_spotlight: a token mint" }
+                tank_id: { type: string, description: From fuel_tanks; defaults to yours }
+                idempotency_key: { type: string }
+      responses:
+        '200': { description: Boost queued, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '402': { description: Tank too low }
+  /api/carry/orders:
+    post:
+      tags: [network]
+      summary: "Get carried today — $25, 24 hours (MCP carry_order); no account needed"
+      operationId: carryOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, title, url]
+              properties:
+                kind: { type: string, enum: [post_now, raid_now] }
+                title: { type: string }
+                url: { type: string, description: "Your link; for raid_now, the X post to raid" }
+                pitch: { type: string }
+                blurb: { type: string }
+                image_url: { type: string }
+                sponsor_x: { type: string }
+                keywords: { type: string, description: comma-separated }
+                links: { type: array, maxItems: 3, items: { type: object, properties: { label: { type: string }, url: { type: string } } } }
+                rail: { type: string, enum: [usdc, card] }
+                payer_wallet: { type: string }
+      responses:
+        '200': { description: "Order with `reference` and USDC pay instructions or a checkout URL; check it at GET /api/board/orders/{reference} (MCP carry_order_check)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3160,6 +3389,29 @@ components:
             required: [error]
 
   schemas:
+    NetworkBrief:
+      type: object
+      properties:
+        handle: { type: string }
+        display_name: { type: string }
+        x_handle: { type: string }
+        rank: { type: integer }
+        say: { type: string }
+        required_words: { type: array, items: { type: string } }
+        links: { type: array, items: { type: string } }
+        picks: { type: integer }
+      additionalProperties: true
+    NetworkReport:
+      type: object
+      properties:
+        period: { type: object, additionalProperties: true }
+        summary: { type: object, additionalProperties: true }
+        rokha_posts: { type: array, items: { type: object, additionalProperties: true } }
+        raids: { type: array, items: { type: object, additionalProperties: true } }
+        creator_posts: { type: array, items: { type: object, additionalProperties: true } }
+        agent_calls: { type: array, items: { type: object, additionalProperties: true } }
+        runs: { type: object, additionalProperties: true }
+      additionalProperties: true
     # --- Meta ---
 
     HealthResponse:

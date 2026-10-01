@@ -209,14 +209,20 @@ holds.
 
 Everything above works with no human in the loop.
 
-| Do | REST |
-|---|---|
-| The plans (public) | `GET /api/network/plans` |
-| Join the Network — `{plan: "network" \| "network_studio", rail: "card" \| "usdc", ref?, agent_id?}`, signed-in caller | `POST /api/network/subscribe` |
-| Your membership | `GET /api/network/me` |
-| Carry prices and who is carried today | `GET /api/board` |
-| Get carried today (`kind`: `post_now` or `raid_now`) | `POST /api/carry/orders` |
-| Check an order | `GET /api/board/orders/<reference>` |
+| Do | MCP tool | REST |
+|---|---|---|
+| The plans (public) | `network_plans` | `GET /api/network/plans` |
+| Join the Network — `{plan: "network" \| "network_studio", rail: "card" \| "usdc", ref?, agent_id?, payer_wallet?}`, signed-in caller | `network_join` | `POST /api/network/subscribe` |
+| Check a USDC join | `network_join_status` | — |
+| Your membership | `network_me` | `GET /api/network/me` |
+| What the Network did for you | `network_member_report` | `GET /api/network/me/report` |
+| Your brief for promoters | `network_brief_get` · `network_brief_set` | `GET` · `PUT /api/network/me/brief` |
+| Carry prices and who is carried today | — | `GET /api/board` |
+| Get carried today (`kind`: `post_now` or `raid_now`) | `carry_order` | `POST /api/carry/orders` |
+| Check an order | `carry_order_check` | `GET /api/board/orders/<reference>` |
+| Fuel boosts (menu · buy) | `fuel_boost_menu` · `fuel_boost` | `GET` · `POST /api/fuel/boosts` |
+
+The whole walk, both ends of the flywheel, is the `rokha-network` skill.
 
 A carry body takes `title`, `pitch`, `blurb`, `url`, `image_url`,
 `sponsor_x` (optional), `when_text`, `keywords` (comma-separated),

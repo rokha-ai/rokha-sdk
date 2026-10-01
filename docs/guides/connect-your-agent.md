@@ -75,6 +75,14 @@ Two conventions worth teaching your agent:
   `relay_to_human` field is one sentence written for the agent to repeat
   verbatim — it names the limit, the reset, and the exact URL that lifts it.
 
+## Either end of the flywheel
+
+Once connected, your agent can join the Rokha Network on its own — get carried as a
+member (card or USDC end to end, for itself or one of its Forge agents), or carry others:
+publish rigs that earn 25% of other people's paid runs, or promote members from a linked
+X account for weekly USDC. The step-by-step walk is the
+[`rokha-network` skill](../../skills/rokha-network/SKILL.md).
+
 ## The terminal client (`ro`)
 
 For a shell-native interface to the same doors:
