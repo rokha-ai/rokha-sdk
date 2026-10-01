@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rokha × Telegram — @RokhaAgentBot command reference</title>
-<meta name="description" content="@RokhaAgentBot — the one Rokha Telegram bot: chat with Rokha, raid X posts with live goals, the raid queue, The Wall, and USDC payouts. Every command explained.">
+<meta name="description" content="@RokhaAgentBot — the one Rokha Telegram bot: chat with Rokha, raid X posts with live goals, the Rokha Network, and USDC payouts. Every command explained.">
 <meta property="og:title" content="Rokha × Telegram — every @RokhaAgentBot command">
-<meta property="og:description" content="Talk to her, raid, queue, earn USDC, buy a board seat — the full command reference for the Rokha Telegram agent.">
+<meta property="og:description" content="Talk to her, raid, earn USDC, join the Rokha Network — the full command reference for the Rokha Telegram agent.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://rokha-ai.github.io/rokha-sdk/telegram-bot.html">
 <meta name="twitter:card" content="summary">
@@ -178,7 +178,7 @@
   <div class="glyphrow"><div class="x mono">✈</div><span class="plus">+</span><div class="r">R</div></div>
   <div class="eyebrow">Live · one bot for every group · your plan when you link</div>
   <h1 style="margin-top:14px">Rokha, in your <span class="accent">Telegram</span>.</h1>
-  <p class="sub"><b>@RokhaAgentBot</b> is the one Rokha bot — the same agent that runs <a href="https://x.com/rokha_agent" target="_blank" rel="noopener">@rokha_agent</a> on X, with the same commands and a Telegram-only kit on top. Talk to her like a person, raid X posts with live goals, line up the queue, run a buy bot on any ticker, and get paid in USDC — on-chain, receipted. Ask with no account at all, or link yours and she answers on <b>your</b> plan, your model, your memory.</p>
+  <p class="sub"><b>@RokhaAgentBot</b> is the one Rokha bot — the same agent that runs <a href="https://x.com/rokha_agent" target="_blank" rel="noopener">@rokha_agent</a> on X, with the same commands and a Telegram-only kit on top. Talk to her like a person, raid X posts with live goals (one live raid at a time), and get paid in USDC every Friday on Solana — public signatures. Ask with no account at all, or link yours and she answers on <b>your</b> plan, your model, your memory.</p>
   <div class="herocta">
     <a class="btn primary" href="https://t.me/RokhaAgentBot" target="_blank" rel="noopener">Message the bot →</a>
     <a class="btn ghost" href="https://t.me/rokha_ai_community" target="_blank" rel="noopener">Join the Rokha room →</a>
@@ -198,13 +198,12 @@
 
 <section><div class="wrap">
   <div class="kicker"><span class="num">02</span><h2>Raids</h2></div>
-  <p class="lede">Point the room at an X post and she runs the sprint — a live card, real counters, winners on the board. <b>Goals are absolute</b>: the number named is the number the post must reach (name one it already passed and it simply adds on top). The same post can be raided again any time — only a raid still live on it blocks. Raiding is <b>free</b>; tracking rides the house.</p>
+  <p class="lede">Point the room at an X post and she runs the sprint — a live card, real counters, winners on the board. <b>Goals are absolute</b>: the number named is the number the post must reach (name one it already passed and it simply adds on top). <b>One live raid at a time</b> — there is no queue; the next raid starts when the live one ends. Raiding is <b>free</b>; tracking rides the house.</p>
   <div class="cmdgroup">
-    <div class="cmdrow"><code>/raid &lt;x link&gt;<span class="badge adm">ADMIN</span></code><div class="d">The config card lands in your DM (goals, length, winners, bounty); START posts the live card in the room.<span class="opt">Or just <b>say it</b>: "raid this", "can you raid that last link" — she arms it herself with achievable goals from the room's real history. Target order: a link in your words → the newest link pasted in the room → the head of <code>/queue</code>.</span></div></div>
+    <div class="cmdrow"><code>/raid &lt;x link&gt;<span class="badge adm">ADMIN</span></code><div class="d">The config card lands in your DM (goals, length, winners, bounty); START posts the live card in the room.<span class="opt">Or just <b>say it</b>: "raid this", "can you raid that last link" — she arms it herself with achievable goals from the room's real history. Target order: a link in your words → the newest link pasted in the room.</span></div></div>
     <div class="cmdrow"><code>/goals &lt;likes&gt; &lt;reposts&gt; &lt;replies&gt;<span class="badge adm">ADMIN</span></code><div class="d">Retarget the live raid mid-flight. Absolute; below-current lifts onto the counter.</div></div>
-    <div class="cmdrow"><code>/queue [x link]</code><div class="d"><b>Anyone</b> lines a post up (5/day each, 25 deep); bare <code>/queue</code> reads the list. She raids the line when the room is quiet (auto mode); admins can raid it any time.<span class="opt">⭐ Promoters, live board sponsors and official accounts ride <b>priority seats</b> — their posts jump the line.</span></div></div>
-    <div class="cmdrow"><code>/stopraid<span class="badge adm">ADMIN</span></code><div class="d">End the live raid and clear the line. Units already earned are kept.</div></div>
-    <div class="cmdrow"><code>/leaderboard · /top</code><div class="d">This group's raid board. <code>/rank</code> — your seat and the gap above you (needs <code>/linktg</code> so she knows which raider is you).</div></div>
+    <div class="cmdrow"><code>/stopraid<span class="badge adm">ADMIN</span></code><div class="d">End the live raid. Units already earned are kept.</div></div>
+    <div class="cmdrow"><code>/leaderboard · /top</code><div class="d">This group's raid board. <code>/rank</code> — your place and the gap above you (needs <code>/linktg</code> so she knows which raider is you).</div></div>
     <div class="cmdrow"><code>/topraid · /lastraid</code><div class="d">The all-time squad · the last raid's settle, replayed verbatim.</div></div>
   </div>
 </div></section>
@@ -213,8 +212,8 @@
   <div class="kicker"><span class="num">03</span><h2>Money — earning &amp; paying</h2></div>
   <p class="lede"><b>Both sides of a raid get paid.</b> Raiders bank units for every like, repost and reply (a reply weighs ~27× a like) — and the raided post's author banks the room's whole delivered sum too. Units feed the ONE ecosystem leaderboard, and the weekly pot pays it in <b>USDC, on-chain, receipted</b>.</p>
   <div class="cmdgroup">
-    <div class="cmdrow"><code>/earn · /qualify</code><div class="d">How units work and the three bars to get paid: a free Rokha account, your X connected, a Solana wallet login. Miss one and you still help the raid — the payout just skips you.</div></div>
-    <div class="cmdrow"><code>/justify [@handle]</code><div class="d">Your leaderboard seat's arithmetic, post by post — the same numbers the payout uses. <code>/justify how</code> explains the whole weight system.</div></div>
+    <div class="cmdrow"><code>/earn · /qualify</code><div class="d">How units work and the three bars to get paid: a claimed Rokha page, your X linked, a Solana wallet — never a subscription. Miss one and you still help the raid — the payout just skips you.</div></div>
+    <div class="cmdrow"><code>/justify [@handle]</code><div class="d">Your leaderboard standing's arithmetic, post by post — the same numbers the payout uses. <code>/justify how</code> explains the whole weight system.</div></div>
     <div class="cmdrow"><code>/purse · /pot</code><div class="d">This week's pot and what each place pays. <code>/receipts</code> — past payouts: addresses and tx hashes, nothing else.</div></div>
     <div class="cmdrow"><code>/bounties · /payouts</code><div class="d">Open pots on live raids · what's been paid, every transaction on-chain.<span class="opt">Bounties attach on the raid card in USDC or SOL — raiders split the <b>full pot you name</b>; the house fee rides on top, never inside.</span></div></div>
     <div class="cmdrow"><code>/fees · /topup</code><div class="d">Every fee the house takes, one card · a USDC top-up credited in seconds.</div></div>
@@ -224,18 +223,18 @@
 <section><div class="wrap">
   <div class="kicker"><span class="num">04</span><h2>Watches &amp; feeds</h2></div>
   <div class="cmdgroup">
-    <div class="cmdrow"><code>/supportwatch on|off<span class="badge adm">ADMIN</span></code><div class="d">When an official Rokha account, a live board sponsor, or an active promoter posts about us on X, the room gets a <b>go-support call</b> and the post takes a ⭐ priority raid seat. Bare <code>/supportwatch</code> shows the state.</div></div>
+    <div class="cmdrow"><code>/supportwatch on|off<span class="badge adm">ADMIN</span></code><div class="d">When an official Rokha account, a Network member, or an active promoter posts about us on X, the room gets a <b>go-support call</b>. Bare <code>/supportwatch</code> shows the state.</div></div>
     <div class="cmdrow"><code>/manage → 𝕏 Watch<span class="badge adm">ADMIN</span></code><div class="d">Track any @handle, #tag or $ticker for this room — fresh matching posts land with a rally call. Button-driven: add, remove, ⏻ pause. Billed to the configuring admin's account.</div></div>
-    <div class="cmdrow"><code>/digest<span class="badge adm">ADMIN</span></code><div class="d">The daily ecosystem board, plus the fresh-content feed: <b>one summary card every ~10 minutes</b> listing new original posts from the house &amp; Attention-Board list — never replies, never a flood.</div></div>
+    <div class="cmdrow"><code>/digest<span class="badge adm">ADMIN</span></code><div class="d">The daily ecosystem board, plus the fresh-content feed: <b>one summary card every ~10 minutes</b> listing new original posts from the house &amp; Network members — never replies, never a flood.</div></div>
   </div>
 </div></section>
 
 <section><div class="wrap">
-  <div class="kicker"><span class="num">05</span><h2>Promotion &amp; The Wall</h2></div>
-  <p class="lede">The Wall sells real placement — <b>$100 claims a seat</b>, and rank is bought: a position never moves until somebody <b>takes</b> that seat, at +10% over the holder ($25 minimum). Sponsored placement is always labelled; organic ranking is never for sale. A live seat unlocks this bot's elevated kit in <b>your own group</b>: the buy bot, the profit-network features, priority raid seats on your posts.</p>
+  <div class="kicker"><span class="num">05</span><h2>Promotion &amp; the Rokha Network</h2></div>
+  <p class="lede">The <b>Rokha Network</b> is a membership — <b>Network</b> $99/month for brands, projects and KOLs, <b>Network + Studio</b> $249/month for builders and agent teams. Rank is <b>earned</b> from runs, usage, activity and tenure — never bought. Sponsored placement is always labelled; organic ranking is never for sale. One burst without a plan: <b>Get carried today</b> ($25, 24h).</p>
   <div class="cmdgroup">
-    <div class="cmdrow"><code>/wall · /adspace</code><div class="d">The Wall, how seats work, and the buy door: <a href="https://rokha.ai/wall" target="_blank" rel="noopener">rokha.ai/wall</a>. No account needed — paid is live.</div></div>
-    <div class="cmdrow"><code>/bid · /advertise</code><div class="d">Funded bids on held seats · the rate card — buy promotion in USDC, always labelled sponsored.</div></div>
+    <div class="cmdrow"><code>/wall · /adspace</code><div class="d">The Network's board and the plans: <a href="https://rokha.ai/wall" target="_blank" rel="noopener">rokha.ai/wall</a>.</div></div>
+    <div class="cmdrow"><code>/advertise</code><div class="d">The plans and Get carried today — paid by card or USDC, always labelled sponsored.</div></div>
     <div class="cmdrow"><code>/promoter · /promote</code><div class="d">How promoting pays (the weekly USDC pot, the curve, the rules) · the carry brief: live sponsors with <b>ready-to-post content that earns</b>.</div></div>
     <div class="cmdrow"><code>/network · /empire</code><div class="d">The ad network's reach and how your audience joins · the whole plan — board, leaderboard, payouts — in one card.</div></div>
     <div class="cmdrow"><code>/audit [@handle]</code><div class="d">A live X account audit — reach, quality, the organic score.</div></div>
@@ -296,7 +295,7 @@
 <section><div class="wrap">
   <div class="specs">
     <div class="spec"><div class="n">1 bot</div><div class="l">the same agent on X, Telegram and rokha.ai — one brain, one board</div></div>
-    <div class="spec"><div class="n">Free</div><div class="l">raids, boards, the queue and /ask cost nothing — the runner pays only for their own premium features</div></div>
+    <div class="spec"><div class="n">Free</div><div class="l">raids, boards and /ask cost nothing — the runner pays only for their own premium features</div></div>
     <div class="spec"><div class="n">USDC</div><div class="l">payouts are on-chain and receipted — addresses and tx hashes, nothing else</div></div>
     <div class="spec"><div class="n">0</div><div class="l">unprompted DMs — she only ever answers what you ask</div></div>
   </div>

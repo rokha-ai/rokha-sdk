@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rokha Developer Site</title>
-<meta name="description" content="Rokha is a launchpad for agentic teams: real execution, live capabilities, and an attention network to plug into. Find a capability and it actually runs — real tool calls, a trace on every run.">
+<meta name="description" content="Rokha is the AI studio and launchpad: build in the Studio, launch on the Rokha Network, and the Network carries it — and pays the people who do. Find a capability and it actually runs — real tool calls, a trace on every run.">
 <meta property="og:title" content="Rokha — the runtime is the product">
 <meta property="og:description" content="Published skills are inert without a runtime. On Rokha a capability actually runs: real tool calls, no install, a trace to prove it.">
 <meta property="og:type" content="website">
@@ -182,8 +182,8 @@ p { max-width: var(--measure); margin: 0 0 16px; }
 .cockpit .hl { color: var(--live-fill); }
 .cockpit b { color: #fff; font-weight: 700; }
 
-/* ── the two doors (commercial) ─────────────────────────── */
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 22px; }
+/* ── plans (commercial) ─────────────────────────── */
+.two { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 22px; }
 .two > div { border: 1px solid var(--rule); border-radius: 10px; padding: 22px 20px; background: var(--panel); }
 .two h3 { margin-bottom: 8px; }
 .two p { font-size: 15px; color: var(--ink-soft); margin-bottom: 12px; }
@@ -256,11 +256,11 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
 
 <main>
   <div class="wrap hero">
-    <h1 class="settle">A launchpad for agentic teams.</h1>
+    <h1 class="settle">The AI studio and launchpad.</h1>
     <p class="lead settle">
-      Publish a capability and it <b>actually runs</b> — real tool calls, no install,
-      a trace that proves every step. Then plug into an attention network that puts it
-      in front of the agents and people who will use it.
+      Build in the Studio → launch on the <b>Rokha Network</b> → the Network carries it,
+      and pays the people who do. A capability published here <b>actually runs</b> — real
+      tool calls, no install, a trace that proves every step.
     </p>
     <div class="actions settle">
       <a class="btn solid" href="./get-started.html">Start building</a>
@@ -281,7 +281,7 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
       <a class="door" href="#promote">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>
         <b>Promote</b>
-        <span>The Wall — buy a seat, or get paid to carry one.</span>
+        <span>The Rokha Network — launch on it, or get paid to carry it.</span>
       </a>
       <a class="door" href="./whitepaper.html">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
@@ -356,13 +356,14 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
     <p class="label">Promote</p>
     <h2>Get kept in an agent's toolkit.</h2>
     <p class="soft">
-      The Wall is a ranked board of paid seats. A seat puts your offer into agent context
-      windows, publishes your MCP server as a listing agents can call, and pays promoters to
-      talk about you. Rank is bought and a position only moves when somebody takes the seat —
-      sponsored placement is always labelled, and organic ranking is never for sale.
+      The Rokha Network is a membership. A member's offer reaches agent context windows,
+      their MCP server is published as a listing agents can call, and promoters are paid
+      every Friday in USDC to talk about them. Rank is <b>earned</b> from runs, usage,
+      activity and tenure — never bought. Sponsored placement is always labelled, and
+      organic ranking is never for sale.
     </p>
     <ul class="index">
-      <li><a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/advertise.md"><b>Take a seat</b><span>What a seat buys, what it costs, and how a takeover works.</span><em>guide</em></a></li>
+      <li><a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/advertise.md"><b>Join the Network</b><span>The plans, what a member gets, and Get carried today.</span><em>guide</em></a></li>
       <li><a href="./leaderboard.html"><b>The Tailwind</b><span>Post about the network, earn seeds, get paid weekly in USDC.</span><em>reference</em></a></li>
       <li><a href="./your-page.html"><b>Your page</b><span>A public <code>/@handle</code> page — your builds, your listings, your proof.</span><em>reference</em></a></li>
       <li><a href="./telegram-bot.html"><b>Telegram</b><span>Bring Rokha into a group: boards, raids and support.</span><em>reference</em></a></li>
@@ -382,7 +383,7 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
     </p>
     <p class="soft">
       The first section — the Tailwind and the promotion scoring network — is published
-      below. The runtime and Wall sections follow.
+      below. The runtime and Network sections follow.
     </p>
     <div class="actions" style="margin-top:18px">
       <!-- TODO(founder): swap for the public URL once the paper is published.
@@ -394,29 +395,34 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
 
   <div class="wrap"><div class="rule"></div></div>
 
-  <!-- ── two doors ─────────────────────────────────────── -->
+  <!-- ── plans ─────────────────────────────────────── -->
   <section class="wrap" id="pricing">
-    <p class="label">Two doors</p>
-    <h2>Own the bench, or hold ground on The Wall.</h2>
-    <p class="soft">There are two ways to get the Studio. Both end in the same place.</p>
+    <p class="label">Plans</p>
+    <h2>Join the Network, build in the Studio.</h2>
+    <p class="soft">Anyone can chat with Rokha and get 2 free runs a day, no account needed — a free account gets the same.</p>
     <div class="two">
       <div>
-        <h3>Buy the Studio</h3>
-        <span class="price">one-time, wallet-bound</span>
-        <p>A licence to the builder's bench, yours permanently. Bring your own model keys — what you build on your own keys is unmetered.</p>
+        <h3>Network</h3>
+        <span class="price">$99 / month</span>
+        <p>For brands, projects and KOLs. Launch on the Rokha Network and get carried by promoters paid every Friday.</p>
+        <a class="btn" href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/advertise.md">How the Network works</a>
+      </div>
+      <div>
+        <h3>Network + Studio</h3>
+        <span class="price">$249 / month</span>
+        <p>For builders and agent teams. The Network, plus the Studio — the builder's bench. Bring your own model keys.</p>
         <a class="btn" href="https://rokha.ai">See the Studio</a>
       </div>
       <div>
-        <h3>Hold a Wall seat</h3>
-        <span class="price">top 15 carries Studio access</span>
-        <p>A seat in the top fifteen carries the Studio with it, and the higher ranks stack house credits on top. Seats are permanent until taken.</p>
-        <a class="btn" href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/advertise.md">How seats work</a>
+        <h3>Studio license</h3>
+        <span class="price">$1,495 once · opens soon</span>
+        <p>The Studio, yours outright. Bring your own model keys — what you build on your own keys is unmetered.</p>
+        <a class="btn" href="https://rokha.ai">See the Studio</a>
       </div>
     </div>
     <p class="fine">
-      Rokha is a software platform, not a cryptocurrency project: nothing here runs on a
-      blockchain or a smart contract. Seats and the Studio take card or USDC, and promotion
-      payouts are made in USDC.
+      Rokha is a software service — the platform runs on no blockchain; $ROKHA is its one
+      utility coin, used only as fuel. Plans take card or USDC, and payouts are made in USDC.
     </p>
   </section>
 

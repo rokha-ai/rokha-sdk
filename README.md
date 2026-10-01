@@ -2,9 +2,9 @@
 
 [![Rokha MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha/badges/score.svg)](https://glama.ai/mcp/connectors/ai.rokha/rokha)
 
-Rokha is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
+Rokha is **the AI studio and launchpad**: build in the Studio → launch on the Rokha Network → the Network carries it, and pays the people who do. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
-Two kinds of users, one platform: **look-up users** find and try tools fast (free, no account); **builders** chain skills into workflows (also free), then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
+Two kinds of users, one platform: **look-up users** find and try tools fast (chat with Rokha and 2 free runs a day, no account); **builders** chain skills into workflows, then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
 
@@ -21,7 +21,7 @@ agent can do and the paste-to-your-agent version:
 developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
 rather not have a GitHub account (we file it for you).
 
-**Advertising inside the agent?** [docs/guides/advertise.md](docs/guides/advertise.md) — the AdSpace board and Rokha Ads, set up in four lines.
+**Launching on the Rokha Network?** [docs/guides/advertise.md](docs/guides/advertise.md) — the plans (Network $99/mo, Network + Studio $249/mo), what a member gets, and Get carried today.
 
 **Building a tool of your own?** [docs/guides/scripted-skills.md](docs/guides/scripted-skills.md)
 — and give it a dashboard: [docs/guides/build-a-stage.md](docs/guides/build-a-stage.md)
@@ -114,7 +114,7 @@ const status = await nb.agents.status('rokha-agent');
 const tools = await nb.mcp.listTools();
 const results = await nb.marketplace.search({ query: 'UI design' });
 
-// Run a skill for real (free public taste — one per anon session/day):
+// Run a skill for real (free public taste — 2 free runs a day, no account):
 const ack = await nb.runtime.taste({
   anon_session_id: crypto.randomUUID(),
   skill_provider: 'rokha',

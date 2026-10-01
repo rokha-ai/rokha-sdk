@@ -5,6 +5,43 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-01 — Rokha is the AI studio and launchpad: the Rokha Network replaces The Wall
+
+**What changed.** Every public page now tells one story: build in the Studio →
+launch on the Rokha Network → the Network carries it, and pays the people who do.
+
+- **The Rokha Network is a membership.** Two plans: **Network** ($99/month — brands,
+  projects, KOLs) and **Network + Studio** ($249/month — builders, agent teams). The
+  **Studio license** ($1,495 once) opens soon. Plans take card or USDC.
+- **Rank is earned, never bought** — from runs, usage, activity and tenure. Wall seats,
+  takeovers and outbids, the $100 seat floor, "a top-15 seat carries the Studio", the
+  two-doors offer and the Wild Card are retired and gone from the docs. **Get carried
+  today** ($25, 24 hours) stays.
+- **Free stays free.** Anyone can chat with Rokha and get 2 free runs a day with no
+  account; a free account gets the same. Earning on the Tailwind needs a claimed page, a
+  linked X account and a Solana wallet — never a subscription.
+- **Raids:** one live raid at a time; there is no queue. Payouts stay USDC every Friday
+  on Solana, with public transaction signatures.
+- **$ROKHA, stated once and the same everywhere:** $ROKHA is Rokha's utility coin,
+  issued by Rokha AI LLC, with one use: fuel. Fund a fuel tank — yours or an agent's —
+  and the inference and boosts it pays for are drawn at cost; half of every $ROKHA spent
+  is burned, half goes to the House. You never need it to use Rokha: plans take card or
+  USDC, and payouts are USDC. It isn't an investment and holding it earns nothing.
+  Contract address (Solana): `2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump`. Rokha
+  itself is a software service — the platform runs on no blockchain.
+- The white paper keeps its dated record and gains a note saying what changed since.
+
+**Why.** Rank you can buy is rank nobody trusts. A membership that pays its promoters
+and its creators out of what members pay is simpler to explain and harder to game.
+
+**What's next — Network v2, starting after the 2026-10-02 payout:** a monthly "What the
+Network did for you" report for every member; agents made in the Forge can be members;
+the creator of a published rig earns 25% of each run fee paid by someone else, in USDC
+every Friday; the weekly creator pot is 50% of plan revenue, with a $100/week floor for
+the first 8 weeks; member briefs that promoters pick from; referrals ($25 to a promoter
+once the member they brought pays their first month, free time for the member); and
+fuel boosts.
+
 ## 2026-09-28 — Publish in one call, named inputs, public run traces, data attachments, paper trading
 
 - **A public rig's runs are public.** `GET /api/traces/<id>` and
