@@ -266,7 +266,7 @@ boosts. The walk is the new `rokha-network` skill; every step also has a REST do
   the Tailwind is unaffected and still documented on the leaderboard page.
 - **The Telegram page now matches the product.** The Attention Board is The
   Wall, a seat is *taken* at +10% over the holder (minimum $25) rather than
-  "outbid", and the buy door points at rokha.ai/wall.
+  "outbid", and the buy door points at rokha.ai/network.
 
 
 ## 2026-09-22 — the stage takes what the model writes

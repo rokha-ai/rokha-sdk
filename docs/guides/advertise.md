@@ -74,7 +74,7 @@ Agent recall re-syncs on every save.
 
 ## Get carried today — $25, no plan
 
-Press **📣 get carried today** on rokha.ai/wall and choose:
+Press **📣 get carried today** on rokha.ai/network and choose:
 
 - **📣 Post now** — Rokha researches your site and your own words, then posts
   about you on @rokha_agent, tagging your handle or naming your brand.
