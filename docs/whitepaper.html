@@ -225,7 +225,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.1</p>
+  <p class="label">White paper · v0.2</p>
   <h1>How Rokha scores paid promotion.</h1>
   <p class="abstract">
     Rokha pays people to promote agent capabilities on X, and scores that promotion with one
@@ -233,19 +233,18 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     what it refuses to count, and how a participant checks our arithmetic against their own posts.
   </p>
   <div class="stamp">
-    <span><b>As of</b> 2026-09-24</span>
-    <span><b>Status</b> draft — sections 1&ndash;6</span>
-    <span><b>Live figures</b> read from production on the date above</span>
+    <span><b>As of</b> 2026-10-02</span>
+    <span><b>Status</b> draft — sections 1&ndash;7</span>
+    <span><b>Live figures</b> read from production on 2026-09-23, marked where used</span>
   </div>
   <div class="note">
     <p>
-      <b>Update, 2026-10-01.</b> This paper was written while sponsors held seats on The Wall. Wall
-      seats are retired: Rokha is now the AI studio and launchpad &mdash; build in the Studio, launch on
-      the <b>Rokha Network</b>, and the Network carries it and pays the people who do. Rank on the
-      Network is earned from runs, usage, activity and tenure, never bought. Where the sections below
-      name Wall sponsors or seats, they describe the rules as of the date above. From the first cycle
-      after the 2026-10-02 payout the weekly pot is 50% of plan revenue, with a $100/week floor for the
-      first eight weeks.
+      <b>What changed on 2026-10-02.</b> The Wall is retired. Rokha is the AI studio and launchpad:
+      build in the Studio, launch on <b>the Rokha Network</b>, and the Network carries it and pays the
+      people who do. From the payout of 2026-10-02 (22:00 UTC) onward: tag boosts end, so every post
+      scores the same multiplier (section 2.5); the weekly pot is 50% of Network plan revenue with a
+      $100/week house floor for the first eight weeks (section 4); and Network rank is earned, never
+      bought (section 7). Rules that applied before that payout are marked as history.
     </p>
   </div>
 </div>
@@ -260,6 +259,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       <li><a href="#money">4. From seeds to money</a></li>
       <li><a href="#verification">5. Verification</a></li>
       <li><a href="#limits">6. Limits &amp; open problems</a></li>
+      <li><a href="#network">7. The Network flywheel</a></li>
       <li><a href="#sources">Sources</a></li>
     </ol>
   </nav>
@@ -276,8 +276,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     <b>Reach is purchasable; interaction is not.</b> Impressions can be bought for cents. A reply
     cannot: someone has to read the post and write something. So engagement carries the score and
-    reach is damped to a small, separately-capped term &mdash; 1 unit per 1,000 impressions, against
-    13.5 units for a single reply.
+    reach enters as its own small, separately damped term: a million impressions add
+    <code>8 &middot; ln(1&nbsp;+&nbsp;10<sup>6</sup>) / 100 &asymp; 1.11</code> to a post's value, while a
+    single reply on an otherwise empty post adds <code>ln(1&nbsp;+&nbsp;13.5) &asymp; 2.67</code>.
   </p>
   <p>
     <b>Volume beats quality when volume is free.</b> An account posting a hundred bare tags a day
@@ -318,11 +319,11 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h3>2.1 Qualifying</h3>
   <p>
-    A post enters scoring if it mentions an official Rokha account or a live sponsor (as of writing, a seat on The Wall), or is
-    authored by an official account. Nothing else is collected. (Until the 2026-09-25 22:00 UTC payout a
-    post could also qualify by a house cashtag; that rule is retired for every post made after that
-    payout. Rokha is a software service &mdash; the platform runs on no blockchain; $ROKHA is its one
-    utility coin, used only as fuel, and it plays no part in scoring.) Attribution keys on the
+    A post enters scoring if it mentions an official Rokha account or a live member of the Rokha
+    Network, or is authored by an official account. Nothing else is collected. (Until the 2026-09-25
+    22:00 UTC payout a post could also qualify by a house cashtag; that rule is retired for every post
+    made after that payout. $ROKHA plays no part in scoring: it is Rokha's utility coin, issued by
+    Rokha AI LLC, with one use, fuel.) Attribution keys on the
     author's stable numeric X user id, never on the handle &mdash; an account that renames keeps
     everything it earned.
   </p>
@@ -341,7 +342,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       <tr><td>Quote</td><td class="num">1.5</td><td><span class="ours">Ours.</span> A quote is a repost carrying a reply</td></tr>
       <tr><td>Repost</td><td class="num">1.0</td><td>X heavy ranker</td></tr>
       <tr><td>Like</td><td class="num">0.5</td><td>X heavy ranker</td></tr>
-      <tr><td>View</td><td class="num">0.001</td><td><span class="ours">Ours.</span> 1 unit per 1,000 impressions</td></tr>
+      <tr><td>View</td><td class="num">0.001</td><td><span class="ours">Ours.</span> Shown on the card; views are scored by the separate reach term in 2.3, never as engagement units</td></tr>
     </tbody>
   </table></div>
   <p>
@@ -373,15 +374,17 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   </p>
 
   <h3>2.5 Multipliers</h3>
-  <p>One multiplier applies to the capped value:</p>
-  <ul>
-    <li>
-      <b>Carry</b> (as of writing) &mdash; a post tagging a live Wall sponsor earns <b>&times;1.25</b>, rising &times;0.05
-      per additional seat that sponsor holds, capped at &times;1.50. One boost per post; never the
-      author's own seat. Whether a sponsor is live, and how many seats they hold, are facts on the
-      board &mdash; countable, like everything else here.
-    </li>
-  </ul>
+  <p>
+    <b>No post earns a tag boost.</b> Every post made from 2026-10-02 23:00 UTC onward scores at
+    <code>c = 1.00</code>, whoever it tags.
+  </p>
+  <p>
+    <i>History.</i> Before that cutover a post earned the <b>carry</b>: &times;1.25 for tagging a live
+    sponsor, rising &times;0.05 per additional seat that sponsor held, capped at &times;1.50, never on
+    the author's own seat; a post tagging the official account with a listed house topic earned the
+    same &times;1.25, never stacked with the carry. A post keeps the multiplier it was stamped with
+    when collected, so the rounds that paid it stay recomputable.
+  </p>
   <p>
     A post stamped as <b>copied</b> earns <b>&times;0</b>. Copied is decided by a deterministic
     duplicate check against posts already collected &mdash; the same text gives the same answer every
@@ -391,10 +394,11 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <h3>2.6 Seeds</h3>
   <div class="formula">
     <span class="hl">seeds(p)</span> = 100 &middot; min( v(p), 6.0 ) &middot; c(p)
-    <small>c = carry multiplier</small>
+    <small>c = the multiplier stamped at collection: 1.00 from 2026-10-02 23:00 UTC; 1.25&ndash;1.50 for carried posts before it</small>
   </div>
   <p>
-    The maximum any single post can earn is therefore <code>100 &times; 6.0 &times; 1.5 = 900</code> seeds.
+    The maximum any single post can earn is therefore <code>100 &times; 6.0 &times; 1.00 = 600</code>
+    seeds (900 for a post carried at &times;1.50 before the cutover).
   </p>
 
   <h3>2.7 The account total</h3>
@@ -426,7 +430,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       <tr><td>Per-post cap</td><td><code>v(p)</code> capped at <b>6.0</b></td><td>One viral post deciding a whole week</td></tr>
       <tr><td>Best-5 per day</td><td>Only the best five posts per UTC day count</td><td>A hundred bare tags a day out-earning real work</td></tr>
       <tr><td>Copied posts</td><td>A duplicate of an already-collected post earns <b>&times;0</b></td><td>Word-for-word plagiarism</td></tr>
-      <tr><td>Self-carry excluded</td><td>A sponsor's own posts never earn their own carry</td><td>Buying a seat to buy a &times;1.25 on your own score</td></tr>
+      <tr><td>No tag boost</td><td>From 2026-10-02 23:00 UTC no post earns a multiplier for whom it tags (before it: never on the author's own seat)</td><td>Buying placement to buy a &times;1.25 on your own score</td></tr>
       <tr><td>Integrity</td><td>&minus;5% per deleted paid post, floor <b>&times;0.25</b></td><td>Taking the money, then deleting the post</td></tr>
     </tbody>
   </table></div>
@@ -502,11 +506,11 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <small>&beta;(i) = 1 for i &lt; 10 &nbsp;·&nbsp; &beta;(i) = 0.5<sup>&lfloor;(i&minus;10)/10&rfloor;+1</sup> for i &ge; 10</small>
   </div>
   <p>
-    The top ten seats are strictly linear &mdash; four times the seeds is four times the cut, with no
+    The top ten places are strictly linear &mdash; four times the seeds is four times the cut, with no
     rank bonus. Each band of ten below is worth half the band above: ranks 11&ndash;20 at 50%,
     21&ndash;30 at 25%, and so on. Seeds still order everyone <i>within</i> a band; the band scales the
-    rate and never reorders anyone. Exactly equal seeds are one place: tied seats share the same
-    rank and are paid the same amount, in the band of that shared rank &mdash; if two seats tie for
+    rate and never reorders anyone. Exactly equal seeds are one place: tied participants share the same
+    rank and are paid the same amount, in the band of that shared rank &mdash; if two participants tie for
     tenth, both are tenth and both are paid at the full rate.
   </p>
   <p>
@@ -568,7 +572,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     model's read of a post is not recountable. An audit of a 20-post sample moves with the sample.
     When a multiplier can move between two identical checks, the person it moved against is right to
     complain, and they did. On 2026-09-24 we removed both. The score is now built entirely from counts:
-    engagement, views, sponsor seats on the board, deleted paid posts, and a deterministic duplicate
+    engagement, views, deleted paid posts, and a deterministic duplicate
     check. What judgement remains is the design of the weights themselves &mdash; stated above, argued
     for, and fixed until changed publicly.
   </p>
@@ -582,6 +586,68 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <b>What we do not claim.</b> That seeds measure the worth of a post. That the system cannot be
     gamed &mdash; only that gaming it costs more than it pays, and that every number in it can be
     recounted by the person it was levelled at.
+  </p>
+
+  <h2 id="network">7. The Network flywheel</h2>
+  <p>
+    The Tailwind is one turn of a larger loop. Builders ship a capability; agents and people run it;
+    real usage ranks it on the Rokha Network; the Network carries the top; promoters are paid to
+    amplify it; the reach brings new runners. Every money path below goes live with the first cycle
+    after the 2026-10-02 payout, and none of it moves a rank.
+  </p>
+
+  <h3>7.1 Rank is earned</h3>
+  <p>
+    A member's place on the Network is a score built from four activity signals over the last 30
+    days, plus tenure. No money term enters it. Each signal is capped so no single lever owns the board.
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Signal</th><th>Points each</th><th>Counted up to</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>Reach</td><td class="num">5</td><td class="num">2,000</td><td>Distinct other people who posted about the member</td></tr>
+      <tr><td>Runs</td><td class="num">10</td><td class="num">1,000</td><td>Clean runs of the member's published tools</td></tr>
+      <tr><td>Agent calls</td><td class="num">2</td><td class="num">5,000</td><td>Calls of the member's MCP tools by agents</td></tr>
+      <tr><td>Buyers</td><td class="num">50</td><td class="num">500</td><td>Distinct paying buyers of the member's products (never self or the same X account)</td></tr>
+      <tr><td>Tenure</td><td class="num">15</td><td class="num">24 months</td><td>Months as a member</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    Worked example: 2,237 people posting about a member, 4 runs and 1 month gives
+    <code>min(2237, 2000)&middot;5 + 4&middot;10 + 1&middot;15 = 10,055</code> points. Every member's
+    signals are public at <code>GET https://rokha.ai/api/network/members</code>.
+  </p>
+
+  <h3>7.2 Where the money comes from, and where it goes</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Path</th><th>Rule</th><th>Funded by</th></tr></thead>
+    <tbody>
+      <tr><td>Network plans</td><td>$99 a month, or $249 with the Studio</td><td>The member</td></tr>
+      <tr><td>Weekly promoter pot</td><td>50% of plan revenue, with a $100/week house floor for the first 8 weeks; paid in USDC every Friday by the Tailwind split above</td><td>Plan revenue; the floor is the house's one sanctioned out-of-pocket spend</td></tr>
+      <tr><td>Creator share</td><td>A published rig's author earns 25% of the run fee each time a paying user other than the author runs it, capped per runner at 25% of what that runner paid in the trailing 30 days</td><td>The runner's own payments</td></tr>
+      <tr><td>Creator sales</td><td>A creator sells a rig, agent or skill one-time, monthly or per run; 80% to the creator, 20% to the house; USDC and crypto settle instantly, card on Fridays</td><td>The buyer</td></tr>
+      <tr><td>Referrals</td><td>$25 to a promoter who brings a paying member, after that member's first paid month clears; a member who brings a member gets free days pro-rated to what the new member paid</td><td>The referred member's first payment</td></tr>
+      <tr><td>Fuel boosts</td><td>An extra post or an extra raid for $25, a buy-bot spotlight for $10, paid in fuel; half the fuel is burned, half goes to the house. A boost buys a post or a raid, never a rank</td><td>The buyer's fuel</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    The rule the table holds to: every path except the pot floor is paid out of money it brought in,
+    so the house never pays more than the floor to run the loop.
+  </p>
+
+  <h3>7.3 Agents join on the same terms</h3>
+  <p>
+    An agent can join either end of the loop with no human click: publish and earn the creator share
+    or sell a product, or promote and be paid from the pot, through the same API and MCP doors a
+    person uses. An agent can also hold its own Network membership and is ranked on its own usage.
+  </p>
+
+  <h3>7.4 $ROKHA</h3>
+  <p>
+    $ROKHA is Rokha's utility coin, issued by Rokha AI LLC, with one use: fuel. Fund a fuel tank
+    &mdash; yours or an agent's &mdash; and the inference and boosts it pays for are drawn at cost;
+    half of every $ROKHA spent is burned, half goes to the house. You never need it to use Rokha:
+    plans take card or USDC, and payouts are USDC. It isn't an investment and holding it earns nothing.
+    Contract address: <code>2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump</code>.
   </p>
 
   <h2 id="sources">Sources</h2>
@@ -619,7 +685,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   </p>
 
   <p class="draftline">
-    Draft. Sections on the agent runtime, the Rokha Network and the Studio are not yet written. Figures marked as
+    Draft. Sections on the agent runtime and the Studio are not yet written. Figures marked as
     live were read on the date above and move.
   </p>
 
