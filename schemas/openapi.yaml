@@ -58,6 +58,11 @@ tags:
     description: Run for real — execute a skill in the isolated sandbox (free taste + tier-quota run)
   - name: analytics
     description: Privacy-safe product-analytics capture — anon-session-keyed, fire-and-forget
+  - name: sales
+    description: >-
+      Creator sales — a creator prices a rig, skill, harness or agent (one-time, monthly
+      pass, or per-run pack); buyers unlock it on their account; agents pay with x402,
+      Signet or fuel. Sales open after the 2026-10-02 payout.
   - name: oauth
     description: OAuth broker — connect third-party providers + MCP-auth-spec servers; grants land in the vault
   - name: gateway
@@ -2148,6 +2153,17 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RigDoorError' }
+        '402':
+          description: >-
+            `purchase_required` — the rig is paid and the caller has not bought it. The body
+            names the product, its `checkout_url`, and carries an x402 challenge (`x402Version`,
+            `accepts`: Solana `exact` USDC to the House wallet, the exact amount binding the
+            payment to this caller's order). Pay, then retry the same request with header
+            `X-PAYMENT: base64({"x402Version":1,"scheme":"exact","network":"solana","payload":{"signature":"<tx>"}})`
+            — it is verified on-chain and the run starts in the same call.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PurchaseRequired' }
         '404': { description: No published rig by that slug }
         '409':
           description: "`needs_secret` — the runner has not saved every key this rig needs"
@@ -3192,6 +3208,138 @@ paths:
       operationId: networkMetrics
       responses:
         '200': { description: Metrics, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/products:
+    get:
+      tags: [sales]
+      summary: "The price on an item (public; MCP product_get)"
+      operationId: productFor
+      parameters:
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [rig, skill, harness, agent] } }
+        - { name: ref, in: query, required: true, schema: { type: string }, description: "The listing id (rig/skill/harness) or the agent id" }
+      responses:
+        '200': { description: The product, content: { application/json: { schema: { type: object, properties: { product: { $ref: '#/components/schemas/Product' } } } } } }
+        '404': { description: Not priced — the item is free }
+    put:
+      tags: [sales]
+      summary: "Set or change the price on an item you own (MCP product_set)"
+      operationId: productSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, ref, model, price_cents]
+              properties:
+                kind: { type: string, enum: [rig, skill, harness, agent] }
+                ref: { type: string }
+                model: { type: string, enum: [one_time, monthly, per_run] }
+                price_cents: { type: integer, minimum: 100, maximum: 1000000 }
+                runs_per_pack: { type: integer, minimum: 1, description: "per_run only — runs bought per purchase" }
+                active: { type: boolean, default: true, description: "false takes it off sale (free again)" }
+      responses:
+        '200': { description: Saved, content: { application/json: { schema: { type: object, properties: { product: { $ref: '#/components/schemas/Product' } } } } } }
+        '403': { description: Not the item's owner }
+  /api/products/mine:
+    get:
+      tags: [sales]
+      summary: "Your products, sales and earnings (you keep 80%)"
+      operationId: productsMine
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Products, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/products/{id}:
+    get:
+      tags: [sales]
+      summary: "One product by id (public)"
+      operationId: productById
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: The product, content: { application/json: { schema: { type: object, properties: { product: { $ref: '#/components/schemas/Product' } }, additionalProperties: true } } } }
+        '404': { description: No such product }
+  /api/products/{id}/checkout:
+    post:
+      tags: [sales]
+      summary: "Buy for yourself (MCP product_checkout)"
+      description: >-
+        `card` → a Stripe `checkout_url` for a person. `usdc` + `payer_wallet` → exact pay
+        instructions (the odd cents bind the deposit; it confirms on its own). `x402` → a
+        challenge; transfer, then call again with `signature` — verified on-chain, settles at
+        once. `signet` (signed-in session only) → your own USDC Signet mandate pays: an
+        autonomous mandate pays inside its caps at once, a guarded one answers
+        `awaiting_approval` with an approve link. `fuel` (session only) → your fuel tank pays at
+        the live $ROKHA price, instantly. Crypto rails pay the creator their 80% instantly; card
+        sales pay the creator on Fridays. Before the 2026-10-02 payout: 409 `sales_open_after_friday`.
+      operationId: productCheckout
+      security: [ { bearerAuth: [] } ]
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rail]
+              properties:
+                rail: { type: string, enum: [card, usdc, x402, signet, fuel] }
+                payer_wallet: { type: string, description: "usdc — the Solana address the USDC is sent FROM" }
+                signature: { type: string, description: "x402 — the landed transfer's signature" }
+      responses:
+        '200': { description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card/usdc instructions)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate · tank empty" }
+        '403': { description: "`key_cannot_spend` — an rk_ key cannot spend a mandate or a tank" }
+        '409': { description: "`sales_open_after_friday` · `yours` · `already_pending`" }
+  /api/products/{id}/access:
+    get:
+      tags: [sales]
+      summary: "Do I hold it? (open · owner · entitled · required)"
+      operationId: productAccess
+      security: [ { bearerAuth: [] } ]
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: Access, content: { application/json: { schema: { type: object, properties: { access: { type: string, enum: [open, owner, entitled, required] }, runs_left: { type: [integer, 'null'] }, period_end: { type: [string, 'null'], format: date-time } } } } } }
+  /api/purchases/mine:
+    get:
+      tags: [sales]
+      summary: "What you bought (MCP purchases_mine)"
+      operationId: purchasesMine
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Purchases, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/keys:
+    get:
+      tags: [sales]
+      summary: "Your Rokha keys (rk_…) — prefix, label, last used; never the key"
+      operationId: rokhaKeysList
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Keys, content: { application/json: { schema: { type: object, properties: { keys: { type: array, items: { type: object, additionalProperties: true } } } } } } }
+    post:
+      tags: [sales]
+      summary: "Create a Rokha key for an outside agent — shown ONCE"
+      description: >-
+        An `rk_…` key is your identity for read, run and buy: send it as
+        `Authorization: Bearer rk_…` to the REST run/buy doors and to `/mcp/jsonrpc`. It cannot
+        change your account, spend a Signet mandate or a fuel tank, or mint other keys. Revoke it
+        any time; revocation takes effect on the next call.
+      operationId: rokhaKeyCreate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { label: { type: string, maxLength: 60 } } }
+      responses:
+        '200': { description: "The key (`key`) — store it now", content: { application/json: { schema: { type: object, properties: { key: { type: string } }, additionalProperties: true } } } }
+  /api/keys/{id}:
+    delete:
+      tags: [sales]
+      summary: "Revoke a Rokha key"
+      operationId: rokhaKeyRevoke
+      security: [ { bearerAuth: [] } ]
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: Revoked }
   /api/network/pot:
     get:
       tags: [network]
@@ -3389,6 +3537,32 @@ components:
             required: [error]
 
   schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [rig, skill, harness, agent] }
+        ref: { type: string }
+        title: { type: string }
+        model: { type: string, enum: [one_time, monthly, per_run] }
+        price_cents: { type: integer }
+        price: { type: string, example: "$15" }
+        runs_per_pack: { type: [integer, 'null'] }
+        active: { type: boolean }
+        checkout_url: { type: string }
+      additionalProperties: true
+    PurchaseRequired:
+      type: object
+      properties:
+        ok: { type: boolean, const: false }
+        code: { type: string, const: purchase_required }
+        error: { type: string }
+        message: { type: string }
+        product: { type: object, additionalProperties: true }
+        checkout_url: { type: string }
+        x402Version: { type: integer }
+        accepts: { type: array, items: { type: object, additionalProperties: true } }
+      additionalProperties: true
     NetworkBrief:
       type: object
       properties:

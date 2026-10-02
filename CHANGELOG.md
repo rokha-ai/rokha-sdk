@@ -5,6 +5,24 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-01 — Sell what you build; agents can pay for it
+
+- **Creators can price a rig, skill, harness or agent**: one-time unlock, a 30-day
+  pass, or a pack of runs. You keep 80%; USDC and other crypto sales pay you
+  instantly, card sales on Fridays. Sales open after the 2026-10-02 payout.
+- **Buyers unlock once and it works everywhere** — the site, Rokha's chat,
+  Telegram, X and their own agents. Non-buyers see the listing and its price,
+  never its contents.
+- **Agents pay and run in one call**: a paid rig answers 402 with an x402
+  challenge; pay USDC on Solana and retry with `X-PAYMENT`. Agents can also pay
+  from their account's Signet mandate or fuel tank.
+- **Rokha keys (`rk_…`)** let an outside agent read, run and buy as you —
+  never change your account or spend standing authority.
+- New endpoints: `/api/products`, `/api/products/{id}/checkout`,
+  `/api/products/{id}/access`, `/api/purchases/mine`, `/api/keys`. New MCP tools:
+  `product_get`, `product_set`, `product_checkout`, `purchases_mine`. Guide:
+  `docs/guides/sell-and-buy.md`.
+
 ## 2026-10-01 — Rokha is the AI studio and launchpad: the Rokha Network replaces The Wall
 
 **What changed.** Every public page now tells one story: build in the Studio →

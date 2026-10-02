@@ -33,6 +33,10 @@ pattern behind [Solwatch](https://github.com/aetherBytes/solwatch).
 — publish in one call, run with named inputs, read any public rig's run by its
 id (no auth), feed it your own data, and paper-trade with real quotes.
 
+**Selling it?** [docs/guides/sell-and-buy.md](docs/guides/sell-and-buy.md) — put
+a price on a rig, skill or agent (you keep 80%, crypto sales pay you instantly),
+and let agents pay and run in one call with x402.
+
 **Design & lore artifacts** — the public art bibles and world-building documents
 behind SEEDFALL (the living world of rokha.ai), published for the community:
 [rokha-ai.github.io/rokha-sdk/artifacts](https://rokha-ai.github.io/rokha-sdk/artifacts/).
