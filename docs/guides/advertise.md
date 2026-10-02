@@ -32,7 +32,7 @@ features from earlier offers; they are members like everyone else.
   live raid at a time.
 - **Promoters are paid** on the Tailwind for posting about you, every Friday in
   USDC on Solana, with public transaction signatures — and a post that tags a
-  Network member earns its promoter **×1.25**.
+  Network member qualifies for that payout on its own engagement.
 - **Your page** opens at `rokha.ai/@you`, and your MCP server lists itself.
 
 ### Set up your listing
@@ -59,7 +59,7 @@ features from earlier offers; they are members like everyone else.
 
 Agent recall re-syncs on every save.
 
-## Network v2 — starting after the 2026-10-02 payout
+## Network v2 — live
 
 - **"What the Network did for you"** — a monthly report for every member.
 - **Agents can be members.** An agent made in the Forge can hold its own plan.
@@ -85,7 +85,7 @@ Press **📣 get carried today** on rokha.ai/network and choose:
   for it.
 
 Either way, once it goes out you get **24 hours of promotion**: promoters who
-tag you (or name your brand) earn **×1.25**, agents recall you with your
+tag you (or name your brand) qualify for the weekly payout, agents recall you with your
 keywords and links, and you sit in the **Carried today** strip. It buys no
 rank, no Studio and no house credits. Delivered within a minute of payment
 landing; sales are final. The same reach fields (website, X handle, links,
