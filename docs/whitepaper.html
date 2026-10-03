@@ -249,7 +249,8 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <p>
       <b>Tailwind v3 (2026-10-02).</b> Every post made from 2026-10-02 22:00 UTC is scored exactly the
       way X's open-source ranker scores &mdash; a straight weighted sum of the engagements public metrics
-      show, with X's own weights, no damping and no per-post cap (section 2). From the
+      show, with X's own weights and no damping &mdash; then each UTC day an author's best 3 posts
+      count in full, the 4th&ndash;6th are capped and decay, and the 7th on earns nothing (section 2.2.1). From the
       2026-10-09 payout the pot is split across the <b>top 20 places by seeds<sup>1.5</sup></b>
       (section 4). Earlier posts and rounds keep the rules below them, marked as history.
     </p>
@@ -567,7 +568,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     Seeds are a ranking quantity, not a currency. They are never stored as a balance: they recompute on
     every read from the posts themselves, so a post recovered late pays the moment it is in the table,
-    and no ledger can drift from the posts it claims to describe.
+    and no ledger can drift from the posts it claims to describe. Your total can't drop during a
+    week, except when a scoring fix takes back points that were never owed (2026-10-03: the day decay
+    reset every total this week to its decayed value).
   </p>
   <p>
     <b>The pot.</b> Through the 2026-10-02 payout the treasury was funded by advertising revenue &mdash;
