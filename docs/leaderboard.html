@@ -247,17 +247,16 @@
 </div></section>
 
 <section><div class="wrap">
-  <div class="kicker"><span class="num">04</span><h2>X engagement — weighted like X weighs it</h2></div>
-  <p class="lead">We use <b>everything we collect</b> from your posts — views, likes, reposts, quotes, replies and bookmarks — and we don't treat them as equal. <b>X open-sourced its ranking algorithm</b>, so our engagement mix uses the same ratios its ranker uses to value interactions: a reply is a conversation, a like is a nod. Your "X engagement" number is the weighted sum below (then log-damped like every repeatable signal). Views are scored separately at weight 50.</p>
+  <div class="kicker"><span class="num">04</span><h2>X engagement — scored exactly the way X scores it</h2></div>
+  <p class="lead">From <b>2026-10-02 22:00 UTC</b> every qualifying post is scored with the weights in <b>X's open-source ranker</b> (<a href="https://github.com/xai-org/x-algorithm">xai-org/x-algorithm</a>, Oct 2026): a straight weighted sum of the engagements public metrics show — <b>no damping, no per-post cap, no daily limit</b>. Ten times the engagement is ten times the seeds. Views and bookmarks have no weight in X's ranker, so none here.</p>
   <div class="tblwrap" style="margin-top:0"><table>
-    <tr><th>Interaction</th><th class="num">Units each</th><th style="width:110px">Scale</th><th>Why (per the open-source X algorithm)</th></tr>
-    <tr><td class="sig"><span class="g">↳</span>Reply</td><td class="num w">13.5</td><td><div class="meter"><i style="width:100%"></i></div></td><td class="note">X's ranker scores a reply at 13.5 — conversation is the strongest signal there, so it is here. One reply = 27 likes.</td></tr>
-    <tr><td class="sig"><span class="g">⛉</span>Bookmark</td><td class="num w">10.0</td><td><div class="meter"><i style="width:74%"></i></div></td><td class="note">Not in X's 2023 table (bookmarks came later) — weighted as its "Good Click V2" (10.0): the save-to-read-later, high-intent signal</td></tr>
-    <tr><td class="sig"><span class="g">❝</span>Quote post</td><td class="num w">1.5</td><td><div class="meter"><i style="width:11%"></i></div></td><td class="note">A repost plus commentary — carries your work further than a bare repost</td></tr>
-    <tr><td class="sig"><span class="g">⇄</span>Repost</td><td class="num w">1.0</td><td><div class="meter"><i style="width:7%"></i></div></td><td class="note">X's ranker baseline: retweet = 1.0</td></tr>
-    <tr><td class="sig"><span class="g">♥</span>Like</td><td class="num w">0.5</td><td><div class="meter"><i style="width:4%"></i></div></td><td class="note">X's ranker values a fav at 0.5 — half a repost</td></tr>
+    <tr><th>Interaction</th><th class="num">X weight</th><th style="width:110px">Scale</th><th>Note</th></tr>
+    <tr><td class="sig"><span class="g">↳</span>Reply</td><td class="num w">5.0</td><td><div class="meter"><i style="width:100%"></i></div></td><td class="note">X's <code>ReplyWeight</code></td></tr>
+    <tr><td class="sig"><span class="g">❝</span>Quote post</td><td class="num w">5.0</td><td><div class="meter"><i style="width:100%"></i></div></td><td class="note">X's <code>QuoteWeight</code></td></tr>
+    <tr><td class="sig"><span class="g">⇄</span>Repost</td><td class="num w">1.0</td><td><div class="meter"><i style="width:20%"></i></div></td><td class="note">X's <code>RetweetWeight</code></td></tr>
+    <tr><td class="sig"><span class="g">♥</span>Like</td><td class="num w">0.5</td><td><div class="meter"><i style="width:10%"></i></div></td><td class="note">X's <code>FavoriteWeight</code></td></tr>
   </table></div>
-  <p class="note" style="margin-top:12px">Example: a post with 40 likes, 12 reposts, 2 quotes, 9 replies and 6 bookmarks = 20 + 12 + 3 + 121.5 + 60 = <b style="color:var(--silver)">216.5 engagement units</b>. Want to climb? Start conversations, not just impressions.</p>
+  <p class="note" style="margin-top:12px">Seeds = 10 × the weighted sum. Example: 40 likes, 12 reposts, 2 quotes and 9 replies = 20 + 12 + 10 + 45 = <b style="color:var(--silver)">87 units = 870 seeds</b>. A post still has to reach somebody (2 units under the older weights) and a copy earns 0. Every Friday the <b>top 20 places</b> split the pot by seeds<sup>1.5</sup> — leading pays more than linearly. Posts before the cutover keep the older weights (reply 13.5 · bookmark 10 · quote 1.5 · repost 1 · like 0.5, damped and capped, best five a day).</p>
 </div></section>
 
 <section><div class="wrap">
