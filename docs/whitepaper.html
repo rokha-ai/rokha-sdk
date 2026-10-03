@@ -225,7 +225,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.2</p>
+  <p class="label">White paper · v0.3</p>
   <h1>How Rokha scores paid promotion.</h1>
   <p class="abstract">
     Rokha pays people to promote agent capabilities on X, and scores that promotion with one
@@ -245,6 +245,13 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       scores the same multiplier (section 2.5); the weekly pot is 50% of Network plan revenue with a
       $100/week house floor for the first eight weeks (section 4); and Network rank is earned, never
       bought (section 7). Rules that applied before that payout are marked as history.
+    </p>
+    <p>
+      <b>Tailwind v3 (2026-10-02).</b> Every post made from 2026-10-02 22:00 UTC is scored exactly the
+      way X's open-source ranker scores &mdash; a straight weighted sum of the engagements public metrics
+      show, with X's own weights, no damping, no per-post cap and no daily limit (section 2). From the
+      2026-10-09 payout the pot is split across the <b>top 20 places by seeds<sup>1.5</sup></b>
+      (section 4). Earlier posts and rounds keep the rules below them, marked as history.
     </p>
   </div>
 </div>
@@ -276,15 +283,13 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     <b>Reach is purchasable; interaction is not.</b> Impressions can be bought for cents. A reply
     cannot: someone has to read the post and write something. So engagement carries the score and
-    reach enters as its own small, separately damped term: a million impressions add
-    <code>8 &middot; ln(1&nbsp;+&nbsp;10<sup>6</sup>) / 100 &asymp; 1.11</code> to a post's value, while a
-    single reply on an otherwise empty post adds <code>ln(1&nbsp;+&nbsp;13.5) &asymp; 2.67</code>.
+    impressions carry none &mdash; exactly as in X's own ranker, which has no weight for an impression.
   </p>
   <p>
-    <b>Volume beats quality when volume is free.</b> An account posting a hundred bare tags a day
-    out-earns one posting something real. So only a participant's best five posts per UTC day count,
-    a single post is capped at six times a good post's value, and a post that nobody engaged with
-    earns nothing at all regardless of how many people saw it.
+    <b>Use the platform's own rules.</b> X published the ranker that decides what its users see. We score
+    with the same weights rather than inventing our own: a post that X's ranker would push further earns
+    more here, in the same proportion. A post that nobody engaged with still earns nothing at all,
+    regardless of how many people saw it.
   </p>
   <p>
     <b>&ldquo;Trust us&rdquo; is not a receipt.</b> A promoter told they earned less than they expected has no way
@@ -312,9 +317,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h2 id="tailwind">2. The Tailwind</h2>
   <p>
-    A post's score is built in six steps, in this order. Every constant below is a single named value
-    in one module, read identically by the ranking query and by the explanation shown to the
-    participant.
+    Every constant below is a single named value in one module, read identically by the ranking query
+    and by the explanation shown to the participant. Sections 2.1 and 2.2 are the live rules (posts from
+    2026-10-02 22:00 UTC); 2.3&ndash;2.7 describe the model they replaced, kept for recomputing past rounds.
   </p>
 
   <h3>2.1 Qualifying</h3>
@@ -328,11 +333,54 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     everything it earned.
   </p>
 
-  <h3>2.2 Engagement units</h3>
+  <h3>2.2 Scoring the X way (live from 2026-10-02 22:00 UTC)</h3>
   <p>
-    Each interaction is worth a fixed number of units. Where X published a weight in its open-sourced
-    ranker we use X's number; where it did not, the weight is ours and is labelled as ours. We do not
-    present our judgement as X's.
+    X's current For You ranker is open source
+    (<a href="https://github.com/xai-org/x-algorithm">xai-org/x-algorithm</a>, commit
+    <code>76843a5</code>, 2026-10-02). It scores a post as a <b>straight weighted sum</b> of engagement
+    terms (<code>compute_weighted_score</code>): no logarithm, no cap, and no per-author limit (author
+    diversity exists in the code and is switched off in that release). We use its weights on the
+    engagements that public metrics show:
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Engagement</th><th>X weight</th><th>Here</th></tr></thead>
+    <tbody>
+      <tr><td>Reply</td><td class="num">5.0</td><td class="num">5.0</td></tr>
+      <tr><td>Quote</td><td class="num">5.0</td><td class="num">5.0</td></tr>
+      <tr><td>Repost</td><td class="num">1.0</td><td class="num">1.0</td></tr>
+      <tr><td>Like</td><td class="num">0.5</td><td class="num">0.5</td></tr>
+      <tr><td>Bookmark, impression</td><td>no weight in X's ranker</td><td class="num">0</td></tr>
+      <tr><td>Clicks, dwell, shares, follows, video, negative feedback</td><td>weighted by X</td><td>not public &mdash; left out</td></tr>
+    </tbody>
+  </table></div>
+  <div class="formula">
+    <span class="hl">seeds(p)</span> = 10 &middot; ( 0.5&middot;likes + 1&middot;reposts + 5&middot;replies + 5&middot;quotes )
+    <small>0 if the post fails Rule Zero or is a proven copy</small>
+  </div>
+  <div class="formula">
+    <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> seeds(p) &middot; m<sub>integrity</sub>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Post</th><th>Likes · reposts · replies · quotes</th><th>Weighted sum</th><th>Seeds</th></tr></thead>
+    <tbody>
+      <tr><td>Small real post</td><td>8 · 1 · 2 · 0</td><td class="num">15</td><td class="num">150</td></tr>
+      <tr><td>Good post</td><td>40 · 8 · 6 · 1</td><td class="num">63</td><td class="num">630</td></tr>
+      <tr><td>Viral post</td><td>9,000 · 2,000 · 1,200 · 300</td><td class="num">14,000</td><td class="num">140,000</td></tr>
+      <tr><td>One like</td><td>1 · 0 · 0 · 0</td><td class="num">0.5</td><td class="num">0 (Rule Zero)</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    <b>Where we differ from X, and why.</b> X weights the <i>predicted probability</i> of each action for
+    one viewer; we can only see public counts after the fact, so we apply X's weights to the counts. X's
+    own code warns that its weight ratios are not count equivalences &mdash; this is the closest
+    observable approximation, not a claim to reproduce its ranking. And we keep three guards X does not
+    need because no money moves per post there: Rule Zero, the copy check and the integrity multiplier.
+  </p>
+
+  <h3>2.2a Engagement units (history: posts before 2026-10-02 22:00 UTC)</h3>
+  <p>
+    Each interaction was worth a fixed number of units, from X's 2023 heavy ranker where it published a
+    weight and ours where it did not:
   </p>
   <div class="tw"><table>
     <thead><tr><th>Signal</th><th>Units</th><th>Source</th></tr></thead>
@@ -353,7 +401,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     payout, which is the one thing a money path must never contain.
   </p>
 
-  <h3>2.3 Damped value</h3>
+  <h3>2.3 Damped value (history)</h3>
   <p>
     Engagement and reach are damped separately, so a large impression count cannot swamp the
     interaction a post failed to earn.
@@ -367,7 +415,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     stops a single viral post from deciding a week.
   </p>
 
-  <h3>2.4 The per-post ceiling</h3>
+  <h3>2.4 The per-post ceiling (history)</h3>
   <p>
     <code>v(p)</code> is capped at <b>6.0</b> before any multiplier. One post can never be worth more
     than six good posts &mdash; the whale guard.
@@ -391,7 +439,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     time &mdash; never by a model's opinion.
   </p>
 
-  <h3>2.6 Seeds</h3>
+  <h3>2.6 Seeds (history)</h3>
   <div class="formula">
     <span class="hl">seeds(p)</span> = 100 &middot; min( v(p), 6.0 ) &middot; c(p)
     <small>c = the multiplier stamped at collection: 1.00 from 2026-10-02 23:00 UTC; 1.25&ndash;1.50 for carried posts before it</small>
@@ -401,7 +449,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     seeds (900 for a post carried at &times;1.50 before the cutover).
   </p>
 
-  <h3>2.7 The account total</h3>
+  <h3>2.7 The account total (history)</h3>
   <p>
     A participant's era score sums their <b>best five posts per UTC day</b>, then applies
     account-level terms:
@@ -427,8 +475,8 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <thead><tr><th>Guard</th><th>Rule</th><th>The attack it answers</th></tr></thead>
     <tbody>
       <tr><td>Rule Zero</td><td>Under <b>2.0 engagement units</b> (views excluded) earns <b>0</b></td><td>A bought-views farm took rank 1 with 25.4% of a pot on impressions alone</td></tr>
-      <tr><td>Per-post cap</td><td><code>v(p)</code> capped at <b>6.0</b></td><td>One viral post deciding a whole week</td></tr>
-      <tr><td>Best-5 per day</td><td>Only the best five posts per UTC day count</td><td>A hundred bare tags a day out-earning real work</td></tr>
+      <tr><td>Per-post cap <i>(history)</i></td><td><code>v(p)</code> capped at <b>6.0</b> &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>One viral post deciding a whole week</td></tr>
+      <tr><td>Best-5 per day <i>(history)</i></td><td>Only the best five posts per UTC day counted &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>A hundred bare tags a day out-earning real work</td></tr>
       <tr><td>Copied posts</td><td>A duplicate of an already-collected post earns <b>&times;0</b></td><td>Word-for-word plagiarism</td></tr>
       <tr><td>No tag boost</td><td>From 2026-10-02 23:00 UTC no post earns a multiplier for whom it tags (before it: never on the author's own seat)</td><td>Buying placement to buy a &times;1.25 on your own score</td></tr>
       <tr><td>Integrity</td><td>&minus;5% per deleted paid post, floor <b>&times;0.25</b></td><td>Taking the money, then deleting the post</td></tr>
@@ -472,10 +520,11 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h3>What the guards cost</h3>
   <p>
-    These are real trade-offs, not free wins. Best-5 means a genuinely prolific day is not fully paid.
-    The 6.0 cap means an exceptional post is under-rewarded. Rule Zero means a thoughtful post that
-    happened to find no audience earns nothing. We accept all three: each protects the pot from a
-    cheaper attack than the behaviour it discourages.
+    These are real trade-offs, not free wins. Rule Zero means a thoughtful post that happened to find no
+    audience earns nothing. Since v3 dropped the cap and the daily limit, a viral post earns its full
+    weight and a prolific account is paid for every post that clears Rule Zero &mdash; which means a
+    reply farm can stack posts, and only Rule Zero, the copy check and integrity stand in its way. We
+    watch the top of the board by post count for exactly that.
   </p>
 
   <h2 id="money">4. From seeds to money</h2>
@@ -498,8 +547,24 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     262.54 USDC.
   </p>
   <p>
-    <b>The split.</b> Within a pay cycle every payable participant shares the pot in proportion to their
-    seeds, with a banded decay below the top ten:
+    <b>The split (from the 2026-10-09 payout).</b> The <b>top 20 places</b> are paid. Each share is the
+    participant's seeds raised to the power 1.5, over the top 20's total:
+  </p>
+  <div class="formula">
+    <span class="hl">share<sub>i</sub></span> = S<sub>i</sub><sup>1.5</sup> / &Sigma;<sub>j &isin; top 20 places</sub> S<sub>j</sub><sup>1.5</sup>
+    <small>0 below 20th place</small>
+  </div>
+  <p>
+    Leading pays more than linearly. On a board of 3,000 &middot; 2,200 &middot; 1,600 &middot; 1,200
+    &middot; 900 &middot; 700 &middot; 500 &middot; 400 &middot; 300 &middot; 200 seeds, first takes
+    <b>36.9%</b> where a straight split would give 27.3%, and tenth takes 0.6% (linear: 1.8%). Exactly equal
+    seeds are one place: tied participants are paid the same amount, and every participant tied into the
+    top 20 is paid. The amounts are exact to the base unit; rounding dust goes to the highest participant
+    holding a place alone.
+  </p>
+  <p>
+    <b>The split through the 2026-10-02 payout (history).</b> Every payable participant shared the pot in
+    proportion to their seeds, with a banded decay below the top ten:
   </p>
   <div class="formula">
     <span class="hl">share<sub>i</sub></span> = S<sub>i</sub>&middot;&beta;(i) / &Sigma;<sub>j</sub> S<sub>j</sub>&middot;&beta;(j)
