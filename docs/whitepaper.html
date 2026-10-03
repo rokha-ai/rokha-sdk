@@ -225,7 +225,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.3</p>
+  <p class="label">White paper · v0.4</p>
   <h1>How Rokha scores paid promotion.</h1>
   <p class="abstract">
     Rokha pays people to promote agent capabilities on X, and scores that promotion with one
@@ -233,7 +233,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     what it refuses to count, and how a participant checks our arithmetic against their own posts.
   </p>
   <div class="stamp">
-    <span><b>As of</b> 2026-10-02</span>
+    <span><b>As of</b> 2026-10-03</span>
     <span><b>Status</b> draft — sections 1&ndash;7</span>
     <span><b>Live figures</b> read from production on 2026-09-23, marked where used</span>
   </div>
@@ -249,9 +249,15 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <p>
       <b>Tailwind v3 (2026-10-02).</b> Every post made from 2026-10-02 22:00 UTC is scored exactly the
       way X's open-source ranker scores &mdash; a straight weighted sum of the engagements public metrics
-      show, with X's own weights, no damping, no per-post cap and no daily limit (section 2). From the
+      show, with X's own weights, no damping and no per-post cap (section 2). From the
       2026-10-09 payout the pot is split across the <b>top 20 places by seeds<sup>1.5</sup></b>
       (section 4). Earlier posts and rounds keep the rules below them, marked as history.
+    </p>
+    <p>
+      <b>The day decay (2026-10-03).</b> One deliberate departure from X: per author per UTC day, the
+      best 3 posts earn their full seeds, the 4th to 6th earn a capped, halving share, and from the 7th
+      on a post earns nothing (section 2.2.1). X has no per-author day cap; without one the pot paid
+      for volume.
     </p>
   </div>
 </div>
@@ -357,8 +363,14 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <span class="hl">seeds(p)</span> = 10 &middot; ( 0.5&middot;likes + 1&middot;reposts + 5&middot;replies + 5&middot;quotes )
     <small>0 if the post fails Rule Zero or is a proven copy</small>
   </div>
+  <p>
+    Rule Zero still reads the engagement units of section 2.2a, not these weights: a post needs 2.0 of
+    them, views excluded &mdash; one reply, one bookmark, two reposts or four likes clear it. A bookmark
+    clears Rule Zero but adds no seeds, because X's ranker gives it no weight.
+  </p>
   <div class="formula">
-    <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> seeds(p) &middot; m<sub>integrity</sub>
+    <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> d(rank<sub>day</sub>(p), seeds(p)) &middot; m<sub>integrity</sub>
+    <small>d = the day decay, section 2.2.1</small>
   </div>
   <div class="tw"><table>
     <thead><tr><th>Post</th><th>Likes · reposts · replies · quotes</th><th>Weighted sum</th><th>Seeds</th></tr></thead>
@@ -375,6 +387,29 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     own code warns that its weight ratios are not count equivalences &mdash; this is the closest
     observable approximation, not a claim to reproduce its ranking. And we keep three guards X does not
     need because no money moves per post there: Rule Zero, the copy check and the integrity multiplier.
+  </p>
+
+  <h3>2.2.1 The day decay (ours, not X's)</h3>
+  <p>
+    X's ranker has no per-author day cap: author diversity is in its code and switched off in the
+    release we follow. Followed to the letter, that paid a prolific account for every post that cleared
+    Rule Zero. So we add one rule of our own, announced 2026-10-03 and applied to every post scored the
+    X way (from 2026-10-02 22:00 UTC). Per author per UTC day, posts take places by their seeds
+    (on a payout day, a post the previous round already paid keeps its place first):
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Place in the day</th><th>Earns</th></tr></thead>
+    <tbody>
+      <tr><td>1st &ndash; 3rd</td><td>its full seeds(p), no cap</td></tr>
+      <tr><td>4th</td><td>min(seeds(p), 100) &times; 0.5</td></tr>
+      <tr><td>5th</td><td>min(seeds(p), 100) &times; 0.25</td></tr>
+      <tr><td>6th</td><td>min(seeds(p), 100) &times; 0.125</td></tr>
+      <tr><td>7th on</td><td><b>0</b> &mdash; the cliff (the post still takes its place, deleted or not)</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    The most a day can add beyond its best three is 87.5 seeds, so three strong posts always beat ten
+    weak ones. Every post's place and factor are printed in its explanation (section 5).
   </p>
 
   <h3>2.2a Engagement units (history: posts before 2026-10-02 22:00 UTC)</h3>
@@ -423,8 +458,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h3>2.5 Multipliers</h3>
   <p>
-    <b>No post earns a tag boost.</b> Every post made from 2026-10-02 23:00 UTC onward scores at
-    <code>c = 1.00</code>, whoever it tags.
+    <b>No post earns a tag boost.</b> Every post made from 2026-10-02 22:00 UTC onward is scored the
+    X way (section 2.2), which carries no multiplier, so it scores at <code>c = 1.00</code> whoever it
+    tags &mdash; even a post stamped with a carry before the boost switched off at 23:00 UTC.
   </p>
   <p>
     <i>History.</i> Before that cutover a post earned the <b>carry</b>: &times;1.25 for tagging a live
@@ -442,7 +478,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <h3>2.6 Seeds (history)</h3>
   <div class="formula">
     <span class="hl">seeds(p)</span> = 100 &middot; min( v(p), 6.0 ) &middot; c(p)
-    <small>c = the multiplier stamped at collection: 1.00 from 2026-10-02 23:00 UTC; 1.25&ndash;1.50 for carried posts before it</small>
+    <small>c = the multiplier stamped at collection: 1.00 from 2026-10-02 22:00 UTC; 1.25&ndash;1.50 for carried posts before it</small>
   </div>
   <p>
     The maximum any single post can earn is therefore <code>100 &times; 6.0 &times; 1.00 = 600</code>
@@ -460,7 +496,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <ul>
     <li>
       <b>The era floor</b> <code>F</code> &mdash; the highest total the account reached this era. Scores
-      never fall within a pay cycle.
+      never fell within a pay cycle. The floor retired after the 2026-09-25 payout; no v3 round has one.
     </li>
     <li><b>Integrity</b> <code>m_integrity</code> &mdash; see <a href="#antigaming">section 3</a>.</li>
   </ul>
@@ -477,8 +513,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       <tr><td>Rule Zero</td><td>Under <b>2.0 engagement units</b> (views excluded) earns <b>0</b></td><td>A bought-views farm took rank 1 with 25.4% of a pot on impressions alone</td></tr>
       <tr><td>Per-post cap <i>(history)</i></td><td><code>v(p)</code> capped at <b>6.0</b> &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>One viral post deciding a whole week</td></tr>
       <tr><td>Best-5 per day <i>(history)</i></td><td>Only the best five posts per UTC day counted &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>A hundred bare tags a day out-earning real work</td></tr>
+      <tr><td>Day decay</td><td>Best 3 a UTC day in full; 4th&ndash;6th min(seeds, 100) &times; 0.5 / 0.25 / 0.125; 7th on <b>0</b> (every post from 2026-10-02 22:00 UTC)</td><td>A reply farm stacking low-quality posts</td></tr>
       <tr><td>Copied posts</td><td>A duplicate of an already-collected post earns <b>&times;0</b></td><td>Word-for-word plagiarism</td></tr>
-      <tr><td>No tag boost</td><td>From 2026-10-02 23:00 UTC no post earns a multiplier for whom it tags (before it: never on the author's own seat)</td><td>Buying placement to buy a &times;1.25 on your own score</td></tr>
+      <tr><td>No tag boost</td><td>From 2026-10-02 22:00 UTC no post earns a multiplier for whom it tags (before it: never on the author's own seat)</td><td>Buying placement to buy a &times;1.25 on your own score</td></tr>
       <tr><td>Integrity</td><td>&minus;5% per deleted paid post, floor <b>&times;0.25</b></td><td>Taking the money, then deleting the post</td></tr>
     </tbody>
   </table></div>
@@ -521,10 +558,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <h3>What the guards cost</h3>
   <p>
     These are real trade-offs, not free wins. Rule Zero means a thoughtful post that happened to find no
-    audience earns nothing. Since v3 dropped the cap and the daily limit, a viral post earns its full
-    weight and a prolific account is paid for every post that clears Rule Zero &mdash; which means a
-    reply farm can stack posts, and only Rule Zero, the copy check and integrity stand in its way. We
-    watch the top of the board by post count for exactly that.
+    audience earns nothing. Since v3 dropped the per-post cap, a viral post earns its full weight. The
+    day decay means a fourth good post in a day earns far less than its seeds, and a seventh earns
+    nothing &mdash; the price of keeping volume from buying the board.
   </p>
 
   <h2 id="money">4. From seeds to money</h2>
@@ -543,8 +579,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   </p>
   <p>
     <b>The cycle.</b> An era opens at the previous <i>paid</i> round and closes at the next payout. The
-    era current at publication opened 2026-09-18 22:03 UTC and pays 2026-09-25, with a pot of
-    262.54 USDC.
+    first round scored and split under v3 pays 2026-10-09; its pot is shown live at
+    <code>GET https://rokha.ai/api/network/pot</code>. (At the 2026-09-23 reading, the era open since
+    2026-09-18 22:03 UTC held 262.54 USDC for the 2026-09-25 payout.)
   </p>
   <p>
     <b>The split (from the 2026-10-09 payout).</b> The <b>top 20 places</b> are paid. Each share is the
@@ -604,8 +641,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     <b>A public door per participant.</b> <code>GET /api/pages/{handle}/seeds/explain</code> returns,
     without authentication: every post in the era with its raw metrics, its units, whether Rule Zero
-    applied, whether the cap bound, every multiplier by name and source, the day-by-day best-5
-    selection, and the final total. A score has to be checkable by the person it was levelled at.
+    applied, whether the cap bound, every multiplier by name and source, each post's place in its
+    day with the decay factor it took (<code>day_rank</code>, <code>rank_mult</code>,
+    <code>raw_seeds</code>), and the final total. A score has to be checkable by the person it was levelled at.
   </p>
   <p>
     <b>We audit ourselves before we pay.</b> Before each payout we independently recompute every scored
@@ -624,9 +662,11 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     engagement onto the signals we can read, not a reconstruction of X's ranking.
   </p>
   <p>
-    <b>Two of our six weights are judgement, not citation.</b> Bookmarks (10.0) and quotes (1.5) have no
-    published X figure. We priced a bookmark just under a reply &mdash; high intent, but silent, creating
-    no new reach &mdash; and a quote just above a repost. Both are arguable; neither should be cited as X's.
+    <b>Every scoring weight is X's; two threshold weights are ours.</b> Since v3 the seeds use only
+    the weights in X's published ranker. Rule Zero still reads the older units, where bookmarks (10.0)
+    and quotes (1.5) have no published X figure: we priced a bookmark just under a reply &mdash; high
+    intent, but silent &mdash; and a quote just above a repost. They decide only whether a post counts,
+    never how much. The day decay is also ours (section 2.2.1).
   </p>
   <p>
     <b>What we removed, and why.</b> Earlier versions of this system carried two judgement terms: a
@@ -637,8 +677,8 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     model's read of a post is not recountable. An audit of a 20-post sample moves with the sample.
     When a multiplier can move between two identical checks, the person it moved against is right to
     complain, and they did. On 2026-09-24 we removed both. The score is now built entirely from counts:
-    engagement, views, deleted paid posts, and a deterministic duplicate
-    check. What judgement remains is the design of the weights themselves &mdash; stated above, argued
+    engagement, deleted paid posts, and a deterministic duplicate check (views counted only in
+    the history model). What judgement remains is the design of the weights themselves &mdash; stated above, argued
     for, and fixed until changed publicly.
   </p>
   <p>
@@ -657,7 +697,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     The Tailwind is one turn of a larger loop. Builders ship a capability; agents and people run it;
     real usage ranks it on the Rokha Network; the Network carries the top; promoters are paid to
-    amplify it; the reach brings new runners. Every money path below goes live with the first cycle
+    amplify it; the reach brings new runners. Every money path below went live with the first cycle
     after the 2026-10-02 payout, and none of it moves a rank.
   </p>
 
@@ -717,11 +757,13 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h2 id="sources">Sources</h2>
   <p>
-    <b>X's ranking signals.</b> The reply, repost and like weights are taken from X's open-sourced
-    recommendation algorithm, published at
-    <a href="https://github.com/twitter/the-algorithm" target="_blank" rel="noopener">github.com/twitter/the-algorithm</a>
-    &mdash; specifically the heavy-ranker scored-engagement weights. Bookmark, quote and view weights are
-    ours and are marked as such throughout.
+    <b>X's ranking signals.</b> The live weights (reply 5, quote 5, repost 1, like 0.5) are taken from
+    X's open-source For You ranker,
+    <a href="https://github.com/xai-org/x-algorithm" target="_blank" rel="noopener">github.com/xai-org/x-algorithm</a>
+    at commit 76843a5 (<code>compute_weighted_score</code>). The history model's reply, repost and like
+    weights came from X's 2023 heavy ranker,
+    <a href="https://github.com/twitter/the-algorithm" target="_blank" rel="noopener">github.com/twitter/the-algorithm</a>;
+    its bookmark, quote and view weights were ours, and Rule Zero still reads them.
   </p>
   <p>
     <b>X's public metrics surface.</b> The fields we can read are those exposed by the X API v2
