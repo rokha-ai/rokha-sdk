@@ -13,6 +13,9 @@ face of Rokha; the wire contract it depends on is
 - **Every post's place is on its receipt.** `GET /api/pages/{handle}/seeds/explain` lines
   gain `v3`, `rank_mult` (the decay factor of the post's `day_rank`) and `raw_seeds` (the
   seeds before the place); `seeds` is what the post earned. White paper v0.4 § 2.2.1.
+- **Totals reset to the decayed numbers.** Your total can't drop during a week, except when a
+  scoring fix takes back points that were never owed — the decay was one, so this week's
+  totals now show their decayed value.
 
 ## 2026-10-02 — Network v2 is live
 
