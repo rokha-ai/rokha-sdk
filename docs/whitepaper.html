@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rokha White Paper</title>
-<meta name="description" content="How Rokha scores paid promotion on X: the published formula, where each engagement weight comes from, the anti-gaming guards, how seeds become USDC, and how any participant can recompute their own score.">
-<meta property="og:title" content="Rokha White Paper — how paid promotion is scored">
-<meta property="og:description" content="One published formula, computed from a public API, with every weight's provenance stated and every score inspectable by the person it was levelled at.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://rokha-ai.github.io/rokha-sdk/whitepaper.html">
+<meta name="description" content="Rokha is a launchpad where agent capabilities actually run, a Network ranks them on real use, and promoters are paid to carry them. This paper sets out how execution, rank, promotion scoring, the creator economy, Signet and $ROKHA fuel work — with every rule checked against the code that runs it.">
+<meta property="og:title" content="Rokha White Paper v1.0 — the runtime, the Network, and the Tailwind">
+<meta property="og:description" content="Capabilities that run for real, rank that people earn, and promotion paid by X's own scoring — every number recountable by the person it was levelled at.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://docs.rokha.ai/whitepaper.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@Rokha_ai">
+<link rel="canonical" href="https://docs.rokha.ai/whitepaper.html">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,7 +66,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Browser surfaces carry the design too. */
 ::selection { background: var(--live-fill); color: var(--ink); }
 :focus-visible { outline: 2px solid var(--live); outline-offset: 3px; border-radius: 3px; }
 * { scrollbar-color: var(--rule-strong) transparent; scrollbar-width: thin; }
@@ -75,7 +75,6 @@ body {
 
 .wrap { width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: 20px; }
 
-/* ── label: 13px mono, tracked caps. Mono is for data, never costume. ── */
 .label {
   font-family: var(--mono);
   font-size: 13px;
@@ -90,8 +89,7 @@ a:hover { color: var(--ink); }
 /* ── masthead ───────────────────────────────────────────── */
 .masthead {
   position: sticky; top: 0; z-index: 20;
-  background: rgba(250,251,253,.92);
-  backdrop-filter: blur(8px);
+  background: rgba(250,251,253,.94);
   border-bottom: 1px solid var(--rule);
 }
 .masthead .wrap {
@@ -112,18 +110,13 @@ a:hover { color: var(--ink); }
 .mnav a:hover { color: var(--ink); border-bottom-color: var(--live-fill); }
 .mnav a.go { color: var(--live); font-weight: 700; }
 
-
 /* ── READ MODE: a paper, not a landing. Measure first. ── */
-.papergrid { display: grid; grid-template-columns: 1fr; gap: 0; }
-/* A 1fr track sizes to its widest child, and `auto` min-width lets an
-   unbreakable string (a long endpoint in <code>) push the whole page past
-   the viewport. min-width:0 lets the track shrink; the code wraps instead. */
+.papergrid { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 40px; }
 .papergrid > * { min-width: 0; }
 @media (min-width: 1040px) {
-  .papergrid { grid-template-columns: 208px minmax(0,1fr); gap: 52px; align-items: start; }
+  .papergrid { grid-template-columns: 220px minmax(0,1fr); gap: 52px; align-items: start; }
 }
 
-/* the contents rail — a real index, sticky on desktop only */
 .toc { display: none; }
 @media (min-width: 1040px) {
   .toc {
@@ -134,33 +127,49 @@ a:hover { color: var(--ink); }
   .toc ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 9px; }
   .toc a { color: var(--ink-soft); text-decoration: none; display: block; }
   .toc a:hover { color: var(--live); }
-  .toc .sub { padding-left: 13px; font-size: 13px; color: var(--ink-faint); }
 }
 
-.papertop { padding: 68px 0 0; }
+.papertop { padding-top: 72px; }
 .papertop h1 {
-  font-size: clamp(2rem, 4.6vw, 2.9rem); line-height: 1.08;
-  letter-spacing: -.033em; margin: 10px 0 18px; max-width: 20ch; text-wrap: balance;
+  font-size: clamp(2.1rem, 5vw, 3.2rem); line-height: 1.05;
+  letter-spacing: -.035em; margin: 10px 0 20px; max-width: 18ch; text-wrap: balance;
 }
 .abstract { font-size: 20px; line-height: 1.55; color: var(--ink-soft); max-width: var(--measure); }
 .stamp {
   font-family: var(--mono); font-size: 13px; color: var(--ink-faint);
-  display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 20px 0 0;
+  display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 22px 0 0;
   padding-top: 14px; border-top: 1px solid var(--rule);
 }
 .stamp b { color: var(--ink-soft); font-weight: 400; }
 
+/* ── the proof strip: live numbers, read from production ── */
+.proof {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px;
+  background: var(--rule); border: 1px solid var(--rule); border-radius: 10px;
+  overflow: hidden; margin: 30px 0 0;
+}
+@media (min-width: 760px) { .proof { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+.proof div { background: var(--panel); padding: 16px 18px; min-width: 0; }
+.proof b {
+  display: block; font-family: var(--mono); font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+  font-weight: 700; letter-spacing: -.02em; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.proof span { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.4; margin-top: 3px; }
+
 article { padding-top: 10px; }
 article h2 {
-  font-size: clamp(1.35rem, 2.5vw, 1.72rem); letter-spacing: -.022em;
-  margin: 54px 0 12px; padding-top: 22px; border-top: 1px solid var(--rule);
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem); letter-spacing: -.024em;
+  margin: 60px 0 14px; padding-top: 24px; border-top: 1px solid var(--rule);
   max-width: 28ch; text-wrap: balance;
 }
+article h2 .n { font-family: var(--mono); color: var(--live); font-size: .7em; letter-spacing: 0; margin-right: 10px; vertical-align: .12em; }
 article h3 {
-  font-size: 17px; margin: 30px 0 8px; letter-spacing: -.005em; color: var(--ink);
+  font-size: 17px; margin: 32px 0 8px; letter-spacing: -.005em; color: var(--ink);
 }
 article p { max-width: var(--measure); margin: 0 0 15px; }
-article ul { max-width: var(--measure); padding-left: 20px; margin: 0 0 15px; }
+article .lede { font-size: 19px; color: var(--ink-soft); }
+article ul, article ol { max-width: var(--measure); padding-left: 20px; margin: 0 0 15px; }
 article li { margin-bottom: 9px; }
 article code {
   font-family: var(--mono); font-size: .88em;
@@ -169,7 +178,6 @@ article code {
 }
 article p, article li { overflow-wrap: break-word; }
 
-/* a formula is DATA — it gets the cockpit, centred, scrollable on a phone */
 .formula {
   background: var(--cockpit); color: var(--cockpit-ink);
   border-radius: 10px; padding: 20px 22px; margin: 20px 0 18px;
@@ -180,7 +188,6 @@ article p, article li { overflow-wrap: break-word; }
 .formula .k  { color: #7f8ca0; }
 .formula small { display: block; font-size: 12.5px; color: #7f8ca0; margin-top: 9px; text-align: center; }
 
-/* tables: figures line up, units in the header */
 .tw { overflow-x: auto; margin: 18px 0 20px; max-width: 100%; }
 table { border-collapse: collapse; width: 100%; font-size: 15px; }
 th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
@@ -190,9 +197,8 @@ th {
   border-bottom-color: var(--rule-strong);
 }
 td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-space: nowrap; }
-.ours { color: var(--live); font-weight: 700; }
+tr.total td { font-weight: 700; border-bottom-color: var(--rule-strong); }
 
-/* a called-out claim or caveat */
 .note {
   border-left: 3px solid var(--live-fill); background: var(--live-wash);
   padding: 15px 18px; border-radius: 0 8px 8px 0; margin: 20px 0;
@@ -200,12 +206,40 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 }
 .note p:last-child { margin-bottom: 0; }
 .note.warn { border-left-color: #d9a441; background: #fdf6e7; }
+.note.pass { border-left-color: var(--pass-fill); background: #eef8f2; }
 
-.draftline {
-  margin: 56px 0 0; padding-top: 18px; border-top: 1px solid var(--rule);
+/* figures: a diagram earns its place by showing the mechanism */
+figure { margin: 26px 0 26px; max-width: 100%; }
+figure svg { display: block; width: 100%; height: auto; max-width: 760px; }
+figcaption { font-size: 14px; color: var(--ink-faint); margin-top: 10px; max-width: var(--measure); }
+.fig-node { fill: var(--panel); stroke: var(--rule-strong); stroke-width: 1.2; }
+.fig-node.live { stroke: var(--live); stroke-width: 1.6; }
+.fig-t { font-family: var(--face); font-size: 14px; fill: var(--ink); font-weight: 700; }
+.fig-s { font-family: var(--face); font-size: 12px; fill: var(--ink-soft); }
+.fig-m { font-family: var(--mono); font-size: 11px; fill: var(--ink-faint); letter-spacing: .04em; }
+.fig-arrow { stroke: var(--live); stroke-width: 1.6; fill: none; }
+.fig-money { stroke: var(--pass); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.fig-bar { fill: var(--live-fill); }
+.fig-bar.dim { fill: var(--rule); }
+
+.closing {
+  margin: 60px 0 0; padding-top: 18px; border-top: 1px solid var(--rule);
   font-size: 15px; color: var(--ink-faint); max-width: var(--measure);
 }
 
+/* ── footer ─────────────────────────────────────────────── */
+footer.wrap { padding-top: 56px; padding-bottom: 48px; margin-top: 64px; border-top: 1px solid var(--rule); }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; }
+@media (min-width: 760px) { .fgrid { grid-template-columns: repeat(5, minmax(0,1fr)); } }
+.fgrid h4 { font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); font-weight: 400; margin: 0 0 10px; }
+.fgrid ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 15px; }
+.fgrid a { color: var(--ink-soft); text-decoration: none; }
+.fgrid a:hover { color: var(--live); }
+.fine { font-size: 14px; color: var(--ink-faint); margin: 30px 0 0; max-width: var(--measure); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 </style>
 </head>
 <body>
@@ -225,41 +259,26 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.4</p>
-  <h1>How Rokha scores paid promotion.</h1>
+  <p class="label">White paper · v1.0</p>
+  <h1>Capabilities that run. Rank that is earned. Reach that is paid.</h1>
   <p class="abstract">
-    Rokha pays people to promote agent capabilities on X, and scores that promotion with one
-    published formula that anyone can recompute. This paper states the formula, its provenance,
-    what it refuses to count, and how a participant checks our arithmetic against their own posts.
+    Agent skills are published by the hundred thousand and almost none of them run. Rokha is the
+    launchpad where they do: a capability executes for real, with a trace to prove it; the Rokha
+    Network ranks it on how many real people use it; and promoters are paid every Friday to carry it,
+    scored with X's own published ranker. This paper sets out each mechanism, the money that moves
+    through it, and the guards around it &mdash; and every rule in it is the rule the code runs.
   </p>
   <div class="stamp">
+    <span><b>Version</b> 1.0</span>
     <span><b>As of</b> 2026-10-03</span>
-    <span><b>Status</b> draft — sections 1&ndash;7</span>
-    <span><b>Live figures</b> read from production on 2026-09-23, marked where used</span>
+    <span><b>Live figures</b> read from production on 2026-10-03</span>
+    <span><b>Earlier versions</b> v0.1&ndash;v0.4 scored promotion only; history in Appendix A</span>
   </div>
-  <div class="note">
-    <p>
-      <b>What changed on 2026-10-02.</b> The Wall is retired. Rokha is the AI studio and launchpad:
-      build in the Studio, launch on <b>the Rokha Network</b>, and the Network carries it and pays the
-      people who do. From the payout of 2026-10-02 (22:00 UTC) onward: tag boosts end, so every post
-      scores the same multiplier (section 2.5); the weekly pot is 50% of Network plan revenue with a
-      $100/week house floor for the first eight weeks (section 4); and Network rank is earned, never
-      bought (section 7). Rules that applied before that payout are marked as history.
-    </p>
-    <p>
-      <b>Tailwind v3 (2026-10-02).</b> Every post made from 2026-10-02 22:00 UTC is scored exactly the
-      way X's open-source ranker scores &mdash; a straight weighted sum of the engagements public metrics
-      show, with X's own weights and no damping &mdash; then each UTC day an author's best 3 posts
-      count in full, the 4th&ndash;6th are capped and decay, and the 7th on earns nothing (section 2.2.1). From the
-      2026-10-09 payout the pot is split across the <b>top 20 places by seeds<sup>1.5</sup></b>
-      (section 4). Earlier posts and rounds keep the rules below them, marked as history.
-    </p>
-    <p>
-      <b>The day decay (2026-10-03).</b> One deliberate departure from X: per author per UTC day, the
-      best 3 posts earn their full seeds, the 4th to 6th earn a capped, halving share, and from the 7th
-      on a post earns nothing (section 2.2.1). X has no per-author day cap; without one the pot paid
-      for volume.
-    </p>
+  <div class="proof" aria-label="Live figures, 2026-10-03">
+    <div><b>205k+</b><span>agent capabilities indexed in the registry</span></div>
+    <div><b>346</b><span>listings proven by real runs in the last 30 days</span></div>
+    <div><b>$1,662.72</b><span>USDC paid to 76 promoters across six weekly rounds</span></div>
+    <div><b>1,762</b><span>posts from 172 authors scored the X way since 10-02</span></div>
   </div>
 </div>
 
@@ -267,535 +286,540 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <nav class="toc" aria-label="Contents">
     <p class="label">Contents</p>
     <ol>
-      <li><a href="#thesis">1. The thesis</a></li>
-      <li><a href="#tailwind">2. The Tailwind</a></li>
-      <li><a href="#antigaming">3. Anti-gaming</a></li>
-      <li><a href="#money">4. From seeds to money</a></li>
-      <li><a href="#verification">5. Verification</a></li>
-      <li><a href="#limits">6. Limits &amp; open problems</a></li>
-      <li><a href="#network">7. The Network flywheel</a></li>
+      <li><a href="#problem">1. The problem</a></li>
+      <li><a href="#runtime">2. The runtime is the product</a></li>
+      <li><a href="#flywheel">3. The Network flywheel</a></li>
+      <li><a href="#rank">4. Rank is earned</a></li>
+      <li><a href="#tailwind">5. The Tailwind</a></li>
+      <li><a href="#money">6. From seeds to money</a></li>
+      <li><a href="#creators">7. The creator economy</a></li>
+      <li><a href="#signet">8. Signet and $ROKHA fuel</a></li>
+      <li><a href="#security">9. Security posture</a></li>
+      <li><a href="#verification">10. Verification</a></li>
+      <li><a href="#limits">11. Limits &amp; open problems</a></li>
+      <li><a href="#roadmap">12. What comes next</a></li>
+      <li><a href="#history">Appendix A. History</a></li>
       <li><a href="#sources">Sources</a></li>
     </ol>
   </nav>
 
   <article>
 
-  <h2 id="thesis">1. The thesis</h2>
+  <!-- ═══════════════════════════════════════════════════════════ 1 -->
+  <h2 id="problem"><span class="n">1</span>The problem</h2>
+  <p class="lede">Three markets around AI agents are broken in the same way: what is sold cannot be checked.</p>
   <p>
-    Paid promotion is priced on numbers the buyer cannot verify and the seller can buy. We price it
-    on one published formula, computed from a public API, and we show every participant the
-    arithmetic behind their own number.
-  </p>
-  <p>Three failures make attention markets dishonest, and each has a specific answer here.</p>
-  <p>
-    <b>Reach is purchasable; interaction is not.</b> Impressions can be bought for cents. A reply
-    cannot: someone has to read the post and write something. So engagement carries the score and
-    impressions carry none &mdash; exactly as in X's own ranker, which has no weight for an impression.
+    <b>Capabilities that do not run.</b> Skill registries list hundreds of thousands of agent tools. A
+    listing is a description; whether the thing behind it executes &mdash; today, with these inputs
+    &mdash; is left to the person who installs it. Most do not. An agent that picks one finds out at
+    runtime, if at all.
   </p>
   <p>
-    <b>Use the platform's own rules.</b> X published the ranker that decides what its users see. We score
-    with the same weights rather than inventing our own: a post that X's ranker would push further earns
-    more here, in the same proportion. A post that nobody engaged with still earns nothing at all,
-    regardless of how many people saw it.
+    <b>Attention priced on numbers anyone can buy.</b> Promotion is bought and sold on impressions and
+    follower counts, both purchasable for cents. The buyer cannot verify what they paid for, and the
+    honest promoter is priced against the farm.
   </p>
   <p>
-    <b>&ldquo;Trust us&rdquo; is not a receipt.</b> A promoter told they earned less than they expected has no way
-    to check. So every score opens its own working: post by post, weight by weight, multiplier by
-    multiplier, from the same code path that computes the payout. If our explanation and our payment
-    ever disagree, that is a bug we own &mdash; and <a href="#verification">section 5</a> is how we
-    test exactly that across every participant.
+    <b>Builders who are not paid.</b> The person who writes a capability that others run usually earns
+    nothing from those runs, and has no fair way to be found among a hundred thousand others.
   </p>
   <p>
-    One principle runs through every term below: <b>the score is built only from things that can be
-    counted, and counted again.</b> A reply, a repost, a like, a view &mdash; anyone can re-fetch them
-    from X and get the same number. Nothing in the score is an opinion: no model reads your post and
-    grades it, no heuristic sizes up your audience. Where we once used judgement calls, we removed
-    them (<a href="#limits">section 6</a> says what and why).
+    Rokha's answer is one loop: <b>run it for real, rank it on real use, and pay real reach</b> &mdash;
+    with every number in the loop recountable by the person it describes.
   </p>
+
+  <!-- ═══════════════════════════════════════════════════════════ 2 -->
+  <h2 id="runtime"><span class="n">2</span>The runtime is the product</h2>
+  <p>
+    A published skill is inert without somewhere to run. On Rokha a capability <b>actually runs</b>:
+    a remote MCP or A2A server is called through the platform's door, and a tool-shaped skill is
+    dispatched to a throwaway sandbox (one container per run, no secrets inside, egress-only network).
+    There is nothing to install. Every run leaves a <b>trace</b> &mdash; inputs, each step, each
+    tool call, the output &mdash; with an id anyone can fetch when the rig is public.
+  </p>
+  <p>
+    <b>Run real, or raise.</b> No path returns plausible output it did not produce. A step with no live
+    route fails with a standard error that names the doors it needs; it never simulates.
+  </p>
+  <p>
+    <b>Proven means it ran.</b> A listing is stamped <i>proven</i> only by a real run that closed clean
+    with a usable result &mdash; never by a self-test. The stamp is bound to the exact content that ran
+    (its SHA-256); change the content and the stamp clears. A listing whose own endpoint later fails
+    loses it. Proven listings lead every search, list and recommendation, and a Remix &mdash; Rokha
+    composing a workflow on her own &mdash; builds only from proven parts.
+  </p>
+  <p>
+    <b>Two front doors.</b> Everything a person can do in the Studio, an agent can do over the public
+    API and MCP gateway with no human click: search the registry, adopt or author a skill, compose a
+    rig, run it, read its trace, publish it, price it, buy one. Rokha's own agent uses the same doors.
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Concept</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>Skill</td><td>A portable capability in the open Agent Skills format (a <code>SKILL.md</code> plus whatever it needs)</td></tr>
+      <tr><td>Harness</td><td>A unit of work wrapped with its configuration: a skill, an instruction, a data store, or a sub-rig</td></tr>
+      <tr><td>Rig</td><td>A flow of harnesses &mdash; linear or a graph &mdash; with declared inputs and a stage for its output</td></tr>
+      <tr><td>Trace</td><td>The runtime record of one run, step by step</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ═══════════════════════════════════════════════════════════ 3 -->
+  <h2 id="flywheel"><span class="n">3</span>The Network flywheel</h2>
+  <p>
+    Execution is the floor. The <b>Rokha Network</b> is what turns it into a launchpad: builders and
+    brands join, real use ranks them, the Network carries the top, and promoters are paid to amplify
+    it &mdash; and the reach brings new runners back to the start.
+  </p>
+  <figure>
+    <svg viewBox="0 0 760 330" role="img" aria-labelledby="fly-t fly-d">
+      <title id="fly-t">The Rokha Network flywheel</title>
+      <desc id="fly-d">Six stages in a loop: build, run, rank, carry, promote, pay; reach returns to run. Money flows from plans and sales into the promoter pot and to creators.</desc>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7fa8"/></marker>
+        <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1e7a52"/></marker>
+      </defs>
+      <!-- nodes -->
+      <rect class="fig-node live" x="20"  y="30"  width="200" height="70" rx="10"/>
+      <text class="fig-t" x="38" y="58">1 · Build</text>
+      <text class="fig-s" x="38" y="80">Studio · API · MCP</text>
+
+      <rect class="fig-node live" x="280" y="30"  width="200" height="70" rx="10"/>
+      <text class="fig-t" x="298" y="58">2 · Run</text>
+      <text class="fig-s" x="298" y="80">for real · traced · proven</text>
+
+      <rect class="fig-node live" x="540" y="30"  width="200" height="70" rx="10"/>
+      <text class="fig-t" x="558" y="58">3 · Rank</text>
+      <text class="fig-s" x="558" y="80">people, never money (§4)</text>
+
+      <rect class="fig-node live" x="540" y="220" width="200" height="70" rx="10"/>
+      <text class="fig-t" x="558" y="248">4 · Carry</text>
+      <text class="fig-s" x="558" y="270">posts · raids · briefs</text>
+
+      <rect class="fig-node live" x="280" y="220" width="200" height="70" rx="10"/>
+      <text class="fig-t" x="298" y="248">5 · Promote</text>
+      <text class="fig-s" x="298" y="270">posts scored X's way (§5)</text>
+
+      <rect class="fig-node live" x="20"  y="220" width="200" height="70" rx="10"/>
+      <text class="fig-t" x="38" y="248">6 · Pay</text>
+      <text class="fig-s" x="38" y="270">USDC every Friday (§6)</text>
+
+      <!-- loop arrows -->
+      <path class="fig-arrow" d="M220,65 L276,65" marker-end="url(#ah)"/>
+      <path class="fig-arrow" d="M480,65 L536,65" marker-end="url(#ah)"/>
+      <path class="fig-arrow" d="M640,100 L640,216" marker-end="url(#ah)"/>
+      <path class="fig-arrow" d="M540,255 L484,255" marker-end="url(#ah)"/>
+      <path class="fig-arrow" d="M280,255 L224,255" marker-end="url(#ah)"/>
+      <!-- reach returns to run -->
+      <path class="fig-arrow" d="M380,220 C380,170 380,150 380,104" marker-end="url(#ah)"/>
+      <text class="fig-m" x="390" y="165">REACH BRINGS RUNNERS</text>
+      <!-- money -->
+      <path class="fig-money" d="M120,216 L120,104" marker-end="url(#am)"/>
+      <text class="fig-m" x="130" y="165">SALES · 25% OF RUNS</text>
+    </svg>
+    <figcaption>The loop. Blue is the flow of work and attention; green is money reaching builders. The promoter pot (§6) is funded by what members pay, never by moving a rank.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Who</th><th>Puts in</th><th>Gets</th></tr></thead>
+    <tbody>
+      <tr><td>Builders</td><td>A capability that runs; optionally a price</td><td>Runs and rank from real use; 80% of every sale; 25% of other people's paid runs</td></tr>
+      <tr><td>Brands &amp; projects</td><td>A Network plan ($99/mo, or $249 with the Studio)</td><td>A member profile; their MCP server recalled by agents; Rokha's posts, raids and a brief promoters work from</td></tr>
+      <tr><td>Promoters</td><td>Posts on X about Rokha or a member</td><td>A weekly USDC share, by reach scored the way X scores it</td></tr>
+      <tr><td>Agents</td><td>Anything a person can do, over API/MCP</td><td>The same: run, publish, sell, buy, promote, hold a membership</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ═══════════════════════════════════════════════════════════ 4 -->
+  <h2 id="rank"><span class="n">4</span>Rank is earned</h2>
+  <p>
+    A member's place on the Network is a score over the last 30 days. <b>No money term enters it</b>
+    &mdash; not a price, not a plan, not an amount spent &mdash; and a test pins that no money column is
+    read by the score, the rescore or the order. Each signal is capped so no single lever owns the
+    board, and each counts <b>people</b>, not loops:
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Signal</th><th>Points</th><th>Counted up to</th><th>One unit is</th></tr></thead>
+    <tbody>
+      <tr><td>Reach</td><td class="num">5</td><td class="num">2,000</td><td>A distinct other person whose post about the member reached someone</td></tr>
+      <tr><td>Runs</td><td class="num">10</td><td class="num">1,000</td><td>A signed-in person who ran one of the member's listings that day (never the owner, never anonymous)</td></tr>
+      <tr><td>Agent calls</td><td class="num">2</td><td class="num">5,000</td><td>A signed-in caller of the member's MCP tools that day; anonymous calls count at most 20 a day</td></tr>
+      <tr><td>Buyers</td><td class="num">50</td><td class="num">500</td><td>A distinct linked X account that paid for the member's work (never the owner's own X)</td></tr>
+      <tr><td>Tenure</td><td class="num">15</td><td class="num">24 months</td><td>A month as a member</td></tr>
+    </tbody>
+  </table></div>
   <div class="note">
     <p>
-      What we claim is narrow, and we would rather state it precisely than broadly:
-      <b>the score is reproducible, its inputs are public, and its arithmetic is inspectable by the
-      person it was levelled at.</b> We do not claim it measures the value of a post, or that it
-      cannot be gamed &mdash; only that gaming it costs more than it pays, and that every number in it
-      can be checked.
+      <b>Why "people, not loops".</b> On 2026-10-03 our own audit found that every signal could be
+      washed for free: buyer logins are free wallets, runs counted the owner's own and free anonymous
+      runs, and agent calls counted raw hits. Each now counts an identity that costs something to
+      fake &mdash; a signed-in account a day, a linked X account per buyer &mdash; and the fix landed
+      before any paid sale existed to wash (section 9).
     </p>
   </div>
-
-  <h2 id="tailwind">2. The Tailwind</h2>
   <p>
-    Every constant below is a single named value in one module, read identically by the ranking query
-    and by the explanation shown to the participant. Sections 2.1 and 2.2 are the live rules (posts from
-    2026-10-02 22:00 UTC); 2.3&ndash;2.7 describe the model they replaced, kept for recomputing past rounds.
+    Rank decides what the Network does for a member: the top three get a post from Rokha every day,
+    every member gets four a month with a raid each, and member raids are served longest-standing
+    first. Every member's signals and arithmetic are public at
+    <code>GET https://rokha.ai/api/network/members</code>.
   </p>
 
-  <h3>2.1 Qualifying</h3>
+  <!-- ═══════════════════════════════════════════════════════════ 5 -->
+  <h2 id="tailwind"><span class="n">5</span>The Tailwind &mdash; promotion scored the way X scores</h2>
   <p>
-    A post enters scoring if it mentions an official Rokha account or a live member of the Rokha
-    Network, or is authored by an official account. Nothing else is collected. (Until the 2026-09-25
-    22:00 UTC payout a post could also qualify by a house cashtag; that rule is retired for every post
-    made after that payout. $ROKHA plays no part in scoring: it is Rokha's utility coin, issued by
-    Rokha AI LLC, with one use, fuel.) Attribution keys on the
-    author's stable numeric X user id, never on the handle &mdash; an account that renames keeps
-    everything it earned.
+    The Tailwind is how promoters are paid. A post qualifies if it mentions an official Rokha account
+    or a live Network member (or is authored by an official account). Attribution keys on the
+    author's numeric X id, never the handle, so a rename keeps everything earned.
   </p>
 
-  <h3>2.2 Scoring the X way (live from 2026-10-02 22:00 UTC)</h3>
+  <h3>5.1 One formula, X's own weights</h3>
   <p>
-    X's current For You ranker is open source
-    (<a href="https://github.com/xai-org/x-algorithm">xai-org/x-algorithm</a>, commit
-    <code>76843a5</code>, 2026-10-02). It scores a post as a <b>straight weighted sum</b> of engagement
-    terms (<code>compute_weighted_score</code>): no logarithm, no cap, and no per-author limit (author
-    diversity exists in the code and is switched off in that release). We use its weights on the
-    engagements that public metrics show:
-  </p>
-  <div class="tw"><table>
-    <thead><tr><th>Engagement</th><th>X weight</th><th>Here</th></tr></thead>
-    <tbody>
-      <tr><td>Reply</td><td class="num">5.0</td><td class="num">5.0</td></tr>
-      <tr><td>Quote</td><td class="num">5.0</td><td class="num">5.0</td></tr>
-      <tr><td>Repost</td><td class="num">1.0</td><td class="num">1.0</td></tr>
-      <tr><td>Like</td><td class="num">0.5</td><td class="num">0.5</td></tr>
-      <tr><td>Bookmark, impression</td><td>no weight in X's ranker</td><td class="num">0</td></tr>
-      <tr><td>Clicks, dwell, shares, follows, video, negative feedback</td><td>weighted by X</td><td>not public &mdash; left out</td></tr>
-    </tbody>
-  </table></div>
-  <div class="formula">
-    <span class="hl">seeds(p)</span> = 10 &middot; ( 0.5&middot;likes + 1&middot;reposts + 5&middot;replies + 5&middot;quotes )
-    <small>0 if the post fails Rule Zero or is a proven copy</small>
-  </div>
-  <p>
-    Rule Zero reads these same weights: a post needs <b>2.0 X-weighted units</b> to count at all
-    &mdash; one reply or quote, two reposts, or four likes. Bookmarks and views carry no weight in X's
-    ranker, so they never qualify a post. (Before 2026-10-03 the threshold read the older units of
-    section 2.2a; on the current round no post's qualification changed.)
+    X's For You ranker is open source
+    (<a href="https://github.com/xai-org/x-algorithm">xai-org/x-algorithm</a>, commit <code>76843a5</code>).
+    It scores a post as a straight weighted sum of engagements &mdash; no logarithm, no cap. We use its
+    weights on the engagements public metrics show, for every post from 2026-10-02 22:00 UTC:
   </p>
   <div class="formula">
-    <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> d(rank<sub>day</sub>(p), seeds(p)) &middot; m<sub>integrity</sub>
-    <small>d = the day decay, section 2.2.1</small>
+    <span class="hl">seeds(p)</span> = 10 &middot; ( 5&middot;replies + 5&middot;quotes + 1&middot;reposts + 0.5&middot;likes )
+    <small>views and bookmarks weigh 0 &mdash; X's ranker has no weight for either &nbsp;·&nbsp; 0 if the post fails Rule Zero or is a copy</small>
   </div>
-  <div class="tw"><table>
-    <thead><tr><th>Post</th><th>Likes · reposts · replies · quotes</th><th>Weighted sum</th><th>Seeds</th></tr></thead>
-    <tbody>
-      <tr><td>Small real post</td><td>8 · 1 · 2 · 0</td><td class="num">15</td><td class="num">150</td></tr>
-      <tr><td>Good post</td><td>40 · 8 · 6 · 1</td><td class="num">63</td><td class="num">630</td></tr>
-      <tr><td>Viral post</td><td>9,000 · 2,000 · 1,200 · 300</td><td class="num">14,000</td><td class="num">140,000</td></tr>
-      <tr><td>One like</td><td>1 · 0 · 0 · 0</td><td class="num">0.5</td><td class="num">0 (Rule Zero)</td></tr>
-    </tbody>
-  </table></div>
   <p>
-    <b>Where we differ from X, and why.</b> X weights the <i>predicted probability</i> of each action for
-    one viewer; we can only see public counts after the fact, so we apply X's weights to the counts. X's
-    own code warns that its weight ratios are not count equivalences &mdash; this is the closest
-    observable approximation, not a claim to reproduce its ranking. And we keep three guards X does not
-    need because no money moves per post there: Rule Zero, the copy check and the integrity multiplier.
+    <b>Rule Zero.</b> A post must reach <b>2.0 X-weighted units</b> to count at all: one reply or quote,
+    two reposts, or four likes. Impressions can be bought; a reply cannot, because someone has to read
+    the post and write something. Rule Zero runs before anything else and returns zero.
   </p>
 
-  <h3>2.2.1 The day decay (ours, not X's)</h3>
+  <h3>5.2 The day decay &mdash; our one departure from X</h3>
   <p>
-    X's ranker has no per-author day cap: author diversity is in its code and switched off in the
-    release we follow. Followed to the letter, that paid a prolific account for every post that cleared
-    Rule Zero. So we add one rule of our own, announced 2026-10-03 and applied to every post scored the
-    X way (from 2026-10-02 22:00 UTC). Per author per UTC day, posts take places by their seeds
-    (on a payout day, a post the previous round already paid keeps its place first):
+    X's ranker has no per-author day cap (author diversity is in its code and switched off in the
+    release we follow). Followed to the letter, that pays volume. So per author per UTC day, posts
+    take places by their seeds:
   </p>
+  <figure>
+    <svg viewBox="0 0 760 170" role="img" aria-labelledby="dd-t dd-d">
+      <title id="dd-t">The day decay</title>
+      <desc id="dd-d">Places one to three earn full seeds; places four to six earn a capped, halving share; place seven onward earns nothing.</desc>
+      <rect class="fig-bar" x="20"  y="20" width="70" height="110" rx="4"/>
+      <rect class="fig-bar" x="110" y="20" width="70" height="110" rx="4"/>
+      <rect class="fig-bar" x="200" y="20" width="70" height="110" rx="4"/>
+      <rect class="fig-bar" x="290" y="118" width="70" height="12" rx="3"/>
+      <rect class="fig-bar" x="380" y="124" width="70" height="6" rx="3"/>
+      <rect class="fig-bar" x="470" y="127" width="70" height="3" rx="2"/>
+      <rect class="fig-bar dim" x="560" y="129" width="70" height="1"/>
+      <rect class="fig-bar dim" x="650" y="129" width="70" height="1"/>
+      <text class="fig-m" x="30"  y="152">1ST</text><text class="fig-m" x="120" y="152">2ND</text><text class="fig-m" x="210" y="152">3RD</text>
+      <text class="fig-m" x="300" y="152">4TH ×.5</text><text class="fig-m" x="390" y="152">5TH ×.25</text><text class="fig-m" x="480" y="152">6TH ×.125</text>
+      <text class="fig-m" x="570" y="152">7TH: 0</text><text class="fig-m" x="660" y="152">8TH+: 0</text>
+      <text class="fig-s" x="40" y="14">full seeds, no cap</text>
+      <text class="fig-s" x="300" y="110">capped at 100</text>
+    </svg>
+    <figcaption>Three strong posts always beat ten weak ones: a day's 4th to 6th posts add at most 87.5 seeds together.</figcaption>
+  </figure>
   <div class="tw"><table>
-    <thead><tr><th>Place in the day</th><th>Earns</th></tr></thead>
+    <thead><tr><th>Place in the UTC day</th><th>Earns</th></tr></thead>
     <tbody>
-      <tr><td>1st &ndash; 3rd</td><td>its full seeds(p), no cap</td></tr>
+      <tr><td>1st &ndash; 3rd</td><td>full seeds(p), no cap</td></tr>
       <tr><td>4th</td><td>min(seeds(p), 100) &times; 0.5</td></tr>
       <tr><td>5th</td><td>min(seeds(p), 100) &times; 0.25</td></tr>
       <tr><td>6th</td><td>min(seeds(p), 100) &times; 0.125</td></tr>
-      <tr><td>7th on</td><td><b>0</b> &mdash; the cliff (the post still takes its place, deleted or not)</td></tr>
+      <tr><td>7th on</td><td><b>0</b> &mdash; the post still takes its place, deleted or not</td></tr>
     </tbody>
   </table></div>
   <p>
-    The most a day can add beyond its best three is 87.5 seeds, so three strong posts always beat ten
-    weak ones. Every post's place and factor are printed in its explanation (section 5).
-  </p>
-
-  <h3>2.2a Engagement units (history: posts before 2026-10-02 22:00 UTC)</h3>
-  <p>
-    Each interaction was worth a fixed number of units, from X's 2023 heavy ranker where it published a
-    weight and ours where it did not:
-  </p>
-  <div class="tw"><table>
-    <thead><tr><th>Signal</th><th>Units</th><th>Source</th></tr></thead>
-    <tbody>
-      <tr><td>Reply</td><td class="num">13.5</td><td>X heavy ranker &mdash; a reply &asymp; 27 likes</td></tr>
-      <tr><td>Bookmark</td><td class="num">10.0</td><td><span class="ours">Ours.</span> X's published table predates bookmarks as a ranking signal</td></tr>
-      <tr><td>Quote</td><td class="num">1.5</td><td><span class="ours">Ours.</span> A quote is a repost carrying a reply</td></tr>
-      <tr><td>Repost</td><td class="num">1.0</td><td>X heavy ranker</td></tr>
-      <tr><td>Like</td><td class="num">0.5</td><td>X heavy ranker</td></tr>
-      <tr><td>View</td><td class="num">0.001</td><td><span class="ours">Ours.</span> Shown on the card; views are scored by the separate reach term in 2.3, never as engagement units</td></tr>
-    </tbody>
-  </table></div>
-  <p>
-    What we deliberately do not count: X's ranker also weights profile clicks (12.0), dwell-qualified
-    clicks (11.0), video playback and negative feedback (&minus;74). <b>The public API exposes none of
-    them.</b> Link clicks are in the same bucket &mdash; X counts them, we cannot see them, so we do not
-    model them. Inventing a number for a signal we cannot measure would put a fabricated term inside a
-    payout, which is the one thing a money path must never contain.
-  </p>
-
-  <h3>2.3 Damped value (history)</h3>
-  <p>
-    Engagement and reach are damped separately, so a large impression count cannot swamp the
-    interaction a post failed to earn.
+    <b>A real receipt.</b> On 2026-10-03 one account posted 44 times. Its best six carried 1,295 &middot;
+    1,240 &middot; 1,240 &middot; 1,240 &middot; 1,240 &middot; 1,190 seeds:
   </p>
   <div class="formula">
-    <span class="hl">v(p)</span> = ln(1 + u<sub>e</sub>(p)) + <span class="k">8 &middot;</span> ln(1 + views(p)) <span class="k">/ 100</span>
+    1,295 + 1,240 + 1,240 + <span class="k">min(1,240,100)&middot;0.5</span> + <span class="k">min(1,240,100)&middot;0.25</span> + <span class="k">min(1,190,100)&middot;0.125</span> = <span class="hl">3,862.5</span>
+    <small>posts 7&ndash;44 earned 0 &nbsp;·&nbsp; before the decay the same day was worth roughly forty thousand seeds</small>
   </div>
-  <p>
-    where <code>u_e(p)</code> is the post's engagement units <b>excluding</b> the view term. Both halves
-    are logarithmic: the hundredth reply on a post is worth far less than the first, which is what
-    stops a single viral post from deciding a week.
-  </p>
 
-  <h3>2.4 The per-post ceiling (history)</h3>
-  <p>
-    <code>v(p)</code> is capped at <b>6.0</b> before any multiplier. One post can never be worth more
-    than six good posts &mdash; the whale guard.
-  </p>
-
-  <h3>2.5 Multipliers</h3>
-  <p>
-    <b>No post earns a tag boost.</b> Every post made from 2026-10-02 22:00 UTC onward is scored the
-    X way (section 2.2), which carries no multiplier, so it scores at <code>c = 1.00</code> whoever it
-    tags &mdash; even a post stamped with a carry before the boost switched off at 23:00 UTC.
-  </p>
-  <p>
-    <i>History.</i> Before that cutover a post earned the <b>carry</b>: &times;1.25 for tagging a live
-    sponsor, rising &times;0.05 per additional seat that sponsor held, capped at &times;1.50, never on
-    the author's own seat; a post tagging the official account with a listed house topic earned the
-    same &times;1.25, never stacked with the carry. A post keeps the multiplier it was stamped with
-    when collected, so the rounds that paid it stay recomputable.
-  </p>
-  <p>
-    A post stamped as <b>copied</b> earns <b>&times;0</b>. Copied is decided by a deterministic
-    duplicate check against posts already collected &mdash; the same text gives the same answer every
-    time &mdash; never by a model's opinion.
-  </p>
-
-  <h3>2.6 Seeds (history)</h3>
-  <div class="formula">
-    <span class="hl">seeds(p)</span> = 100 &middot; min( v(p), 6.0 ) &middot; c(p)
-    <small>c = the multiplier stamped at collection: 1.00 from 2026-10-02 22:00 UTC; 1.25&ndash;1.50 for carried posts before it</small>
-  </div>
-  <p>
-    The maximum any single post can earn is therefore <code>100 &times; 6.0 &times; 1.00 = 600</code>
-    seeds (900 for a post carried at &times;1.50 before the cutover).
-  </p>
-
-  <h3>2.7 The account total (history)</h3>
-  <p>
-    A participant's era score sums their <b>best five posts per UTC day</b>, then applies
-    account-level terms:
-  </p>
-  <div class="formula">
-    <span class="hl">S</span> = max( &Sigma;<sub>d</sub> &Sigma;<sub>p &isin; best5(d)</sub> seeds(p) , &nbsp;F ) &middot; m<sub>integrity</sub>
-  </div>
-  <ul>
-    <li>
-      <b>The era floor</b> <code>F</code> &mdash; the highest total the account reached this era. Scores
-      never fell within a pay cycle. The floor retired after the 2026-09-25 payout; no v3 round has one.
-    </li>
-    <li><b>Integrity</b> <code>m_integrity</code> &mdash; see <a href="#antigaming">section 3</a>.</li>
-  </ul>
-  <p>One UTC day is one set of five slots, whether or not a payout happened partway through it.</p>
-
-  <h2 id="antigaming">3. Anti-gaming</h2>
-  <p>
-    Each guard below exists because a specific attack was modelled against the live board and beat the
-    model without it. They are listed in the order a post meets them.
-  </p>
+  <h3>5.3 The guards</h3>
   <div class="tw"><table>
     <thead><tr><th>Guard</th><th>Rule</th><th>The attack it answers</th></tr></thead>
     <tbody>
-      <tr><td>Rule Zero</td><td>Under <b>2.0 X-weighted units</b> (a reply or quote, 2 reposts, 4 likes; views and bookmarks weigh 0) earns <b>0</b></td><td>A bought-views farm took rank 1 with 25.4% of a pot on impressions alone</td></tr>
-      <tr><td>Per-post cap <i>(history)</i></td><td><code>v(p)</code> capped at <b>6.0</b> &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>One viral post deciding a whole week</td></tr>
-      <tr><td>Best-5 per day <i>(history)</i></td><td>Only the best five posts per UTC day counted &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>A hundred bare tags a day out-earning real work</td></tr>
-      <tr><td>Day decay</td><td>Best 3 a UTC day in full; 4th&ndash;6th min(seeds, 100) &times; 0.5 / 0.25 / 0.125; 7th on <b>0</b> (every post from 2026-10-02 22:00 UTC)</td><td>A reply farm stacking low-quality posts</td></tr>
-      <tr><td>Copied posts</td><td>A duplicate of an already-collected post earns <b>&times;0</b></td><td>Word-for-word plagiarism</td></tr>
-      <tr><td>No tag boost</td><td>From 2026-10-02 22:00 UTC no post earns a multiplier for whom it tags (before it: never on the author's own seat)</td><td>Buying placement to buy a &times;1.25 on your own score</td></tr>
-      <tr><td>Integrity</td><td>&minus;5% per deleted paid post, floor <b>&times;0.25</b></td><td>Taking the money, then deleting the post</td></tr>
+      <tr><td>Rule Zero</td><td>Under 2.0 X-weighted units earns 0</td><td>A bought-views farm took rank 1 with a quarter of a pot on impressions alone</td></tr>
+      <tr><td>Day decay</td><td>Best 3 full; 4th&ndash;6th capped and halving; 7th on 0</td><td>Stacking low-quality posts</td></tr>
+      <tr><td>Copies</td><td>A duplicate of a collected post earns &times;0 &mdash; a deterministic check, never a model's opinion</td><td>Word-for-word plagiarism</td></tr>
+      <tr><td>No tag boost</td><td>No post earns a multiplier for whom it tags</td><td>Buying placement to buy a multiplier on your own score</td></tr>
+      <tr><td>Integrity</td><td>&minus;5% per deleted paid post after the first, floor &times;0.25</td><td>Taking the money, then deleting the post</td></tr>
     </tbody>
   </table></div>
   <p>
-    <b>Rule Zero is the most load-bearing.</b> Views are deliberately excluded from the threshold:
-    impressions are served <i>to</i> you and can be bought, engagement is earned <i>from</i> people. No
-    multiplier can resurrect a post that cleared nobody's bar &mdash; the check runs before anything
-    else and returns zero.
+    <b>Nothing in the score is an opinion.</b> No model grades a post and no heuristic sizes up an
+    audience; both were tried and removed (Appendix A) because they failed the one standard the score
+    holds: <b>run it twice, get the same number.</b>
   </p>
-
-  <h3>The integrity multiplier</h3>
-  <p>
-    Deleting a post you were paid for is not banned, it is <b>priced</b>. Each such deletion costs 5%
-    of the account's promotion score permanently, with three deliberate softenings:
-  </p>
-  <ul>
-    <li>
-      <b>The first one is free.</b> Measured across 487 deletions, 330 fell before the next payout and
-      already cost nothing; abuse is a pattern, never a single act. A typo noticed late should not cost
-      money.
-    </li>
-    <li><b>A floor of &times;0.25.</b> The penalty saturates, so an account can always earn its way back.</li>
-    <li>
-      <b>It starts when it was announced.</b> Nothing deleted before 2026-09-21 00:00 UTC prices at
-      all. A penalty that begins before the deploy announcing it is the unfair surprise the free pass
-      exists to prevent.
-    </li>
-  </ul>
   <div class="note warn">
     <p>
       <b>A post we cannot see is not a post that was deleted.</b> X answers differently for a deleted
-      post and for one that merely became unreadable &mdash; an author going protected or suspended, for
-      example &mdash; and an early version of the deletion sweep treated both as deleted. When our own
-      verification caught it, every affected post was restored, and the sweep was rewritten so that any
-      answer it does not positively recognise as a deletion counts as &ldquo;still up&rdquo;: the failure
-      has to land on the side that costs nobody money.
+      post and for one that became unreadable. When our verification caught an early sweep treating
+      both as deleted, every affected post was restored, and the sweep now counts anything it does not
+      positively recognise as a deletion as "still up" &mdash; the failure lands on the side that costs
+      nobody money.
     </p>
   </div>
 
-  <h3>What the guards cost</h3>
+  <!-- ═══════════════════════════════════════════════════════════ 6 -->
+  <h2 id="money"><span class="n">6</span>From seeds to money</h2>
   <p>
-    These are real trade-offs, not free wins. Rule Zero means a thoughtful post that happened to find no
-    audience earns nothing. Since v3 dropped the per-post cap, a viral post earns its full weight. The
-    day decay means a fourth good post in a day earns far less than its seeds, and a seventh earns
-    nothing &mdash; the price of keeping volume from buying the board.
+    Seeds are a ranking quantity, not a currency. They are never stored as a balance: they recompute
+    on every read from the posts themselves, so a post recovered late pays the moment it is in the
+    table. Your total can't drop during a week, except when a scoring fix takes back points that were
+    never owed.
   </p>
-
-  <h2 id="money">4. From seeds to money</h2>
+  <h3>6.1 The pot</h3>
   <p>
-    Seeds are a ranking quantity, not a currency. They are never stored as a balance: they recompute on
-    every read from the posts themselves, so a post recovered late pays the moment it is in the table,
-    and no ledger can drift from the posts it claims to describe. Your total can't drop during a
-    week, except when a scoring fix takes back points that were never owed (2026-10-03: the day decay
-    reset every total this week to its decayed value).
+    The weekly pot is <b>half of what members pay for the Network</b> (and half of any advertising
+    revenue), with a <b>$100/week floor</b> paid by the House for the first eight weeks. Promotion is
+    paid out of what promotion earned; the floor is the House's one sanctioned out-of-pocket spend.
+    The founder confirms every payout before it goes (one press per round); between presses the pot
+    shows its projected amount &mdash; never less than the floor &mdash; and the next Friday, at
+    <code>GET https://rokha.ai/api/network/pot</code>.
   </p>
-  <p>
-    <b>The pot.</b> Through the 2026-10-02 payout the treasury was funded by advertising revenue &mdash;
-    50% of every seat, carry and package sale on The Wall. From the next cycle it is 50% of Rokha
-    Network plan revenue, with a $100/week floor for the first eight weeks. Promotion is paid out of
-    what promotion earned. Payouts are made in <b>USDC</b> every Friday, on Solana, with every
-    transaction signature public. (The only other chain link is $ROKHA, Rokha's utility coin, used
-    only as fuel and never as a payout.)
-  </p>
-  <p>
-    <b>The cycle.</b> An era opens at the previous <i>paid</i> round and closes at the next payout. The
-    first round scored and split under v3 pays 2026-10-09; its pot is shown live at
-    <code>GET https://rokha.ai/api/network/pot</code>. (At the 2026-09-23 reading, the era open since
-    2026-09-18 22:03 UTC held 262.54 USDC for the 2026-09-25 payout.)
-  </p>
-  <p>
-    <b>The split (from the 2026-10-09 payout).</b> The <b>top 20 places</b> are paid. Each share is the
-    participant's seeds raised to the power 1.5, over the top 20's total:
-  </p>
+  <h3>6.2 The split &mdash; top 20, seeds<sup>1.5</sup></h3>
   <div class="formula">
     <span class="hl">share<sub>i</sub></span> = S<sub>i</sub><sup>1.5</sup> / &Sigma;<sub>j &isin; top 20 places</sub> S<sub>j</sub><sup>1.5</sup>
-    <small>0 below 20th place</small>
+    <small>0 below 20th place &nbsp;·&nbsp; exactly equal seeds are one place, paid the same</small>
   </div>
   <p>
     Leading pays more than linearly. On a board of 3,000 &middot; 2,200 &middot; 1,600 &middot; 1,200
     &middot; 900 &middot; 700 &middot; 500 &middot; 400 &middot; 300 &middot; 200 seeds, first takes
-    <b>36.9%</b> where a straight split would give 27.3%, and tenth takes 0.6% (linear: 1.8%). Exactly equal
-    seeds are one place: tied participants are paid the same amount, and every participant tied into the
-    top 20 is paid. The amounts are exact to the base unit; rounding dust goes to the highest participant
-    holding a place alone.
+    <b>36.9%</b> where a straight split gives 27.3%, and tenth takes 0.6% (straight: 1.8%). Amounts are
+    exact to the base unit; rounding dust goes to the highest participant holding a place alone.
   </p>
   <p>
-    <b>The split through the 2026-10-02 payout (history).</b> Every payable participant shared the pot in
-    proportion to their seeds, with a banded decay below the top ten:
+    <b>Who gets paid.</b> A claimed page, a linked X account and a Solana payout address &mdash;
+    nothing else. Being paid requires none of our paid products; a plan buys platform capability, never
+    standing on the board. Payouts are USDC on Solana every Friday, each with a public signature.
   </p>
-  <div class="formula">
-    <span class="hl">share<sub>i</sub></span> = S<sub>i</sub>&middot;&beta;(i) / &Sigma;<sub>j</sub> S<sub>j</sub>&middot;&beta;(j)
-    <small>&beta;(i) = 1 for i &lt; 10 &nbsp;·&nbsp; &beta;(i) = 0.5<sup>&lfloor;(i&minus;10)/10&rfloor;+1</sup> for i &ge; 10</small>
+
+  <!-- ═══════════════════════════════════════════════════════════ 7 -->
+  <h2 id="creators"><span class="n">7</span>The creator economy</h2>
+  <p>
+    A builder can price anything they publish &mdash; a rig, an agent, a skill or a harness &mdash;
+    and others cannot use it until they pay. Whoever pays gets access bound to their account and,
+    if they want one, a copyable key.
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Model</th><th>What the buyer gets</th></tr></thead>
+    <tbody>
+      <tr><td>One-time</td><td>Runs and remix, kept</td></tr>
+      <tr><td>Monthly</td><td>A 30-day pass; passes stack</td></tr>
+      <tr><td>Per run</td><td>A pack of runs</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    <b>80% to the creator, 20% to the House.</b> USDC, x402, Signet and fuel sales pay the creator
+    <b>instantly</b>; card sales on the Friday rail. Every paid run of a published rig by someone
+    other than its author also pays the author <b>25%</b> &mdash; capped per runner at a quarter of what
+    that runner paid, so the share can never be farmed at a profit. A creator buying their own work, or
+    running it, earns nothing and moves no rank.
+  </p>
+  <p>
+    <b>Agents can pay.</b> A paid door answers an agent with an HTTP <code>402</code> and an
+    <a href="https://www.x402.org/">x402</a> challenge (exact USDC on Solana); the agent pays and retries
+    in the same call. An agent holding a Signet mandate can buy within its caps, and an agent with a
+    fuel tank can draw on it. A buyer's <code>rk_</code> key reads, runs and buys &mdash; it can never
+    grant a mandate or spend a tank. The body of a paid skill is withheld from everyone but its
+    owner, its buyers, and a run of that exact skill.
+  </p>
+
+  <!-- ═══════════════════════════════════════════════════════════ 8 -->
+  <h2 id="signet"><span class="n">8</span>Signet and $ROKHA fuel</h2>
+  <p>
+    <b>Signet is the authority layer.</b> An agent never holds a user's keys. A user grants a
+    <b>mandate</b> &mdash; which actions, which assets, a total cap, a per-action cap, trusted addresses,
+    how long &mdash; and every action an agent takes runs through the platform's rail, which checks the
+    mandate, the caps (denominated: a cap in SOL never lets USDC out) and the address before anything
+    is signed, and writes an audit record either way. A <b>guarded</b> mandate parks each action for the
+    owner's tap; an <b>autonomous</b> one acts inside its caps and trusted addresses, and a new address
+    always parks. Money moves from chat only in the owner's own direct message. Each agent holds its
+    own authority: an agent's mandate answers only that agent's turns.
+  </p>
+  <p><b>$ROKHA is fuel, and only fuel.</b> In full:</p>
+  <div class="note">
+    <p>
+      $ROKHA is Rokha's utility coin, issued by Rokha AI LLC, with one use: fuel. Fund a fuel tank
+      &mdash; yours or an agent's &mdash; and the inference and boosts it pays for are drawn at cost;
+      half of every $ROKHA spent is burned, half goes to the House. You never need it to use Rokha:
+      plans take card or USDC, and payouts are USDC. It isn't an investment and holding it earns nothing.
+    </p>
   </div>
   <p>
-    The top ten places are strictly linear &mdash; four times the seeds is four times the cut, with no
-    rank bonus. Each band of ten below is worth half the band above: ranks 11&ndash;20 at 50%,
-    21&ndash;30 at 25%, and so on. Seeds still order everyone <i>within</i> a band; the band scales the
-    rate and never reorders anyone. Exactly equal seeds are one place: tied participants share the same
-    rank and are paid the same amount, in the band of that shared rank &mdash; if two participants tie for
-    tenth, both are tenth and both are paid at the full rate.
-  </p>
-  <p>
-    The decay is a deliberate design choice with a cost. A purely proportional pot makes rank 40 nearly
-    as good as rank 10 and nobody climbs; a steeper curve starves the long tail. Banding keeps the top
-    worth fighting for while still paying everyone who qualified.
-  </p>
-  <p>
-    <b>Who gets paid.</b> A participant needs three things: a claimed page, a linked X account, and a
-    payout address. As of 2026-09-23, <b>94</b> pages are X-linked, of which <b>73</b> are payout-ready
-    and <b>21</b> are earning with nowhere to send the money &mdash; those seeds accrue and wait rather
-    than being forfeited.
-  </p>
-  <p>
-    Payout is not tier-gated by construction. Earning, ranking and being paid require none of our paid
-    products; a subscription buys platform capability, never standing on the board.
+    Contract address <code>2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump</code>. Fuel buys an extra
+    post or raid ($25) or a buy-bot spotlight ($10); a boost buys reach, never rank. Top-ups to an
+    agent's tank are spend-only; an owner can withdraw their own unspent balance at any time.
   </p>
 
-  <h2 id="verification">5. Verification</h2>
-  <p>A formula nobody can check is a promise. Two properties make this one checkable, and we test both.</p>
+  <!-- ═══════════════════════════════════════════════════════════ 9 -->
+  <h2 id="security"><span class="n">9</span>Security posture</h2>
   <p>
-    <b>One arithmetic, two readers.</b> The ranking query and the participant-facing explanation compute
-    from the same constants and the same per-post expression. The explanation is not a summary of the
-    score &mdash; it <i>is</i> the score's own working, rendered.
+    Every feature is designed against a caller who has read the source, holds a free account and
+    controls every byte they send. A feature is done when we have written what it refuses and a test
+    proves the refusal. Four questions are answered in every plan: who is the caller and what proved
+    it; what can they name that isn't theirs; what happens when the check fails; where does this
+    render.
+  </p>
+  <ul>
+    <li><b>Money fails closed.</b> An unreadable balance, blocklist or ledger stops a payment; it never waves one through.</li>
+    <li><b>Claim before send.</b> Every payout claims its row by state first, so a share is sent once &mdash; instantly or on Friday, never both.</li>
+    <li><b>The model is a router, never a guard.</b> Anything a model decides is re-checked against real authorization; anything it fetched is data, never instruction.</li>
+    <li><b>Sandboxes assume malice.</b> No secrets inside, egress-only networking, every input hostile, budgets that fail closed.</li>
+    <li><b>Production data is sacred.</b> Migrations are additive by default; anything destructive needs the founder's sign-off and a snapshot first.</li>
+  </ul>
+  <div class="note pass">
+    <p>
+      <b>What our audits caught, published.</b> 2026-09-23: X's "unreadable" answer was being read as
+      "deleted" &mdash; 297 of 556 retracted posts were still up; all restored. 2026-10-03: four Network
+      rank signals counted free things (logins, self-runs, anonymous calls) &mdash; fixed before any
+      paid sale existed; an anonymous door could have spent the X read budget the promoter collector
+      needs &mdash; reserved. We publish these because a paper that claims verifiability should show
+      what verification caught.
+    </p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ 10 -->
+  <h2 id="verification"><span class="n">10</span>Verification</h2>
+  <p>
+    <b>One arithmetic, two readers.</b> The ranking query and the explanation a participant sees are
+    computed from the same constants and the same per-post expression; a test pins that both engines
+    agree on every place in the day. The explanation is not a summary of the score &mdash; it is the
+    score's own working, rendered.
   </p>
   <p>
-    <b>A public door per participant.</b> <code>GET /api/pages/{handle}/seeds/explain</code> returns,
-    without authentication: every post in the era with its raw metrics, its units, whether Rule Zero
-    applied, whether the cap bound, every multiplier by name and source, each post's place in its
-    day with the decay factor it took (<code>day_rank</code>, <code>rank_mult</code>,
-    <code>raw_seeds</code>), and the final total. A score has to be checkable by the person it was levelled at.
+    <b>A public door per participant and per post.</b>
+    <code>GET /api/pages/{handle}/seeds/explain</code> returns, without authentication, every post in
+    the round with its raw counts, its X-weighted units, whether Rule Zero applied, its place in the
+    day and the decay it took (<code>day_rank</code>, <code>rank_mult</code>, <code>raw_seeds</code>),
+    and the total. <code>/justify &lt;post link&gt;</code> &mdash; on Telegram, X and MCP &mdash; checks
+    one post live: whether X serves it, whether its author is linked, whether it is in the round and
+    tagged, and whether X is hiding the account from search; a qualifying post we missed is collected
+    on the spot.
   </p>
   <p>
-    <b>We audit ourselves before we pay.</b> Before each payout we independently recompute every scored
-    participant and reconcile the explanation against the ranked board; a payout does not go out over an
-    unexplained discrepancy. When one of these audits catches a real defect &mdash; and they have &mdash;
-    we fix it, restore anyone affected, and say so publicly rather than quietly patching it. A paper
-    claiming verifiability should show what verification actually caught; those reports are published in
-    the project news as they happen.
+    <b>We audit ourselves before we pay.</b> Before each payout every scored participant is
+    recomputed independently and reconciled against the board; a payout does not go out over an
+    unexplained difference.
   </p>
 
-  <h2 id="limits">6. Limits and open problems</h2>
-  <p>
-    <b>We cannot see most of what X sees.</b> The public API exposes impressions, likes, replies,
-    reposts, quotes and bookmarks. Profile clicks, dwell time, video completion and negative feedback
-    are weighted by X's own ranker and are invisible to us. Our score is therefore a projection of
-    engagement onto the signals we can read, not a reconstruction of X's ranking.
-  </p>
-  <p>
-    <b>Every weight is X's.</b> Since v3 both the seeds and the Rule Zero threshold use only the
-    weights in X's published ranker; the threshold itself (2.0) and the day decay (section 2.2.1) are
-    ours. Bookmarks and views, which X's ranker does not weigh, decide nothing.
-  </p>
-  <p>
-    <b>What we removed, and why.</b> Earlier versions of this system carried two judgement terms: a
-    per-post quality verdict, where a model read the post and could scale it up or down, and a profile
-    bonus, where a heuristic audit of the account's audience could multiply its whole subtotal. Both
-    were built with honest intent &mdash; reward real writing, reward real audiences &mdash; and both
-    failed the standard the rest of this paper holds: <b>run it twice, get the same number.</b> A
-    model's read of a post is not recountable. An audit of a 20-post sample moves with the sample.
-    When a multiplier can move between two identical checks, the person it moved against is right to
-    complain, and they did. On 2026-09-24 we removed both. The score is now built entirely from counts:
-    engagement, deleted paid posts, and a deterministic duplicate check (views counted only in
-    the history model). What judgement remains is the design of the weights themselves &mdash; stated above, argued
-    for, and fixed until changed publicly.
-  </p>
-  <p>
-    <b>A sampler is not a ledger.</b> Post collection runs against a third-party index that under-counts.
-    We treat an absence in it as &ldquo;not seen yet&rdquo;, never as evidence a post does not exist &mdash; a
-    missing post is a collection bug we owe, and recovery pays retroactively because seeds recompute on
-    read.
-  </p>
-  <p>
-    <b>What we do not claim.</b> That seeds measure the worth of a post. That the system cannot be
-    gamed &mdash; only that gaming it costs more than it pays, and that every number in it can be
-    recounted by the person it was levelled at.
-  </p>
+  <!-- ═══════════════════════════════════════════════════════════ 11 -->
+  <h2 id="limits"><span class="n">11</span>Limits and open problems</h2>
+  <ul>
+    <li>
+      <b>We cannot see most of what X sees.</b> Profile clicks, dwell time, video completion and
+      negative feedback are weighted by X and invisible to us. Our score applies X's weights to the
+      counts we can read; it does not reconstruct X's ranking, and X's own code warns that its weight
+      ratios are not count equivalences.
+    </li>
+    <li>
+      <b>Reply rings.</b> Replies weigh five; we store counts, not who replied. A ring of promoters
+      replying to each other's best three would inflate seeds. The day decay caps the volume; the ring
+      itself is a monitoring problem, and we watch the top of each round for it.
+    </li>
+    <li>
+      <b>A sampler is not a ledger.</b> Posts are collected through a search index that misses some
+      accounts entirely (X keeps some accounts out of search). Those accounts are read from X's own
+      timeline instead, and an absence is always treated as "not seen yet", never as "does not exist".
+    </li>
+    <li>
+      <b>Anonymous agent calls carry no identity.</b> They still count toward a member's usage, capped
+      at twenty a day, because most real agent traffic is anonymous.
+    </li>
+    <li>
+      <b>The floor is temporary.</b> The House's $100/week floor runs for eight weeks; after that the
+      pot is exactly what members pay in.
+    </li>
+    <li>
+      <b>What we do not claim.</b> That seeds measure the worth of a post, or that the system cannot be
+      gamed &mdash; only that gaming it costs more than it pays, and that every number in it can be
+      recounted by the person it describes.
+    </li>
+  </ul>
 
-  <h2 id="network">7. The Network flywheel</h2>
-  <p>
-    The Tailwind is one turn of a larger loop. Builders ship a capability; agents and people run it;
-    real usage ranks it on the Rokha Network; the Network carries the top; promoters are paid to
-    amplify it; the reach brings new runners. Every money path below went live with the first cycle
-    after the 2026-10-02 payout, and none of it moves a rank.
-  </p>
+  <!-- ═══════════════════════════════════════════════════════════ 12 -->
+  <h2 id="roadmap"><span class="n">12</span>What comes next</h2>
+  <p>In progress, not promised &mdash; each ships when it runs for real:</p>
+  <ul>
+    <li><b>The Studio license.</b> Buy the bench outright or rent-to-own; until it opens, the Studio comes with Network + Studio.</li>
+    <li><b>Official agents.</b> Agents built entirely through the public create-agent flow &mdash; persona, tools, keys, schedule and authority all data &mdash; starting with a trading agent that works paper-first under its own Signet mandate.</li>
+    <li><b>Typed decisions.</b> Small, fast decision models for the classification steps in rigs and in Rokha's own lanes, run in shadow and measured for agreement before they decide anything.</li>
+    <li><b>More of X's signals.</b> Wherever X exposes a signal its ranker weighs, we will add it at X's weight, publicly.</li>
+  </ul>
 
-  <h3>7.1 Rank is earned</h3>
+  <!-- ═══════════════════════════════════════════════════════════ A -->
+  <h2 id="history"><span class="n">A</span>Appendix A &mdash; history</h2>
   <p>
-    A member's place on the Network is a score built from four activity signals over the last 30
-    days, plus tenure. No money term enters it. Each signal is capped so no single lever owns the board.
+    Rules that paid past rounds stay recomputable. Posts before 2026-10-02 22:00 UTC were scored by
+    the v2 model below; rounds through 2026-10-02 were split by the banded rule.
   </p>
+  <h3>A.1 The v2 per-post model (posts before 2026-10-02 22:00 UTC)</h3>
   <div class="tw"><table>
-    <thead><tr><th>Signal</th><th>Points each</th><th>Counted up to</th><th>What it is</th></tr></thead>
+    <thead><tr><th>Signal</th><th>Units</th><th>Source</th></tr></thead>
     <tbody>
-      <tr><td>Reach</td><td class="num">5</td><td class="num">2,000</td><td>Distinct other people who posted about the member</td></tr>
-      <tr><td>Runs</td><td class="num">10</td><td class="num">1,000</td><td>Clean runs of the member's published tools</td></tr>
-      <tr><td>Agent calls</td><td class="num">2</td><td class="num">5,000</td><td>Calls of the member's MCP tools by agents</td></tr>
-      <tr><td>Buyers</td><td class="num">50</td><td class="num">500</td><td>Distinct paying buyers of the member's products (never self or the same X account)</td></tr>
-      <tr><td>Tenure</td><td class="num">15</td><td class="num">24 months</td><td>Months as a member</td></tr>
+      <tr><td>Reply</td><td class="num">13.5</td><td>X's 2023 heavy ranker</td></tr>
+      <tr><td>Bookmark</td><td class="num">10.0</td><td>Ours</td></tr>
+      <tr><td>Quote</td><td class="num">1.5</td><td>Ours</td></tr>
+      <tr><td>Repost</td><td class="num">1.0</td><td>X's 2023 heavy ranker</td></tr>
+      <tr><td>Like</td><td class="num">0.5</td><td>X's 2023 heavy ranker</td></tr>
     </tbody>
   </table></div>
+  <div class="formula">
+    <span class="hl">seeds(p)</span> = 100 &middot; min( ln(1 + u<sub>e</sub>) + 8&middot;ln(1 + views)/100 , 6.0 ) &middot; c(p)
+    <small>Rule Zero at 2.0 of these units &nbsp;·&nbsp; c = the tag multiplier stamped at collection (×1.25–×1.50 for carried posts; ended 2026-10-02) &nbsp;·&nbsp; only each day's best five counted</small>
+  </div>
   <p>
-    Worked example: 2,237 people posting about a member, 4 runs and 1 month gives
-    <code>min(2237, 2000)&middot;5 + 4&middot;10 + 1&middot;15 = 10,055</code> points. Every member's
-    signals are public at <code>GET https://rokha.ai/api/network/members</code>.
+    <b>Removed judgement terms.</b> A per-post quality verdict from a model and a profile bonus from a
+    sampled audience audit were removed on 2026-09-24: neither returned the same number twice.
+    <b>The era floor</b> (a total never fell within a cycle) retired after the 2026-09-25 payout.
   </p>
-
-  <h3>7.2 Where the money comes from, and where it goes</h3>
+  <h3>A.2 The banded split (rounds through 2026-10-02)</h3>
+  <div class="formula">
+    <span class="hl">share<sub>i</sub></span> = S<sub>i</sub>&middot;&beta;(i) / &Sigma;<sub>j</sub> S<sub>j</sub>&middot;&beta;(j)
+    <small>&beta;(i) = 1 for the top ten &nbsp;·&nbsp; each band of ten below worth half the band above</small>
+  </div>
+  <h3>A.3 Earlier changes, in order</h3>
   <div class="tw"><table>
-    <thead><tr><th>Path</th><th>Rule</th><th>Funded by</th></tr></thead>
+    <thead><tr><th>Date</th><th>Change</th></tr></thead>
     <tbody>
-      <tr><td>Network plans</td><td>$99 a month, or $249 with the Studio</td><td>The member</td></tr>
-      <tr><td>Weekly promoter pot</td><td>50% of plan revenue, with a $100/week house floor for the first 8 weeks; paid in USDC every Friday by the Tailwind split above</td><td>Plan revenue; the floor is the house's one sanctioned out-of-pocket spend</td></tr>
-      <tr><td>Creator share</td><td>A published rig's author earns 25% of the run fee each time a paying user other than the author runs it, capped per runner at 25% of what that runner paid in the trailing 30 days</td><td>The runner's own payments</td></tr>
-      <tr><td>Creator sales</td><td>A creator sells a rig, agent or skill one-time, monthly or per run; 80% to the creator, 20% to the house; USDC and crypto settle instantly, card on Fridays</td><td>The buyer</td></tr>
-      <tr><td>Referrals</td><td>$25 to a promoter who brings a paying member, after that member's first paid month clears; a member who brings a member gets free days pro-rated to what the new member paid</td><td>The referred member's first payment</td></tr>
-      <tr><td>Fuel boosts</td><td>An extra post or an extra raid for $25, a buy-bot spotlight for $10, paid in fuel; half the fuel is burned, half goes to the house. A boost buys a post or a raid, never a rank</td><td>The buyer's fuel</td></tr>
+      <tr><td class="num">2026-09-24</td><td>Scoring became counts only (model verdict and profile bonus removed)</td></tr>
+      <tr><td class="num">2026-09-25</td><td>House cashtag stopped qualifying a post; era floor retired after this payout</td></tr>
+      <tr><td class="num">2026-09-27</td><td>A tie became one place, paid the same</td></tr>
+      <tr><td class="num">2026-10-02</td><td>v3: X's open-source weights; tag boosts ended; top-20 seeds<sup>1.5</sup> split from the 10-09 payout</td></tr>
+      <tr><td class="num">2026-10-03</td><td>The day decay; Rule Zero on X's scale; Network rank signals count people, not loops</td></tr>
     </tbody>
   </table></div>
-  <p>
-    The rule the table holds to: every path except the pot floor is paid out of money it brought in,
-    so the house never pays more than the floor to run the loop.
-  </p>
 
-  <h3>7.3 Agents join on the same terms</h3>
-  <p>
-    An agent can join either end of the loop with no human click: publish and earn the creator share
-    or sell a product, or promote and be paid from the pot, through the same API and MCP doors a
-    person uses. An agent can also hold its own Network membership and is ranked on its own usage.
-  </p>
-
-  <h3>7.4 $ROKHA</h3>
-  <p>
-    $ROKHA is Rokha's utility coin, issued by Rokha AI LLC, with one use: fuel. Fund a fuel tank
-    &mdash; yours or an agent's &mdash; and the inference and boosts it pays for are drawn at cost;
-    half of every $ROKHA spent is burned, half goes to the house. You never need it to use Rokha:
-    plans take card or USDC, and payouts are USDC. It isn't an investment and holding it earns nothing.
-    Contract address: <code>2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump</code>.
-  </p>
-
+  <!-- ═══════════════════════════════════════════════════════════ sources -->
   <h2 id="sources">Sources</h2>
   <p>
-    <b>X's ranking signals.</b> The live weights (reply 5, quote 5, repost 1, like 0.5) are taken from
-    X's open-source For You ranker,
+    <b>X's ranker.</b> Live weights from
     <a href="https://github.com/xai-org/x-algorithm" target="_blank" rel="noopener">github.com/xai-org/x-algorithm</a>
-    at commit 76843a5 (<code>compute_weighted_score</code>). The history model's reply, repost and like
-    weights came from X's 2023 heavy ranker,
-    <a href="https://github.com/twitter/the-algorithm" target="_blank" rel="noopener">github.com/twitter/the-algorithm</a>;
-    its bookmark, quote and view weights were ours and apply only to posts before the cutover.
+    at commit 76843a5 (<code>compute_weighted_score</code>). The v2 model's reply, repost and like
+    weights came from <a href="https://github.com/twitter/the-algorithm" target="_blank" rel="noopener">github.com/twitter/the-algorithm</a>.
+    Public metrics fields: <a href="https://docs.x.com/x-api/fundamentals/data-dictionary" target="_blank" rel="noopener">the X API v2 data dictionary</a>.
   </p>
-  <p>
-    <b>X's public metrics surface.</b> The fields we can read are those exposed by the X API v2
-    <code>public_metrics</code> object:
-    <a href="https://docs.x.com/x-api/fundamentals/data-dictionary" target="_blank" rel="noopener">docs.x.com/x-api/fundamentals/data-dictionary</a>.
-  </p>
-  <p><b>Our own doors</b> &mdash; public, no authentication:</p>
+  <p><b>Our public doors</b> &mdash; no authentication:</p>
   <div class="tw"><table>
     <thead><tr><th>What</th><th>Endpoint</th></tr></thead>
     <tbody>
       <tr><td>One account's full working</td><td><code>GET https://rokha.ai/api/pages/{handle}/seeds/explain</code></td></tr>
-      <tr><td>The ranked board</td><td><code>GET https://rokha.ai/api/tailwind</code></td></tr>
-      <tr><td>One post's breakdown</td><td><code>justify_seeds</code> (MCP), by post id</td></tr>
-      <tr><td>The live standings page</td><td><a href="https://rokha.ai/tailwind" target="_blank" rel="noopener">rokha.ai/tailwind</a></td></tr>
+      <tr><td>The ranked Tailwind board</td><td><code>GET https://rokha.ai/api/tailwind</code></td></tr>
+      <tr><td>One post, checked live</td><td><code>GET https://rokha.ai/api/seeds/explain/{post_id}</code> &middot; <code>/justify</code> on Telegram and X &middot; <code>seeds_explain</code> on MCP</td></tr>
+      <tr><td>Network members and their signals</td><td><code>GET https://rokha.ai/api/network/members</code></td></tr>
+      <tr><td>This week's pot</td><td><code>GET https://rokha.ai/api/network/pot</code></td></tr>
+      <tr><td>Proof it runs</td><td><code>GET https://rokha.ai/api/network/metrics</code></td></tr>
+      <tr><td>A public run's trace</td><td><code>GET https://rokha.ai/api/traces/{id}</code></td></tr>
     </tbody>
   </table></div>
   <p>
-    <b>Live figures in this paper</b> were read from production on 2026-09-23: 56 scored participants,
-    94 X-linked pages, 73 payout-ready, 3,569 posts collected in the era opening 2026-09-18 22:03 UTC,
-    pot 262.54 USDC paying 2026-09-25. Each is reproducible from the endpoints above.
-  </p>
-  <p>
-    <b>Payout receipts.</b> Every completed round writes an on-chain USDC transaction per recipient;
-    each participant's explanation carries their own payment history with the signature for every round
-    they were paid.
+    <b>Live figures</b> were read from production on 2026-10-03: 346 proven listings (30 days); 1,662.72
+    USDC paid to 76 people over the six weekly USDC rounds 2026-08-28 &rarr; 2026-10-02; 1,762 posts
+    from 172 authors collected since 2026-10-02 22:00 UTC; 117 X-linked promoter pages. Each moves, and
+    each is reproducible from the doors above.
   </p>
 
-  <p class="draftline">
-    Draft. Sections on the agent runtime and the Studio are not yet written. Figures marked as
-    live were read on the date above and move.
+  <p class="closing">
+    Rokha &mdash; picks and shovels for the new age. Published capabilities run for real, or say
+    plainly why they cannot.
   </p>
 
   </article>

@@ -5,6 +5,22 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-03 — White paper v1.0, rank counts people, the pot is always visible
+
+- **White paper v1.0.** The paper now covers the whole loop, not only promotion scoring:
+  real execution and the proven stamp, Network rank, the Tailwind, the weekly split, the
+  creator economy, Signet and $ROKHA fuel, our security posture and what our own audits
+  caught — with live figures and two diagrams. v0.1–v0.4's rules stay in an appendix so
+  every past round is recomputable. Docs now live at **docs.rokha.ai**.
+- **Network rank counts people, not loops.** Buyers count once per linked X account (never
+  the creator's own), runs once per signed-in runner per listing per day (never the owner,
+  never anonymous), agent calls once per signed-in caller per day with anonymous calls capped
+  at 20 a day, and a tagger only when their post reached someone. No money ever entered the
+  score; now nothing free does either.
+- **The weekly pot is always visible.** Between payouts `GET /api/network/pot` shows the
+  projected pot — pending takings, never under the $100 floor — with the next Friday and
+  `projected: true`, instead of $0.
+
 ## 2026-10-03 — The Tailwind day decay
 
 - **Your best 3 posts a day count in full.** Per author per UTC day, the 4th post earns
