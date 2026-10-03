@@ -225,7 +225,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.3</p>
+  <p class="label">White paper · v0.4</p>
   <h1>How Rokha scores paid promotion.</h1>
   <p class="abstract">
     Rokha pays people to promote agent capabilities on X, and scores that promotion with one
@@ -249,9 +249,15 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <p>
       <b>Tailwind v3 (2026-10-02).</b> Every post made from 2026-10-02 22:00 UTC is scored exactly the
       way X's open-source ranker scores &mdash; a straight weighted sum of the engagements public metrics
-      show, with X's own weights, no damping, no per-post cap and no daily limit (section 2). From the
+      show, with X's own weights, no damping and no per-post cap (section 2). From the
       2026-10-09 payout the pot is split across the <b>top 20 places by seeds<sup>1.5</sup></b>
       (section 4). Earlier posts and rounds keep the rules below them, marked as history.
+    </p>
+    <p>
+      <b>The day decay (2026-10-03).</b> One deliberate departure from X: per author per UTC day, the
+      best 3 posts earn their full seeds, the 4th to 6th earn a capped, halving share, and from the 7th
+      on a post earns nothing (section 2.2.1). X has no per-author day cap; without one the pot paid
+      for volume.
     </p>
   </div>
 </div>
@@ -358,7 +364,8 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <small>0 if the post fails Rule Zero or is a proven copy</small>
   </div>
   <div class="formula">
-    <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> seeds(p) &middot; m<sub>integrity</sub>
+    <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> d(rank<sub>day</sub>(p), seeds(p)) &middot; m<sub>integrity</sub>
+    <small>d = the day decay, section 2.2.1</small>
   </div>
   <div class="tw"><table>
     <thead><tr><th>Post</th><th>Likes · reposts · replies · quotes</th><th>Weighted sum</th><th>Seeds</th></tr></thead>
@@ -375,6 +382,28 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     own code warns that its weight ratios are not count equivalences &mdash; this is the closest
     observable approximation, not a claim to reproduce its ranking. And we keep three guards X does not
     need because no money moves per post there: Rule Zero, the copy check and the integrity multiplier.
+  </p>
+
+  <h3>2.2.1 The day decay (live from 2026-10-03 &mdash; ours, not X's)</h3>
+  <p>
+    X's ranker has no per-author day cap: author diversity is in its code and switched off in the
+    release we follow. Followed to the letter, that paid a prolific account for every post that cleared
+    Rule Zero. So we add one rule of our own. Per author per UTC day, posts take places by their seeds
+    (on a payout day, a post the previous round already paid keeps its place first):
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>Place in the day</th><th>Earns</th></tr></thead>
+    <tbody>
+      <tr><td>1st &ndash; 3rd</td><td>its full seeds(p), no cap</td></tr>
+      <tr><td>4th</td><td>min(seeds(p), 100) &times; 0.5</td></tr>
+      <tr><td>5th</td><td>min(seeds(p), 100) &times; 0.25</td></tr>
+      <tr><td>6th</td><td>min(seeds(p), 100) &times; 0.125</td></tr>
+      <tr><td>7th on</td><td><b>0</b> &mdash; the cliff (the post still takes its place, deleted or not)</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    The most a day can add beyond its best three is 87.5 seeds, so three strong posts always beat ten
+    weak ones. Every post's place and factor are printed in its explanation (section 5).
   </p>
 
   <h3>2.2a Engagement units (history: posts before 2026-10-02 22:00 UTC)</h3>
@@ -477,6 +506,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       <tr><td>Rule Zero</td><td>Under <b>2.0 engagement units</b> (views excluded) earns <b>0</b></td><td>A bought-views farm took rank 1 with 25.4% of a pot on impressions alone</td></tr>
       <tr><td>Per-post cap <i>(history)</i></td><td><code>v(p)</code> capped at <b>6.0</b> &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>One viral post deciding a whole week</td></tr>
       <tr><td>Best-5 per day <i>(history)</i></td><td>Only the best five posts per UTC day counted &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>A hundred bare tags a day out-earning real work</td></tr>
+      <tr><td>Day decay</td><td>Best 3 a UTC day in full; 4th&ndash;6th min(seeds, 100) &times; 0.5 / 0.25 / 0.125; 7th on <b>0</b> (from 2026-10-03)</td><td>A reply farm stacking low-quality posts</td></tr>
       <tr><td>Copied posts</td><td>A duplicate of an already-collected post earns <b>&times;0</b></td><td>Word-for-word plagiarism</td></tr>
       <tr><td>No tag boost</td><td>From 2026-10-02 23:00 UTC no post earns a multiplier for whom it tags (before it: never on the author's own seat)</td><td>Buying placement to buy a &times;1.25 on your own score</td></tr>
       <tr><td>Integrity</td><td>&minus;5% per deleted paid post, floor <b>&times;0.25</b></td><td>Taking the money, then deleting the post</td></tr>
@@ -521,10 +551,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <h3>What the guards cost</h3>
   <p>
     These are real trade-offs, not free wins. Rule Zero means a thoughtful post that happened to find no
-    audience earns nothing. Since v3 dropped the cap and the daily limit, a viral post earns its full
-    weight and a prolific account is paid for every post that clears Rule Zero &mdash; which means a
-    reply farm can stack posts, and only Rule Zero, the copy check and integrity stand in its way. We
-    watch the top of the board by post count for exactly that.
+    audience earns nothing. Since v3 dropped the per-post cap, a viral post earns its full weight. The
+    day decay means a fourth good post in a day earns far less than its seeds, and a seventh earns
+    nothing &mdash; the price of keeping volume from buying the board.
   </p>
 
   <h2 id="money">4. From seeds to money</h2>
@@ -604,8 +633,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     <b>A public door per participant.</b> <code>GET /api/pages/{handle}/seeds/explain</code> returns,
     without authentication: every post in the era with its raw metrics, its units, whether Rule Zero
-    applied, whether the cap bound, every multiplier by name and source, the day-by-day best-5
-    selection, and the final total. A score has to be checkable by the person it was levelled at.
+    applied, whether the cap bound, every multiplier by name and source, each post's place in its
+    day with the decay factor it took (<code>day_rank</code>, <code>rank_mult</code>,
+    <code>raw_seeds</code>), and the final total. A score has to be checkable by the person it was levelled at.
   </p>
   <p>
     <b>We audit ourselves before we pay.</b> Before each payout we independently recompute every scored

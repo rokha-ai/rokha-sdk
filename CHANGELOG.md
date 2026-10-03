@@ -5,6 +5,15 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-03 — The Tailwind day decay
+
+- **Your best 3 posts a day count in full.** Per author per UTC day, the 4th post earns
+  `min(seeds, 100) × 0.5`, the 5th × 0.25, the 6th × 0.125, and from the 7th on a post earns
+  0. The weights stay X's; the day cap is ours (X's ranker has none).
+- **Every post's place is on its receipt.** `GET /api/pages/{handle}/seeds/explain` lines
+  gain `v3`, `rank_mult` (the decay factor of the post's `day_rank`) and `raw_seeds` (the
+  seeds before the place); `seeds` is what the post earned. White paper v0.4 § 2.2.1.
+
 ## 2026-10-02 — Network v2 is live
 
 - **Everything is on.** Creator earnings, creator sales, referral rewards and the

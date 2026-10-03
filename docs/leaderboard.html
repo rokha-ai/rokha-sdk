@@ -248,7 +248,7 @@
 
 <section><div class="wrap">
   <div class="kicker"><span class="num">04</span><h2>X engagement — scored exactly the way X scores it</h2></div>
-  <p class="lead">From <b>2026-10-02 22:00 UTC</b> every qualifying post is scored with the weights in <b>X's open-source ranker</b> (<a href="https://github.com/xai-org/x-algorithm">xai-org/x-algorithm</a>, Oct 2026): a straight weighted sum of the engagements public metrics show — <b>no damping, no per-post cap, no daily limit</b>. Ten times the engagement is ten times the seeds. Views and bookmarks have no weight in X's ranker, so none here.</p>
+  <p class="lead">From <b>2026-10-02 22:00 UTC</b> every qualifying post is scored with the weights in <b>X's open-source ranker</b> (<a href="https://github.com/xai-org/x-algorithm">xai-org/x-algorithm</a>, Oct 2026): a straight weighted sum of the engagements public metrics show — <b>no damping, no per-post cap</b>. Ten times the engagement is ten times the seeds — on your <b>best 3 posts each UTC day</b>. Then a decay of our own (X has no day cap): the 4th earns min(seeds, 100) × 0.5, the 5th × 0.25, the 6th × 0.125, and from the 7th on a post earns <b>0</b>. Views and bookmarks have no weight in X's ranker, so none here.</p>
   <div class="tblwrap" style="margin-top:0"><table>
     <tr><th>Interaction</th><th class="num">X weight</th><th style="width:110px">Scale</th><th>Note</th></tr>
     <tr><td class="sig"><span class="g">↳</span>Reply</td><td class="num w">5.0</td><td><div class="meter"><i style="width:100%"></i></div></td><td class="note">X's <code>ReplyWeight</code></td></tr>
