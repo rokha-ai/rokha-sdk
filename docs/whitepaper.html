@@ -365,9 +365,10 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <small>0 if the post fails Rule Zero or is a proven copy</small>
   </div>
   <p>
-    Rule Zero still reads the engagement units of section 2.2a, not these weights: a post needs 2.0 of
-    them, views excluded &mdash; one reply, one bookmark, two reposts or four likes clear it. A bookmark
-    clears Rule Zero but adds no seeds, because X's ranker gives it no weight.
+    Rule Zero reads these same weights: a post needs <b>2.0 X-weighted units</b> to count at all
+    &mdash; one reply or quote, two reposts, or four likes. Bookmarks and views carry no weight in X's
+    ranker, so they never qualify a post. (Before 2026-10-03 the threshold read the older units of
+    section 2.2a; on the current round no post's qualification changed.)
   </p>
   <div class="formula">
     <span class="hl">S</span> = &Sigma;<sub>every post in the round</sub> d(rank<sub>day</sub>(p), seeds(p)) &middot; m<sub>integrity</sub>
@@ -511,7 +512,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <div class="tw"><table>
     <thead><tr><th>Guard</th><th>Rule</th><th>The attack it answers</th></tr></thead>
     <tbody>
-      <tr><td>Rule Zero</td><td>Under <b>2.0 engagement units</b> (views excluded) earns <b>0</b></td><td>A bought-views farm took rank 1 with 25.4% of a pot on impressions alone</td></tr>
+      <tr><td>Rule Zero</td><td>Under <b>2.0 X-weighted units</b> (a reply or quote, 2 reposts, 4 likes; views and bookmarks weigh 0) earns <b>0</b></td><td>A bought-views farm took rank 1 with 25.4% of a pot on impressions alone</td></tr>
       <tr><td>Per-post cap <i>(history)</i></td><td><code>v(p)</code> capped at <b>6.0</b> &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>One viral post deciding a whole week</td></tr>
       <tr><td>Best-5 per day <i>(history)</i></td><td>Only the best five posts per UTC day counted &mdash; retired for posts from 2026-10-02 22:00 UTC</td><td>A hundred bare tags a day out-earning real work</td></tr>
       <tr><td>Day decay</td><td>Best 3 a UTC day in full; 4th&ndash;6th min(seeds, 100) &times; 0.5 / 0.25 / 0.125; 7th on <b>0</b> (every post from 2026-10-02 22:00 UTC)</td><td>A reply farm stacking low-quality posts</td></tr>
@@ -665,11 +666,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     engagement onto the signals we can read, not a reconstruction of X's ranking.
   </p>
   <p>
-    <b>Every scoring weight is X's; two threshold weights are ours.</b> Since v3 the seeds use only
-    the weights in X's published ranker. Rule Zero still reads the older units, where bookmarks (10.0)
-    and quotes (1.5) have no published X figure: we priced a bookmark just under a reply &mdash; high
-    intent, but silent &mdash; and a quote just above a repost. They decide only whether a post counts,
-    never how much. The day decay is also ours (section 2.2.1).
+    <b>Every weight is X's.</b> Since v3 both the seeds and the Rule Zero threshold use only the
+    weights in X's published ranker; the threshold itself (2.0) and the day decay (section 2.2.1) are
+    ours. Bookmarks and views, which X's ranker does not weigh, decide nothing.
   </p>
   <p>
     <b>What we removed, and why.</b> Earlier versions of this system carried two judgement terms: a
@@ -766,7 +765,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     at commit 76843a5 (<code>compute_weighted_score</code>). The history model's reply, repost and like
     weights came from X's 2023 heavy ranker,
     <a href="https://github.com/twitter/the-algorithm" target="_blank" rel="noopener">github.com/twitter/the-algorithm</a>;
-    its bookmark, quote and view weights were ours, and Rule Zero still reads them.
+    its bookmark, quote and view weights were ours and apply only to posts before the cutover.
   </p>
   <p>
     <b>X's public metrics surface.</b> The fields we can read are those exposed by the X API v2

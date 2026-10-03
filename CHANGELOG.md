@@ -16,6 +16,11 @@ face of Rokha; the wire contract it depends on is
 - **Totals reset to the decayed numbers.** Your total can't drop during a week, except when a
   scoring fix takes back points that were never owed — the decay was one, so this week's
   totals now show their decayed value.
+- **One scale for current posts.** A post from 2026-10-02 22:00 UTC qualifies on X's weights
+  too: it needs 2.0 X-weighted (one reply or quote, 2 reposts, or 4 likes); bookmarks and
+  views never qualify. On a current post, a receipt line's `units` is that X-weighted sum
+  (`seeds = units × 10`) and a new `x_mix` carries its likes · reposts · replies · quotes.
+  No current-round post changed qualification.
 
 ## 2026-10-02 — Network v2 is live
 
