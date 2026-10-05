@@ -5,6 +5,10 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Listed in the GitHub MCP Registry
+
+- **Rokha's MCP server is in the GitHub MCP Registry** as `ai.rokha/rokha` ([github.com/mcp](https://github.com/mcp)). Developers in GitHub, Copilot and VS Code can find it there and install it; the endpoint is `https://rokha.ai/mcp/jsonrpc`. A registry listing — GitHub reviewed and approved the server for inclusion; it is not a partnership.
+
 ## 2026-10-05 — Free runs, one /hunt, Rokha's new look
 
 - **Free runs from chat.** A signed-out visitor (and a free account) can ask Rokha to run a rig — the same two free runs a day the Run button gives — with a sign-in nudge; a third run is refused honestly. Running is free; building is the Studio. `GET /api/free-tier` states the tasting.
