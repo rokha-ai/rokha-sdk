@@ -10,6 +10,21 @@ Official Rokha media. Free to use when talking about Rokha: posts, threads, vide
 - An image marked **Caution** shows illustrative numbers or sample boards. Use it for the idea, never as proof of real figures.
 - `manifest.json` is the machine-readable version of this page (topics, sizes, alt text, where each image fits).
 
+## Animations — Rokha in motion
+
+Six states of Rokha in her star-cloak, each 6 seconds at 16 fps. In this folder: the **X-ready MP4** (with her sound, on the brand dark — post it as is), the **transparent WebM** (for your own edits; Chrome/Firefox/editors keep the alpha — Windows' media player shows a green or black backdrop instead), a **still** and the **MP3**. The GIF, the transparent animated WebP (Safari) and the sprite sheet are on rokha.ai — links in `manifest.json`.
+
+| State | Use it for | X-ready MP4 | Transparent WebM | Still | Sound |
+|---|---|---|---|---|---|
+| idle | her default, at rest | `rokha-agent/animations/idle-x.mp4` | `idle.webm` | `idle-still.png` | `idle.mp3` |
+| cast | thinking, working | `cast-x.mp4` (1080²) | `cast.webm` | `cast-still.png` | `cast.mp3` |
+| talk | speaking, answering | `talk-x.mp4` | `talk.webm` | `talk-still.png` | `talk.mp3` |
+| wave | greetings, welcomes | `wave-x.mp4` | `wave.webm` | `wave-still.png` | `wave.mp3` |
+| victory | wins, milestones | `victory-x.mp4` | `victory.webm` | `victory-still.png` | `victory.mp3` |
+| dance | celebrations | `dance-x.mp4` | `dance.webm` | `dance-still.png` | `dance.mp3` |
+
+Cast's MP4 is 1080²; the others are 720². X shows video muted until a viewer taps for sound.
+
 ## brand
 
 Rokha the platform: the site, the launchpad, the whole product

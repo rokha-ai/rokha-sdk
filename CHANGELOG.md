@@ -5,6 +5,17 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-05 — Free runs, one /hunt, Rokha's new look
+
+- **Free runs from chat.** A signed-out visitor (and a free account) can ask Rokha to run a rig — the same two free runs a day the Run button gives — with a sign-in nudge; a third run is refused honestly. Running is free; building is the Studio. `GET /api/free-tier` states the tasting.
+- **One `/hunt`.** `/scout`, `/explore` and `/integrate` are aliases of `/hunt`. The hunt reads a target's whole MCP `tools/list` (with the true total), probes `/api/info` and the doors its `llms.txt` advertises, and — for the founder — drafts an outreach pitch that sends only after the hunt's starter picks DM, public post, edit or skip.
+- **Every MCP tool declares an object `inputSchema`** on `/mcp/jsonrpc`, including the zero-argument ones.
+- **A flow belongs to its starter.** In Telegram and X groups, only the person who started a prompt or menu (or the founder) can answer it or tap its buttons.
+- **`/api/tailwind`** carries no stale `carry_multiplier` (1.0 since tag boosts ended 2026-10-02) and a `legend` explaining `count`, `total` and `purse.seats`.
+- **Official media kit** in `media/`: banners, share card, Rokha's portrait and full figure, the MCP/Studio/creator-sales/Network ads, and six animations (idle, cast, talk, wave, victory, dance) — labelled in `manifest.json` (topics, use, alt text, and a caution where an image's numbers are illustrative). Free to use when talking about Rokha; label paid posts. Also served at `GET /api/media` and `rokha.ai/media/`.
+- **`/agents`** — every public agent on Rokha, with `GET /api/agents/directory` and the MCP tool `agents_directory`.
+- **One Telegram bot:** [@RokhaTGBot](https://t.me/RokhaTGBot).
+
 ## 2026-10-05 — Every public door, in the contract
 
 - **The OpenAPI lists every public read.** 22 doors that answered live but were missing from
