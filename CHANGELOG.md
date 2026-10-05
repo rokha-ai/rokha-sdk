@@ -5,6 +5,23 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-05 — Every public door, in the contract
+
+- **The OpenAPI lists every public read.** 22 doors that answered live but were missing from
+  `schemas/openapi.yaml` are in it now: `/api/version`, `/api/free-tier`, `/api/docs.md`,
+  `/api/roadmap`, `/api/media`, `/api/agents/directory`, `/api/studio/doors`, `/api/network`,
+  `/api/ledger`, `/api/tailwind`, `/api/board`, `/api/board/plugins`, `/api/adnet/{feed,stats,rounds}`,
+  `/api/ads/packages`, `/api/fuel/{menu,price}`, `/api/signals/{trending,heat,token/{mint}}`
+  (new `signals` tag) and `/api/hood/oracle`, plus `/api/studio/access` (JWT).
+- **Auth marked where prod asks for it.** `/api/agents/health`, `/api/agents/rokha-agent/status`
+  and `/api/agents/rokha-agent/tools` need a bearer token; the spec now says so.
+- **The MCP public list is the real one.** `/mcp/jsonrpc` names every tool an anonymous agent
+  can call. Tools that no longer exist (`skills_list`, `skills_read`, `rig_swap_skill`,
+  `skill_save`, `get_allowances`) are gone from its description.
+- **MCP 2026-07-28 clients connect without a token.** A `server/discover` probe answers JSON-RPC
+  `-32601`, so Claude Code falls back to `initialize` and sees every tool. Before, it answered 401
+  and Claude Code marked the server needs-auth.
+
 ## 2026-10-03 — The Tailwind day decay
 
 - **Your best 3 posts a day count in full.** Per author per UTC day, the 4th post earns

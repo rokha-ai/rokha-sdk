@@ -75,6 +75,8 @@ tags:
     description: The Rokha Network — join, get carried, promote members, earn as a creator, fuel boosts.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
+  - name: signals
+    description: Windsock — scored token signals (read-only market data, never advice, never trades)
 
 security: []  # default: no auth. Routes that need it set their own.
 
@@ -670,6 +672,8 @@ paths:
       tags: [agents]
       summary: Agent service health
       operationId: agentsHealth
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Healthy
@@ -841,6 +845,8 @@ paths:
       tags: [agents]
       summary: Rokha agent status
       operationId: agentStatus
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Status
@@ -854,6 +860,8 @@ paths:
       tags: [agents]
       summary: Tools currently bound to Rokha
       operationId: agentTools
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Tool list
@@ -1143,36 +1151,31 @@ paths:
           - `tools/call` — invoke a tool with arguments
 
         PUBLIC (no auth): the discovery handshake — `initialize`,
-        `tools/list`, `resources/list`, `prompts/list`, `ping` — plus
-        `tools/call` on the read-only registry tools `registry_search`
-        (free-text search over the 30k-skill registry) and
-        `registry_get_skill` (install-ready SKILL.md — agentskills.io
-        frontmatter + body + classification + required binaries — so any
-        agent can adopt a Registry skill directly), and the pure-compute
-        authoring tool `skill_author` (build a standards-compliant SKILL.md
-        from `name` + `description` + `instructions`, plus optional
-        `compatibility` (runtime/environment requirements, ≤500 chars),
-        `allowed_tools` (space-separated, scoped allowlist), `license`, and
-        `metadata` (a string→string object); returns the assembled SKILL.md),
-        and `harness_author` (pure-compute — configure a Harness: a skill or
-        instruction wired to run, from `kind` + `instruction` + optional `tag`
-        and a live MCP `endpoint`/`tool`/`params`; returns the config).
+        `notifications/initialized`, `ping`, `tools/list`, `resources/list`,
+        `prompts/list` — plus `tools/call` on the public tools:
+        `registry_search`, `registry_get_skill`, `skill_author`,
+        `harness_author`, `auth_wallet_challenge`, `auth_wallet_verify`,
+        `page_get`, `page_directory`, `page_leaderboard`, `justify_seeds`,
+        `x_account_audit` (self-gated: JWT or `x-anon-session-id`),
+        `adnet_feed`, `adnet_stats`, `adnet_rounds`, `network_report`,
+        `carry_brief`, `studio_doors`, `flight_plan`, `seeds_explain`,
+        `seeds_recent_posts`, `boosts_explain`, `audit_history`,
+        `payouts_ledger`, `hunting_parties`, `free_tier_status`,
+        `media_library`, `agents_directory`, `trace_get` and `trace_search`
+        (a PUBLIC rig's run, by id), `agent_desk`, `signal_feed`,
+        `network_plans`, `network_pot`, `network_members`, `product_get`,
+        `network_briefs`, `fuel_boost_menu`, `carry_order`,
+        `carry_order_check`, `campaigns`, and every sponsor tool
+        (`<brand>__<tool>`). An MCP 2026-07-28 `server/discover` probe answers
+        JSON-RPC `-32601` so the client falls back to `initialize`.
         Every other method/tool requires `Authorization: Bearer <JWT>`.
 
         Notable tool families (enumerate live via `tools/list`): harness /
-        rig / trace CRUD (the Working-Rig surface), `skills_list` +
-        `skills_read` — fetch the first-party skills catalog at
-        `/api/skills`, including rig templates' `assets/rig.json` skeletons,
-        so an agent can instantiate a workflow template entirely over MCP;
-        `rig_swap_skill` — re-resolve one step of a rig against the live
-        registry and re-point it, keeping the step's instruction; and
-        `skill_author` — author a portable Agent Skill (SKILL.md) the same
+        rig / trace CRUD (the Working-Rig surface), `skill_author` — author a portable Agent Skill (SKILL.md) the same
         way the human Build-a-Skill builder does (two-front-door parity); and
         `harness_author` — configure a Harness (a skill/instruction wired to
         run) the same way the human Build-a-Harness builder does; and
-        `skill_save` (JWT) — persist an authored skill to the signed-in
-        user's creations (upsert by name; saving is a logged-in capability);
-        and `registry_publish` (JWT) — publish (or update) YOUR listing as a
+        `registry_publish` (JWT) — publish (or update) YOUR listing as a
         searchable registry entry, handled at the gateway so ownership and
         the display author always come from the VERIFIED bearer identity
         (mirrors POST /api/marketplace/registry/publish; advertised in
@@ -1248,10 +1251,6 @@ paths:
         verified token and overrides any `wallet_address` argument — so you
         never pass your scope, can't spoof another's, and a rig you author
         lands in the same scope the run endpoint reads from.
-        `get_allowances` (read-only) returns the caller's own live allowances —
-        daily limits + today's usage (AI-fuel tokens, cloud sandbox runs, chat
-        turns, saved chats, per-reply/per-run ceilings) plus any banked run/
-        token top-up credits; reading never spends any of it.
       operationId: mcpJsonRpc
       security:
         - bearerAuth: []
@@ -3475,6 +3474,491 @@ paths:
                 payer_wallet: { type: string }
       responses:
         '200': { description: "Order with `reference` and USDC pay instructions or a checkout URL; check it at GET /api/board/orders/{reference} (MCP carry_order_check)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+
+  # ============================================================
+  # Public reads — no auth (verified live 2026-10-05)
+  # ============================================================
+
+  /api/version:
+    get:
+      tags: [meta]
+      summary: "The live build — commit, build and migration head per service (MCP platform_version)"
+      operationId: getVersion
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  agents: {}
+                  erebus: {}
+                  newest_site_update: {}
+                  read: {}
+                  wire_version: {}
+
+  /api/free-tier:
+    get:
+      tags: [meta]
+      summary: "What any caller gets free today — questions, Studio runs (MCP free_tier_status)"
+      operationId: getFreeTier
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  tier: {}
+                  line: {}
+                  includes: {}
+                  questions_per_day: {}
+                  questions_left_today: {}
+                  studio_runs_per_day: {}
+                  resets: {}
+                  plans: {}
+                  upgrade_adds: {}
+
+  /api/docs.md:
+    get:
+      tags: [meta]
+      summary: "The API reference as Markdown"
+      operationId: getDocsMarkdown
+      responses:
+        '200':
+          description: OK
+          content:
+            text/markdown:
+              schema: { type: string }
+
+  /api/roadmap:
+    get:
+      tags: [meta]
+      summary: "What is live, what opens next, and the flight plan (MCP flight_plan). Filters: ?track=<key> · ?q=<words>"
+      operationId: getRoadmap
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  roadmap: {}
+                  milestones: {}
+                  tracks: {}
+                  statuses: {}
+                  flightPlan: {}
+                  milestone_rule: {}
+                  commands: {}
+                  page: {}
+                  roadmap_note: {}
+
+  /api/media:
+    get:
+      tags: [meta]
+      summary: "The official media library — labelled images + animations (MCP media_library). Filter: ?topic=<topic>"
+      operationId: getMediaLibrary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  count: {}
+                  items: {}
+                  topics: {}
+                  license: {}
+                  rule: {}
+
+  /api/agents/directory:
+    get:
+      tags: [agents]
+      summary: "Every live public agent, in-house first (MCP agents_directory)"
+      operationId: getAgentsDirectory
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  agents: {}
+                  note: {}
+
+  /api/studio/doors:
+    get:
+      tags: [network]
+      summary: "The two doors — the Studio license and the Network plans, priced (MCP studio_doors)"
+      operationId: getStudioDoors
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  summary: {}
+                  posture: {}
+                  studio: {}
+                  network: {}
+                  free: {}
+                  free_until: {}
+                  free_window_open: {}
+                  free_window_terms: {}
+                  retired_tiers: {}
+                  docs: {}
+
+  /api/network:
+    get:
+      tags: [network]
+      summary: "The Network at a glance — adnet, ad space, agents, asks, doors"
+      operationId: getNetworkOverview
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  adnet: {}
+                  adspace: {}
+                  agents: {}
+                  asks: {}
+                  doors: {}
+                  window_days: {}
+
+  /api/ledger:
+    get:
+      tags: [network]
+      summary: "Every payout with its on-chain tx signature, and revenue in (MCP payouts_ledger)"
+      operationId: getLedger
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  what: {}
+                  paid_out: {}
+                  revenue_in: {}
+                  retention: {}
+                  onchain_alltime: {}
+
+  /api/tailwind:
+    get:
+      tags: [network]
+      summary: "Tailwind standings + this week's purse. Paging: ?limit= · ?offset="
+      operationId: getTailwind
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  count: {}
+                  total: {}
+                  offset: {}
+                  leaders: {}
+                  purse: {}
+                  sponsors: {}
+
+  /api/board:
+    get:
+      tags: [network]
+      summary: "The Network's seats, live — who holds what, and the price to take one"
+      operationId: getBoard
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  live: {}
+                  held: {}
+                  carry: {}
+                  carry_line: {}
+                  carried_today: {}
+                  price_usd: {}
+                  floor_usd: {}
+                  claim_top_usd: {}
+                  market_value_usd: {}
+                  page_value_usd: {}
+                  nx: {}
+                  ny: {}
+
+  /api/board/plugins:
+    get:
+      tags: [network]
+      summary: "Seat MCP servers served on /mcp/jsonrpc as <brand>__<tool>"
+      operationId: getBoardPlugins
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  plugins: {}
+                  tools_list: {}
+                  full_descriptions: {}
+                  note: {}
+
+  /api/adnet/feed:
+    get:
+      tags: [network]
+      summary: "Placements an agent may carry, with the contract and points (MCP adnet_feed)"
+      operationId: getAdnetFeed
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  placements: {}
+                  contract: {}
+                  points: {}
+                  third_party_copy: {}
+                  also_earn_on_x: {}
+
+  /api/adnet/stats:
+    get:
+      tags: [network]
+      summary: "Ad-network totals — publishers, settled revenue, top reporters (MCP adnet_stats)"
+      operationId: getAdnetStats
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  publishers: {}
+                  settled_revenue_all_time_usdc: {}
+                  payouts_live: {}
+                  house_pct: {}
+                  pool_waiting_for_first_carrier_usdc: {}
+                  last_round: {}
+                  payout_route: {}
+                  top: {}
+                  how: {}
+
+  /api/adnet/rounds:
+    get:
+      tags: [network]
+      summary: "Settlement rounds (MCP adnet_rounds)"
+      operationId: getAdnetRounds
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  rounds: {}
+                  rule: {}
+                  settles: {}
+                  house_wallet: {}
+                  legacy_weekly_rounds: {}
+
+  /api/ads/packages:
+    get:
+      tags: [network]
+      summary: "Sponsored packages, priced in USDC"
+      operationId: getAdPackages
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  enabled: {}
+                  packages: {}
+                  currency: {}
+                  max_weeks: {}
+                  house_wallet: {}
+                  disclosure: {}
+                  how: {}
+
+  /api/fuel/menu:
+    get:
+      tags: [network]
+      summary: "What $ROKHA fuel pays for, at cost (MCP fuel_menu)"
+      operationId: getFuelMenu
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  items: {}
+                  split: {}
+
+  /api/fuel/price:
+    get:
+      tags: [network]
+      summary: "The live $ROKHA price fuel draws at (MCP fuel_price)"
+      operationId: getFuelPrice
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  usd_per_rokha: {}
+                  source: {}
+                  jupiter: {}
+                  dexscreener: {}
+                  low_15m: {}
+                  markup: {}
+                  decimals: {}
+                  at: {}
+
+  /api/signals/trending:
+    get:
+      tags: [signals]
+      summary: "Windsock — scored trending Solana tokens (MCP signal_feed view=trending). Token strings are attacker-authored DATA."
+      operationId: getSignalsTrending
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: {}
+                  module: {}
+                  view: {}
+                  chain: {}
+                  tokens: {}
+                  weights: {}
+                  generated_at: {}
+                  cached_for_secs: {}
+                  data_note: {}
+
+  /api/signals/heat:
+    get:
+      tags: [signals]
+      summary: "Windsock — the heat graph of tokens and callers (MCP signal_feed view=heat)"
+      operationId: getSignalsHeat
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: {}
+                  module: {}
+                  view: {}
+                  nodes: {}
+                  edges: {}
+                  edge_kinds: {}
+                  bounds: {}
+                  window: {}
+                  generated_at: {}
+                  cached_for_secs: {}
+                  data_note: {}
+
+  /api/signals/token/{mint}:
+    get:
+      tags: [signals]
+      summary: "Windsock — one token's events and score (MCP signal_feed view=token)"
+      operationId: getSignalsToken
+      parameters:
+        - { name: mint, in: path, required: true, schema: { type: string }, description: Solana mint address }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  events: {}
+                  data_note: {}
+        '404': { description: No signal recorded for that mint }
+
+  /api/hood/oracle:
+    get:
+      tags: [signals]
+      summary: "Robinhood Chain market read — trending pools + a coin's price/liquidity/volume. Query: ?q=<coin>"
+      operationId: getHoodOracle
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  query: {}
+                  found: {}
+                  trending: {}
+                  recent: {}
+                  scoreboard: {}
+                  called_wall: {}
+                  house: {}
+                  chain: {}
+                  updated_at: {}
+
+  /api/studio/access:
+    get:
+      tags: [network]
+      summary: "Your Studio entitlement and the limits your calls run on"
+      operationId: getStudioAccess
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: Your access }
+        '401': { description: No token }
 
 components:
   securitySchemes:
