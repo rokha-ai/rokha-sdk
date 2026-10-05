@@ -25,6 +25,13 @@ Discovery tools work immediately with no login. The first time a tool needs an
 identity (publishing, saving a library), Claude Code runs the standard MCP
 OAuth flow automatically — you sign in and consent once in the browser.
 
+## GitHub Copilot and VS Code
+
+Rokha's MCP server is listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as
+`ai.rokha/rokha`. Open the listing and press **Install**, or find "Rokha" in
+the MCP servers section of VS Code's Extensions view. It installs the same
+endpoint as above; discovery needs no token.
+
 ## Cursor (and most JSON-config MCP clients)
 
 `.cursor/mcp.json` (or your client's equivalent):

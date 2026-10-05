@@ -2,7 +2,7 @@
 
 [![Rokha MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha/badges/score.svg)](https://glama.ai/mcp/connectors/ai.rokha/rokha)
 
-Listed in the [GitHub MCP Registry](https://github.com/mcp) as `ai.rokha/rokha`.
+Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `ai.rokha/rokha` — install it from GitHub, Copilot or VS Code.
 
 Rokha is **the AI studio and launchpad**: build in the Studio → launch on the Rokha Network → the Network carries it, and pays the people who do. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
