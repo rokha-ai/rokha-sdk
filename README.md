@@ -2,6 +2,8 @@
 
 [![Rokha MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha/badges/score.svg)](https://glama.ai/mcp/connectors/ai.rokha/rokha)
 
+Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `ai.rokha/rokha` — install it from GitHub, Copilot or VS Code.
+
 Rokha is **the AI studio and launchpad**: build in the Studio → launch on the Rokha Network → the Network carries it, and pays the people who do. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
 Two kinds of users, one platform: **look-up users** find and try tools fast (chat with Rokha and 2 free runs a day, no account); **builders** chain skills into workflows, then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
@@ -69,7 +71,7 @@ the terminal against the same public API/MCP doors.
 ```bash
 ro status                 # remote reachability + schema match + login state
 ro login                  # browser device-flow sign-in (RFC 8628)
-ro tools list <query>     # search the live Rokha Registry (205k+ listings)
+ro tools list <query>     # search the live Rokha Registry (206k+ listings)
 ro chat "<message>"       # one-shot chat with the Rokha agent
 ro run <slug>             # run a registry skill FOR REAL in the platform sandbox
 ro tui                    # live heads-up monitor (status / registry / agent)
