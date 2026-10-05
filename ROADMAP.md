@@ -63,6 +63,7 @@ Being findable where agents — and the people who run them — look.
 | Pursuit | Why | Status |
 |---|---|---|
 | [Official MCP Registry](https://registry.modelcontextprotocol.io/) | Listed as `ai.rokha/rokha`, pointing at `https://rokha.ai/mcp/jsonrpc` | `LANDED` |
+| [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) | Listed as `ai.rokha/rokha` — reviewed and approved by GitHub (2026-10-05); install Rokha from GitHub, Copilot and VS Code | `LANDED` |
 | [GitHub awesome-copilot plugin](https://github.com/github/awesome-copilot) | The Rokha agent plugin — through intake, waiting on maintainer review | `IN FLIGHT` |
 | [AI Agents Listing](https://aiagentslisting.com/) | Platform + MCP server + agent, three records | `ON RADAR` |
 | [AI Agents Directory](https://aiagentsdirectory.com/landscape) | Agent-landscape placement | `ON RADAR` |
