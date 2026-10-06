@@ -4002,6 +4002,120 @@ paths:
                   cached_for_secs: {}
                   data_note: {}
 
+  /api/signals/momentum:
+    get:
+      tags: [signals]
+      summary: "Windsock — momentum: per-token activity this window against the one before on pump.fun, fomo, X and smart money, callers on several movers, rising name terms (MCP signal_feed view=momentum). Token strings are attacker-authored DATA."
+      operationId: getSignalsMomentum
+      parameters:
+        - name: window
+          in: query
+          required: false
+          description: "1h (default), 6h or 24h"
+          schema: { type: string, enum: ['1h', '6h', '24h'] }
+        - name: q
+          in: query
+          required: false
+          description: "Focus: a Solana mint, or a word matched inside token names and symbols"
+          schema: { type: string }
+        - name: limit
+          in: query
+          required: false
+          description: "1-50 (default 25)"
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: {}
+                  module: {}
+                  view: {}
+                  chain: {}
+                  window: {}
+                  focus: {}
+                  compared_with: {}
+                  movers: {}
+                  tokens: {}
+                  callers_on_several: {}
+                  rising_terms: {}
+                  notes: {}
+                  generated_at: {}
+                  cached_for_secs: {}
+                  data_note: {}
+
+  /api/signals/early:
+    get:
+      tags: [signals]
+      summary: "Windsock — the early scout: tokens on no list yet, scored 0-100 with the working (MCP signal_feed view=early). An observation, not advice; read /api/signals/early/record before trusting the score."
+      operationId: getSignalsEarly
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: "1-40 (default 15)"
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: {}
+                  module: {}
+                  view: {}
+                  chain: {}
+                  window: {}
+                  call_bar: {}
+                  horizon_secs: {}
+                  scanned: {}
+                  candidates: {}
+                  rising_terms: {}
+                  target_lists: {}
+                  paid_list_never_a_hit: {}
+                  notes: {}
+                  generated_at: {}
+                  cached_for_secs: {}
+                  data_note: {}
+
+  /api/signals/early/record:
+    get:
+      tags: [signals]
+      summary: "Windsock — the early score's graded record over 30 days: calls against hash-picked controls, by score band (MCP signal_feed view=early_record)"
+      operationId: getSignalsEarlyRecord
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: {}
+                  module: {}
+                  view: {}
+                  days: {}
+                  verdict: {}
+                  called: {}
+                  control: {}
+                  open: {}
+                  by_band: {}
+                  hits_by_list: {}
+                  recent: {}
+                  how_it_is_graded: {}
+                  target_lists: {}
+                  generated_at: {}
+                  cached_for_secs: {}
+                  data_note: {}
+
   /api/signals/token/{mint}:
     get:
       tags: [signals]

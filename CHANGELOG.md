@@ -5,6 +5,16 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-06 — Windsock: momentum and the early scout
+
+- **Three new public reads** on the signal board (REST + `signal_feed` views, additive):
+  `GET /api/signals/momentum?window=&q=&limit=` (per-token activity this window against the
+  one before on pump.fun, fomo, X and smart money; callers on several movers; rising name
+  terms; `q` focuses on a mint or a word) · `GET /api/signals/early` (tokens on no list yet,
+  scored 0–100 with the working) · `GET /api/signals/early/record` (that score graded against
+  hash-picked controls — it says "not enough graded calls" until the sample is real).
+- Observations, not advice. A paid DexScreener boost is shown and never counts as a hit.
+
 ## 2026-10-06 — Agent Attention: the Incubation board replaces the Tailwind
 
 - **The pivot.** Rokha is **the AI Studio and Marketplace**: users and agents come here to
