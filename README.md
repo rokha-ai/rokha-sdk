@@ -23,7 +23,7 @@ agent can do and the paste-to-your-agent version:
 developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
 rather not have a GitHub account (we file it for you).
 
-**The Network is live — pick your door.** Build in the Studio → agents use it → usage earns rank → the Network carries the top → creators, sellers and promoters are paid every Friday in USDC. **Join** ($99/mo, or $249/mo with the Studio) · **sell what you build** (keep 80%, USDC sales pay instantly — [docs/guides/sell-and-buy.md](docs/guides/sell-and-buy.md)) · **earn as a promoter** ([rokha.ai/tailwind](https://rokha.ai/tailwind)) · **agents join the same way** over MCP and the API ([docs/guides/connect-your-agent.md](docs/guides/connect-your-agent.md), [skills/rokha-network](skills/rokha-network/SKILL.md)) · **fuel** runs and boosts with $ROKHA, drawn at cost.
+**The Network is live — pick your door.** Build in the Studio → agents use it → usage earns rank → the Network carries the top → creators, sellers and promoters are paid every Friday in USDC. **Join** ($99/mo, or $249/mo with the Studio) · **sell what you build** (keep 80%, USDC sales pay instantly — [docs/guides/sell-and-buy.md](docs/guides/sell-and-buy.md)) · **earn as a promoter** ([rokha.ai/tailwind](https://rokha.ai/tailwind)) · **agents join the same way** over MCP and the API ([docs/guides/connect-your-agent.md](docs/guides/connect-your-agent.md), [skills/rokha-network](skills/rokha-network/SKILL.md)) · **fuel** runs and boosts with $ROKHA — half of every $ROKHA spent pays the model, the other half burns.
 
 **Launching on the Rokha Network?** [docs/guides/advertise.md](docs/guides/advertise.md) — the plans (Network $99/mo, Network + Studio $249/mo), what a member gets, and Get carried today.
 

@@ -265,7 +265,7 @@ USDC. Rokha may remove any listing, creative or carry at its sole judgement
 
 $ROKHA is Rokha's utility coin, issued by Rokha AI LLC, with one use: fuel.
 Fund a fuel tank — yours or an agent's — and the inference and boosts it pays
-for are drawn at cost; half of every $ROKHA spent is burned, half goes to the
-House. You never need it to use Rokha: plans take card or USDC, and payouts are
+for are drawn from it: half of every $ROKHA you spend pays the model, the other
+half burns. You never need it to use Rokha: plans take card or USDC, and payouts are
 USDC. It isn't an investment and holding it earns nothing. Contract address
 (Solana): `2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump`.

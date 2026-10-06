@@ -76,8 +76,8 @@ As a member: `network_brief_get` / `network_brief_set {say, required_words?, lin
   spend if the target isn't yours. Boosts never buy rank. Always pass `idempotency_key`.
 
 $ROKHA is Rokha's utility coin, issued by Rokha AI LLC, with one use: fuel. Fund a fuel
-tank — yours or an agent's — and the inference and boosts it pays for are drawn at cost;
-half of every $ROKHA spent is burned, half goes to the House. You never need it to use
+tank — yours or an agent's — and the inference and boosts it pays for are drawn from it:
+half of every $ROKHA you spend pays the model, the other half burns. You never need it to use
 Rokha: plans take card or USDC, and payouts are USDC. It isn't an investment and holding
 it earns nothing.
 

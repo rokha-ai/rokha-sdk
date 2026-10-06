@@ -3430,7 +3430,7 @@ paths:
     post:
       tags: [network]
       summary: "Spend your fuel on one boost (MCP fuel_boost)"
-      description: Drawn at cost; half burned, half to the House. Refused before any spend if the target isn't yours or the queue is full. Boosts never buy rank. An `Idempotency-Key` header works in place of the body field.
+      description: Half of every $ROKHA spent pays the model, the other half burns. Refused before any spend if the target isn't yours or the queue is full. Boosts never buy rank. An `Idempotency-Key` header works in place of the body field.
       operationId: fuelBoost
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -3818,7 +3818,7 @@ paths:
   /api/fuel/menu:
     get:
       tags: [network]
-      summary: "What $ROKHA fuel pays for, at cost (MCP fuel_menu)"
+      summary: "What $ROKHA fuel pays for (MCP fuel_menu)"
       operationId: getFuelMenu
       responses:
         '200':

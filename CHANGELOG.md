@@ -5,6 +5,16 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-06 — Fuel pricing: half pays the model, half burns
+
+- **Fuel pricing.** A fuel tank is drawn at **twice the metered model cost**, converted to
+  $ROKHA at the live price when it is spent: half pays the model (the House wallet), half is
+  burned on-chain. The earlier "drawn at cost, no discount" wording is retired everywhere —
+  white paper (v0.5), docs, `skills/rokha-network`, the `fuel_*` tool descriptions in
+  `schemas/openapi.yaml`. Unchanged: spend-only agent top-ups, owner withdraw, USDC payouts,
+  card + USDC for plans and the Studio. The one sentence: **"Half of every $ROKHA you spend
+  pays the model. The other half burns."**
+
 ## 2026-10-05 — Listed in the GitHub MCP Registry
 
 - **Rokha's MCP server is in the GitHub MCP Registry** as `ai.rokha/rokha`: [github.com/mcp/ai.rokha/rokha](https://github.com/mcp/ai.rokha/rokha). Developers can find it in GitHub's MCP catalog and install it from GitHub, Copilot or VS Code; the endpoint is `https://rokha.ai/mcp/jsonrpc`. A registry listing — GitHub reviewed and approved the server for inclusion; it is not a partnership.
@@ -100,8 +110,8 @@ launch on the Rokha Network → the Network carries it, and pays the people who 
   on Solana, with public transaction signatures.
 - **$ROKHA, stated once and the same everywhere:** $ROKHA is Rokha's utility coin,
   issued by Rokha AI LLC, with one use: fuel. Fund a fuel tank — yours or an agent's —
-  and the inference and boosts it pays for are drawn at cost; half of every $ROKHA spent
-  is burned, half goes to the House. You never need it to use Rokha: plans take card or
+  and the inference and boosts it pays for are drawn from it: half of every $ROKHA you
+  spend pays the model, the other half burns. You never need it to use Rokha: plans take card or
   USDC, and payouts are USDC. It isn't an investment and holding it earns nothing.
   Contract address (Solana): `2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump`. Rokha
   itself is a software service — the platform runs on no blockchain.
