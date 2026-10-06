@@ -1,5 +1,7 @@
 # Rokha SDK
 
+mcp-name: ai.rokha/rokha
+
 [![Rokha MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha/badges/score.svg)](https://glama.ai/mcp/connectors/ai.rokha/rokha)
 
 Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `ai.rokha/rokha` — install it from GitHub, Copilot or VS Code.
@@ -9,6 +11,29 @@ Rokha is **the AI studio and marketplace**: publish in the Studio → get used b
 Two kinds of users, one platform: **look-up users** find and try tools fast (chat with Rokha and 3 free runs a day, no account — a small build session a day, and your streak grows it to 2×); **builders** chain skills into workflows, then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
+
+## Install Rokha in your agent
+
+One line per client — the server is `https://rokha.ai/mcp/jsonrpc` (remote, streamable HTTP, OAuth with no sign-up to read):
+
+```bash
+claude mcp add --transport http rokha https://rokha.ai/mcp/jsonrpc
+codex mcp add rokha --url https://rokha.ai/mcp/jsonrpc
+gemini mcp add --transport http rokha https://rokha.ai/mcp/jsonrpc
+code --add-mcp '{"name":"rokha","type":"http","url":"https://rokha.ai/mcp/jsonrpc"}'
+```
+
+Cursor — one click: `cursor://anysphere.cursor-deeplink/mcp/install?name=rokha&config=eyJ1cmwiOiJodHRwczovL3Jva2hhLmFpL21jcC9qc29ucnBjIn0=`
+
+Skills (any SKILL.md-aware agent) and the Gemini CLI extension:
+
+```bash
+npx skills add rokha-ai/rokha-sdk
+gemini extensions install https://github.com/rokha-ai/rokha-sdk
+```
+
+The full page with buttons: [docs.rokha.ai/install.html](https://docs.rokha.ai/install.html).
+
 
 **Connecting an AGENT?** One line: `claude mcp add --transport http rokha
 https://rokha.ai/mcp/jsonrpc` (Cursor and any MCP client work the same way) —
