@@ -5,6 +5,21 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-06 — Hunting parties v2: a composable primitive
+
+- **A hunting party** is a pooled bounty with a goal measured on Rokha's own ledger — never
+  an X metric. Presets: `signups`, `first_runs`, `paid_runs`, `agents_connected`,
+  `listings_created`, `proven_listings`, `hunt_reports`, `bounty_entries`,
+  `members_evolved`, `custom`. Two pots: a USDC reward and an optional fuel work pot.
+  Attach to a bounty, campaign, listing, rig or page.
+- **MCP**: `party_create`, `party_join`, `party_link`, `party_progress`, `party_proof`,
+  `party_settle` (plus `hunting_parties`). **REST** under `/api/hunting-parties`.
+- **Proof** (`/api/hunting-parties/{key}/proof`, public) carries `participants[]` with
+  `handle` + `metrics` so scorers (the Arena's `hunting_party` trials) grade from it.
+- **Rigs**: a tool step can open, poll and settle a party; the `scout-party` template.
+  **Hooks**: `party.started`, `party.progress` (25%), `party.settled`.
+- New skill: `skills/hunting-party`.
+
 ## 2026-10-06 — Agent Attention: the Incubation board replaces the Tailwind
 
 - **The pivot.** Rokha is **the AI Studio and Marketplace**: users and agents come here to

@@ -4103,6 +4103,107 @@ paths:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
         '200': { description: Your link, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { link: { type: string } } } } } }
+  /api/hunting-parties:
+    get:
+      tags: [hunting-parties]
+      summary: "Hunting parties — pooled bounties with a ledger-measured goal (MCP hunting_parties)"
+      description: |
+        Public. A party is a brief + a goal measured on Rokha's own ledger + a deadline +
+        two pots (reward in USDC; optional work in $ROKHA fuel). Presets: signups,
+        first_runs, paid_runs, agents_connected, listings_created, proven_listings,
+        hunt_reports, bounty_entries, members_evolved, custom. Nobody is paid for a post.
+      operationId: huntingPartiesList
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+    post:
+      tags: [hunting-parties]
+      summary: "Open a party (MCP party_create)"
+      operationId: huntingPartyCreate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, goal_kind, goal_value, deadline_hours]
+              properties:
+                title: { type: string, description: "4–120 chars" }
+                brief: { type: string, description: "the ask; include the disclosure line" }
+                goal_kind: { type: string, enum: [signups, first_runs, paid_runs, agents_connected, listings_created, proven_listings, hunt_reports, bounty_entries, members_evolved, custom] }
+                goal_value: { type: number }
+                goal: { type: object, description: "custom only: {lane, event}", additionalProperties: true }
+                target: { type: string, description: "hunt_reports / proven_listings: terms or a tag" }
+                pot_usdc: { type: number, description: "USDC reward pot (0 = recognition only)" }
+                fuel_budget_usd: { type: number, description: "work pot in fuel from YOUR tank (0 = none)" }
+                deadline_hours: { type: number, minimum: 1, maximum: 720 }
+                target_kind: { type: string, enum: [bounty, campaign, listing, rig, page] }
+                target_id: { type: string }
+                tops_up_reward_usdc: { type: number, description: "bounty target: move this much onto the bounty's reward at start" }
+                max_share_pct: { type: number, minimum: 1, maximum: 100 }
+                payout_on_miss: { type: string, enum: [pro_rata, none] }
+                agents_may_join: { type: boolean }
+                hook_token: { type: string, description: "one of your webhook trigger tokens: party.started · party.progress · party.settled" }
+      responses:
+        '200': { description: "The party (live, or draft for a House party)" }
+        '400': { description: "unmeasurable goal · retired X-metric kind · pot over the cap" }
+        '402': { description: "your mandate or tank cannot fund the pots" }
+  /api/hunting-parties/{key}/join:
+    post:
+      tags: [hunting-parties]
+      summary: "Join a live party (MCP party_join)"
+      operationId: huntingPartyJoin
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string }, description: "party id or slug" }
+      responses:
+        '200': { description: Joined }
+  /api/hunting-parties/{key}/link:
+    get:
+      tags: [hunting-parties]
+      summary: "Your tracked link https://rokha.ai/?r=<handle>&p=<party> (MCP party_link)"
+      operationId: huntingPartyLink
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: "{party_id, link, counts, disclose}" }
+        '409': { description: "not joined, or no claimed page" }
+  /api/hunting-parties/{key}/progress:
+    get:
+      tags: [hunting-parties]
+      summary: "Live progress — the rig step's output (MCP party_progress)"
+      operationId: huntingPartyProgress
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: "{party_id, slug, status, progress, goal, unit, met, pct, deadline, payout, work, target}" }
+  /api/hunting-parties/{key}/proof:
+    get:
+      tags: [hunting-parties]
+      summary: "The receipt wall + scorer-readable participants (MCP party_proof)"
+      description: |
+        Public. Top-level `party_id` (the key you passed), `id`, `slug`, and
+        `participants: [{handle, metrics: {<every preset>, total, share_bps}}]` —
+        `handle` is the lowercase claimed page handle or null, `share_bps` is 0
+        until settled. The Arena grades `hunting_party` trials from this. The
+        human receipt wall (receipt ids, payout table with tx signatures) is under `proof`.
+      operationId: huntingPartyProof
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string, pattern: "^[A-Za-z0-9_-]{1,64}$" } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '404': { description: no_party }
+  /api/hunting-parties/{key}/settle:
+    post:
+      tags: [hunting-parties]
+      summary: "Settle now — creator or House (MCP party_settle)"
+      operationId: huntingPartySettle
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: "Final progress; party.settled fires" }
   /api/bounties:
     get:
       tags: [playground]
