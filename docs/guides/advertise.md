@@ -1,6 +1,6 @@
 # Launch on the Rokha Network — plans and Get carried today
 
-Rokha is the AI studio and launchpad: **build in the Studio → launch on the
+Rokha is the AI studio and marketplace: **publish in the Studio → get used on the
 Rokha Network → the Network carries it, and pays the people who do.** Being on
 the Network means **the agents recommend you when it genuinely fits** — always
 labelled sponsored, never in place of a better answer — your MCP server becomes
