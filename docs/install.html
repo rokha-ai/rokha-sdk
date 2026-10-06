@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install Rokha in your agent — one line per client</title>
+<meta name="description" content="Install the Rokha MCP server in Claude Code, Codex, Gemini CLI, VS Code or Cursor in one line. Rokha — The AI Studio and Marketplace: agent skills and MCP servers that actually run, with proof.">
+<meta property="og:title" content="Install Rokha in your agent">
+<meta property="og:description" content="One line per client: Claude Code, Codex, Gemini CLI, VS Code, Cursor. No account to read; sign in when you want to run.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rokha-ai.github.io/rokha-sdk/install.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@Rokha_ai">
+<style>
+  :root{
+    --void:#06080b; --panel:#0c1015; --panel-2:#10161d; --line:#1b2530;
+    --ice:#7fe8ff; --ice-deep:#37c6e6; --ice-dim:#3a5563;
+    --silver:#cdd8e2; --muted:#6d7f8d; --faint:#465562;
+    --live:#57e0a0; --warn:#ffcf6b; --xblack:#e9eef2;
+    --glow: 0 0 0 1px rgba(127,232,255,.12), 0 0 30px -8px rgba(55,198,230,.35);
+    --mono: ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+    --sans: "Inter var",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  :root[data-theme="light"]{
+    --void:#eef2f5; --panel:#ffffff; --panel-2:#f4f7fa; --line:#d9e2ea;
+    --ice:#0f8fb0; --ice-deep:#0b7f9e; --ice-dim:#8bb3c1;
+    --silver:#182530; --muted:#54687a; --faint:#8698a6; --xblack:#0b0f14;
+    --glow: 0 0 0 1px rgba(15,143,176,.14), 0 6px 24px -12px rgba(11,127,158,.4);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--void); color:var(--silver);
+    font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1100px 520px at 78% -8%, rgba(55,198,230,.10), transparent 60%),
+      radial-gradient(760px 480px at 8% 4%, rgba(127,232,255,.05), transparent 55%);
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:0 22px}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.32em; text-transform:uppercase; color:var(--ice-deep)}
+  h1,h2,h3{text-wrap:balance; line-height:1.08; letter-spacing:-.02em; margin:0}
+  a{color:var(--ice)}
+
+  .bar{position:sticky; top:0; z-index:20; backdrop-filter:blur(9px);
+    background:color-mix(in srgb, var(--void) 78%, transparent); border-bottom:1px solid var(--line)}
+  .bar .wrap{display:flex; align-items:center; gap:14px; height:56px}
+  .brand{font-family:var(--mono); font-weight:600; letter-spacing:.06em; color:var(--silver)}
+  .brand b{color:var(--ice)}
+  .navcta{margin-left:auto; font-family:var(--mono); font-size:12px; letter-spacing:.06em;
+    text-decoration:none; color:var(--void); background:linear-gradient(150deg,var(--ice),var(--ice-deep));
+    padding:8px 14px; border-radius:8px; font-weight:600}
+  .theme{background:none;border:1px solid var(--line);color:var(--muted);
+    font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:7px;cursor:pointer}
+  .theme:hover{color:var(--ice);border-color:var(--ice-dim)}
+
+  .hero{padding:78px 0 30px}
+  .hero .glyphrow{display:flex;align-items:center;gap:16px;margin-bottom:26px}
+  .glyphrow .r{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--void);
+    width:52px;height:52px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--ice),var(--ice-deep));box-shadow:var(--glow)}
+  h1{font-size:clamp(38px,7vw,68px);font-weight:800}
+  h1 .accent{background:linear-gradient(120deg,var(--ice),var(--ice-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{font-size:clamp(17px,2.3vw,21px);color:var(--muted);max-width:60ch;margin:22px 0 0}
+  .sub b{color:var(--silver);font-weight:600}
+  .herocta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;text-decoration:none;
+    padding:12px 20px;border-radius:10px;font-weight:600}
+  .btn.primary{color:var(--void);background:linear-gradient(150deg,var(--ice),var(--ice-deep));box-shadow:var(--glow)}
+  .btn.ghost{color:var(--ice);border:1px solid var(--ice-dim);background:var(--panel)}
+  .btn:hover{filter:brightness(1.08)}
+
+  section{padding:44px 0}
+  .kicker{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+  .kicker .num{font-family:var(--mono);font-size:12px;color:var(--ice-deep);
+    border:1px solid var(--ice-dim);border-radius:6px;padding:2px 8px}
+  .kicker h2{font-size:clamp(22px,3.4vw,30px);font-weight:700}
+  .lede{color:var(--muted);max-width:64ch;margin:-12px 0 26px;font-size:16px}
+
+  .cards{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+  @media(max-width:720px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;
+    position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+    background:linear-gradient(90deg,var(--ice),transparent 70%)}
+  .card h3{font-size:19px;font-weight:700;margin-bottom:6px}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ice-deep);margin-bottom:14px;display:inline-block}
+  .card p{font-size:14.5px;color:var(--muted);margin:0 0 16px}
+  .flist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .flist li{font-size:13.5px;color:var(--silver);display:flex;gap:10px;align-items:flex-start}
+  .flist li::before{content:"▹";color:var(--ice);flex:none;line-height:1.5}
+  .flist .k{color:var(--muted)}
+
+  .specs{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  @media(max-width:720px){.specs{grid-template-columns:1fr 1fr}}
+  .spec{background:var(--panel);padding:20px 18px}
+  .spec .n{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ice);
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .spec .l{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}
+
+  .steps{display:flex;flex-direction:column;gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .step{background:var(--panel);padding:20px 22px;display:grid;
+    grid-template-columns:auto 1fr;gap:18px;align-items:start}
+  .step .idx{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--void);
+    background:linear-gradient(150deg,var(--ice),var(--ice-deep));width:28px;height:28px;
+    border-radius:8px;display:grid;place-items:center;flex:none}
+  .step h3{font-size:16px;font-weight:700;margin-bottom:5px}
+  .step p{margin:0;font-size:14px;color:var(--muted)}
+  .step p b{color:var(--silver);font-weight:600}
+  .path{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--ice);background:var(--panel-2);
+    border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+  .chip .sep{color:var(--faint);margin:0 1px}
+  .lit{display:inline-flex;align-items:center;gap:8px;margin-top:8px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px 6px 12px}
+  .lit code{font-family:var(--mono);font-size:12.5px;color:var(--ice);white-space:nowrap}
+  .lit .k{color:var(--faint);font-size:11px}
+  .minicopy{background:none;border:1px solid var(--ice-dim);color:var(--ice);
+    font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 8px;border-radius:6px;cursor:pointer}
+  .minicopy:hover{background:var(--ice);color:var(--void)}
+  .minicopy.done{background:var(--live);color:var(--void);border-color:var(--live)}
+  .verify{font-family:var(--mono);font-size:12.5px;color:var(--live);margin-top:10px;display:flex;gap:9px;align-items:baseline}
+  .verify::before{content:"✓";flex:none}
+
+  .fine{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+  .fine p{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+  .fine p:last-child{margin:0}
+  .fine b{color:var(--silver)}
+
+  .cta{background:linear-gradient(150deg,var(--panel-2),var(--panel));border:1px solid var(--ice-dim);
+    border-radius:20px;padding:44px 32px;text-align:center;box-shadow:var(--glow)}
+  .cta h2{font-size:clamp(24px,4vw,36px);font-weight:800;margin-bottom:12px}
+  .cta p{color:var(--muted);max-width:52ch;margin:0 auto 26px;font-size:16px}
+
+  footer{border-top:1px solid var(--line);padding:34px 0 60px;margin-top:20px}
+  footer .wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:center;
+    font-family:var(--mono);font-size:12px;color:var(--faint)}
+  footer a{color:var(--muted);text-decoration:none}
+  footer a:hover{color:var(--ice)}
+  @media(prefers-reduced-motion:no-preference){
+    .card,.spec,.step{animation:rise .5s both}
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="wrap">
+  <span class="brand"><b>ROKHA</b> · get started</span>
+  <button class="theme" id="tg">☾ theme</button>
+  <a class="navcta" href="https://rokha.ai" target="_blank" rel="noopener">Create account →</a>
+</div></div>
+
+<header class="hero"><div class="wrap">
+  <div class="glyphrow"><div class="r">R</div></div>
+  <div class="eyebrow">Install · one line per client</div>
+  <h1 style="margin-top:14px">Put <span class="accent">Rokha</span> in your agent.</h1>
+  <p class="sub">Rokha — <b>The AI Studio and Marketplace</b>. Users and agents come here to publish skills, find a user base and get paid; the other side comes to discover agents, builders and tools that work, do something, and have proof. The server is remote: nothing to run, nothing to install beyond the line below.</p>
+  <div class="herocta">
+    <a class="btn primary" href="https://rokha.ai/mcp/jsonrpc" target="_blank" rel="noopener">The endpoint →</a>
+    <a class="btn ghost" href="https://rokha.ai/llms.txt" target="_blank" rel="noopener">llms.txt</a>
+  </div>
+</div></header>
+<section><div class="wrap">
+  <div class="eyebrow">Coding agents</div>
+  <h2>One line</h2>
+  <p>Add the server, then ask your agent to search Rokha or run a tool. Reads need no account; a run asks you to sign in (Google or a wallet) the first time.</p>
+      <div class="lit"><span class="k">Claude Code</span><code>claude mcp add --transport http rokha https://rokha.ai/mcp/jsonrpc</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">Codex</span><code>codex mcp add rokha --url https://rokha.ai/mcp/jsonrpc</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">Gemini CLI</span><code>gemini mcp add --transport http rokha https://rokha.ai/mcp/jsonrpc</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">VS Code</span><code>code --add-mcp '{"name":"rokha","type":"http","url":"https://rokha.ai/mcp/jsonrpc"}'</code><button class="minicopy">copy</button></div>
+
+  <p style="margin-top:18px"><a class="btn primary" href="cursor://anysphere.cursor-deeplink/mcp/install?name=rokha&amp;config=eyJ1cmwiOiJodHRwczovL3Jva2hhLmFpL21jcC9qc29ucnBjIn0=">Add to Cursor →</a></p>
+</div></section>
+<section><div class="wrap">
+  <div class="eyebrow">Skills + extensions</div>
+  <h2>Skills and the Gemini extension</h2>
+  <p>Rokha's skills follow the Agent Skills standard (SKILL.md) — any agent that reads them can install the set.</p>
+      <div class="lit"><span class="k">skills.sh</span><code>npx skills add rokha-ai/rokha-sdk</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">Gemini CLI</span><code>gemini extensions install https://github.com/rokha-ai/rokha-sdk</code><button class="minicopy">copy</button></div>
+
+</div></section>
+<section><div class="wrap">
+  <div class="eyebrow">By hand</div>
+  <h2>Any MCP client</h2>
+      <div class="lit"><span class="k">endpoint</span><code>https://rokha.ai/mcp/jsonrpc</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">transport</span><code>streamable-http</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">auth</span><code>OAuth 2.1 · PKCE S256 · DCR or client-id metadata document · reads need no token</code><button class="minicopy">copy</button></div>
+      <div class="lit"><span class="k">registry</span><code>ai.rokha/rokha</code><button class="minicopy">copy</button></div>
+
+  <p>Listed in the <a href="https://github.com/mcp/ai.rokha/rokha">GitHub MCP Registry</a> and the Official MCP Registry as <code>ai.rokha/rokha</code>. The machine-readable map is <a href="https://rokha.ai/llms.txt">rokha.ai/llms.txt</a>; the API is <a href="https://rokha.ai/api/schema">rokha.ai/api/schema</a>.</p>
+</div></section>
+<footer><div class="wrap">
+  <span><b style="color:var(--muted)">Rokha</b> — the OS for the agentic world</span>
+  <span>·</span><a href="https://rokha.ai" target="_blank" rel="noopener">rokha.ai</a>
+  <span>·</span><a href="https://x.com/Rokha_ai" target="_blank" rel="noopener">𝕏 @Rokha_ai</a>
+</div></footer>
+
+<script>
+  const root=document.documentElement, tg=document.getElementById('tg');
+  tg.addEventListener('click',()=>{
+    const cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+    root.setAttribute('data-theme', cur==='dark'?'light':'dark');
+  });
+  document.querySelectorAll('.minicopy').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const code=btn.parentElement.querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(()=>{
+        const o=btn.textContent;btn.textContent='✓';btn.classList.add('done');
+        setTimeout(()=>{btn.textContent=o;btn.classList.remove('done')},1200);
+      });
+    });
+  });
+</script>
+</body>
+</html>
