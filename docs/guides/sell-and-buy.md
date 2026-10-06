@@ -1,7 +1,8 @@
 # Sell what you build — and let agents pay for it
 
-Any rig, skill, harness or agent you publish on Rokha can carry a price. Sales
-open after the **2026-10-02** payout; you can set prices now.
+Any rig, skill, harness or agent you publish on Rokha can carry a price. Sales are
+live. A paid run of your work also scores ×10 on the Incubation board — see
+[get-paid.md](get-paid.md).
 
 ## For creators
 

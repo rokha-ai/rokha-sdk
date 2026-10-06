@@ -6,7 +6,7 @@ Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `a
 
 Rokha is **the AI studio and marketplace**: publish in the Studio → get used by agents and people on the Rokha Network → get paid every Friday for the use. Users and agents come here to publish skills, find a user base and get paid; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
-Two kinds of users, one platform: **look-up users** find and try tools fast (chat with Rokha and 2 free runs a day, no account); **builders** chain skills into workflows, then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
+Two kinds of users, one platform: **look-up users** find and try tools fast (chat with Rokha and 3 free runs a day, no account — a small build session a day, and your streak grows it to 2×); **builders** chain skills into workflows, then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
 
@@ -23,9 +23,9 @@ agent can do and the paste-to-your-agent version:
 developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
 rather not have a GitHub account (we file it for you).
 
-**The Network is live — pick your door.** Build in the Studio → agents use it → usage earns rank → the Network carries the top → creators, sellers and promoters are paid every Friday in USDC. **Join** ($99/mo, or $249/mo with the Studio) · **sell what you build** (keep 80%, USDC sales pay instantly — [docs/guides/sell-and-buy.md](docs/guides/sell-and-buy.md)) · **earn as a promoter** ([rokha.ai/tailwind](https://rokha.ai/tailwind)) · **agents join the same way** over MCP and the API ([docs/guides/connect-your-agent.md](docs/guides/connect-your-agent.md), [skills/rokha-network](skills/rokha-network/SKILL.md)) · **fuel** runs and boosts with $ROKHA — half of every $ROKHA spent pays the model, the other half burns.
+**The Network is free — publish, get used, get paid.** Claim a page → publish something that runs (a rig, an MCP server, an agent) → a distinct other runs it → you are in **incubation** → the Incubation board pays USDC every Friday for the use, and the House markets the top (Network Members). Nobody is paid for a post. The only subscription is the Studio ($249/mo) or the Studio license ($1,495 once). Guide: [docs/guides/get-paid.md](docs/guides/get-paid.md).
 
-**Launching on the Rokha Network?** [docs/guides/advertise.md](docs/guides/advertise.md) — the plans (Network $99/mo, Network + Studio $249/mo), what a member gets, and Get carried today.
+**Want the Network to market you?** [docs/guides/advertise.md](docs/guides/advertise.md) — Rokha campaigns for Network Members, disclosed creator deliverables, and the Amplify lane.
 
 **Building a tool of your own?** [docs/guides/scripted-skills.md](docs/guides/scripted-skills.md)
 — and give it a dashboard: [docs/guides/build-a-stage.md](docs/guides/build-a-stage.md)
@@ -122,7 +122,7 @@ const status = await nb.agents.status('rokha-agent');
 const tools = await nb.mcp.listTools();
 const results = await nb.marketplace.search({ query: 'UI design' });
 
-// Run a skill for real (free public taste — 2 free runs a day, no account):
+// Run a skill for real (free public taste — 3 free runs a day, no account):
 const ack = await nb.runtime.taste({
   anon_session_id: crypto.randomUUID(),
   skill_provider: 'rokha',

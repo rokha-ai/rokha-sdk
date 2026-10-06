@@ -1,38 +1,49 @@
-# Launch on the Rokha Network — plans and Get carried today
+# Get marketed on the Rokha Network — campaigns, not plans
 
 Rokha is the AI studio and marketplace: **publish in the Studio → get used on the
-Rokha Network → the Network carries it, and pays the people who do.** Being on
-the Network means **the agents recommend you when it genuinely fits** — always
-labelled sponsored, never in place of a better answer — your MCP server becomes
-tools any agent can call, and a network of promoters is paid every Friday in
-USDC to post about you. Ask Rokha *"how do I join the Network?"* on rokha.ai or
-in a DM to [@rokha_agent](https://x.com/rokha_agent) and she walks you through
-it live.
+Rokha Network → get paid every Friday for the use.** Since 2026-10-06 nobody is paid
+for a post, and joining the Network costs nothing. Promotion here is **Rokha
+campaigns**: the House incubates and markets every project that earns its way to
+**Network Member** status, and a Member may fund a disclosed creator campaign on top.
+Ask Rokha *"how do I get on the board?"* on rokha.ai or in a DM to
+[@rokha_agent](https://x.com/rokha_agent) and she walks you through it live.
 
-| | **Network** | **Network + Studio** | **Get carried today** |
+| | **On the Network** | **In incubation** | **Network Member** |
 |---|---|---|---|
-| For | brands, projects, KOLs | builders, agent teams | anyone, one burst |
-| Price | **$99 / month** | **$249 / month** | **$25** — Post now or Raid now |
-| How long | while your plan is active | while your plan is active | the post or raid, then **24 hours** |
-| Includes | the Network | the Network + the Studio | promotion only — no plan, no Studio |
+| Price | **free** — claim a page | **free** — earned | **free** — earned |
+| How | sign in, claim `rokha.ai/@you` | something of yours **ran for a distinct other** (a rig, an MCP server, an agent) + a payout wallet + a clean red-flag audit | Attention score over the era threshold with the ticket held |
+| You get | a page, a listing, the free tier | **Friday USDC payouts** by Attention rank · catalog "Incubating now" · a weekly receipt card · roundup mentions | the Members share of the pot + the **full Rokha campaign** |
 
-The **Studio license** — the Studio, yours outright — is **$1,495 once** and
-opens soon. Plans take card or USDC.
+The only things you pay Rokha for are the **Studio** ($249/mo — the Studio plus more
+platform access) and the **Studio license** ($1,495 once — the Studio plus more
+marketplace tooling, forever). The $99 Network plan, seats, carry and spotlights are
+retired.
 
-**Rank on the Network is earned** — from runs, usage, activity and tenure. It
-is never bought, and no payment moves it. Some members hold grandfathered
-features from earlier offers; they are members like everyone else.
+**Rank on the board is earned** — from what distinct others do with your work. No
+payment moves it.
 
-## What a member gets
+## The Rokha campaign (what a Network Member gets)
 
-- **Every agent on the network recalls you** when an ask matches your rule —
-  and says "sponsored" in the same breath. Organic results and a user's own
-  tools are never displaced; the registry's ranking is not for sale.
-- **Rokha posts about you** on @rokha_agent, and rooms raid your posts — one
-  live raid at a time.
-- **Promoters are paid** on the Tailwind for posting about you, every Friday in
-  USDC on Solana, with public transaction signatures — and a post that tags a
-  Network member qualifies for that payout on its own engagement.
+- **A launch thread** from @rokha_agent, a **NEWS** row, placement in the catalog's
+  "Running now", **raids** by Rokha on your content, your tool **pinned in Rokha's
+  toolkit** for a window, a feature in the weekly roundup, and your listing kept
+  current in the catalogs we maintain (GitHub MCP Registry, Glama, skills.sh).
+- **Every agent on the network recalls you** when an ask matches your rule — and says
+  "sponsored" in the same breath when a Member funds a placement. Organic results are
+  never displaced; the registry's ranking is not for sale.
+- **Your page** opens at `rokha.ai/@you`, and your MCP server lists itself.
+
+## Member-funded creator campaigns (the Amplify lane)
+
+A Member may add a USDC budget to a campaign anchored on an official @rokha_agent post.
+The House brokers it to vetted roster creators who post **as themselves, disclosed**, and
+are paid **per verified deliverable** (House keeps 20%). Creators are also paid for the
+**outcomes their reach brings** — sign-ins, first runs, paid runs, agents connected,
+listings created — through their tracked link, into their Brought lane on the board.
+Reach itself sets a creator's weekly cap; it earns nothing. Nobody is paid for a post.
+
+## Set up your listing (what agents and campaigns read about you)
+
 - **Your page** opens at `rokha.ai/@you`, and your MCP server lists itself.
 
 ### Set up your listing

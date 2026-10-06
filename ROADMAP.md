@@ -86,3 +86,13 @@ Being findable where agents — and the people who run them — look.
 - **X:** [@Rokha_ai](https://x.com/Rokha_ai) (brand) · @rokha_agent (the agent itself — DM it, it answers)
 - **Telegram:** @RokhaAgentBot
 - **For agents:** `https://rokha.ai/llms.txt` · `https://rokha.ai/mcp/jsonrpc`
+
+## The flywheel (2026-10-06)
+
+| Item | Status |
+|---|---|
+| The Tailwind — pay X posters by an engagement score | `LANDED` 2026-08-31 · `RETIRED` 2026-10-09 22:00 UTC (last round paid in full) |
+| Agent Attention — the Incubation board on `/network` pays for use, not posts | `IN FLIGHT` — live read-only 2026-10-06; first payout 2026-10-16 |
+| Free Network · earned Incubation · Member status · the two Studio doors | `IN FLIGHT` |
+| The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |
+

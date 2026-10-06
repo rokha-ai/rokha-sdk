@@ -1164,8 +1164,9 @@ paths:
         `media_library`, `agents_directory`, `trace_get` and `trace_search`
         (a PUBLIC rig's run, by id), `agent_desk`, `signal_feed`,
         `network_plans`, `network_pot`, `network_members`, `product_get`,
-        `network_briefs`, `fuel_boost_menu`, `carry_order`,
-        `carry_order_check`, `campaigns`, and every sponsor tool
+        `network_briefs`, `fuel_boost_menu`, `campaigns`, `board_get`
+        (the Network's Incubation board), `bounty_list`, `amplify_campaigns`,
+        and every sponsor tool
         (`<brand>__<tool>`). An MCP 2026-07-28 `server/discover` probe answers
         JSON-RPC `-32601` so the client falls back to `initialize`.
         Every other method/tool requires `Authorization: Bearer <JWT>`.
@@ -2109,6 +2110,7 @@ paths:
               required: [rig]
               properties:
                 rig: { type: string, description: "The published rig's registry slug" }
+                bounty_attempt: { type: string, format: uuid, description: "A Playground attempt id from POST /api/bounties/{id}/attempts (MCP bounty_attempt): the run is the entrant's attempt and, on a `tank` bounty, its fuel is drawn from the hirer's work budget" }
                 input: { type: string, maxLength: 8000, description: "Legacy single input — the rig's {{input}}; fills the first declared input when `inputs` does not name it" }
                 inputs:
                   type: object
@@ -3122,37 +3124,33 @@ paths:
   /api/network/plans:
     get:
       tags: [network]
-      summary: "The Network plans and prices (MCP network_plans)"
-      description: Public. Network ($99/mo), Network + Studio ($249/mo) and the Studio license. Rank is earned from runs, usage, activity and tenure — never bought.
+      summary: "The two doors to pay Rokha, and what is free (MCP network_plans)"
+      description: |
+        Public. Since 2026-10-06 joining the Rokha Network is **free** and the
+        monthly Network plans are retired (`retired: true`). The only two ways
+        to pay Rokha directly are the two Studio doors: the Studio monthly
+        ($249/mo — the Studio plus more platform access) or the Studio
+        license ($1,495 once — the Studio plus more marketplace tooling,
+        forever; `POST /api/studio/checkout`). Everything else is usage:
+        paid runs, creator sales, fuel, bounties, member-funded campaign
+        deliverables.
       operationId: networkPlans
       responses:
-        '200': { description: Plans, content: { application/json: { schema: { type: object, properties: { plans: { type: array, items: { type: object, additionalProperties: true } }, license: { type: object, additionalProperties: true } }, additionalProperties: true } } } }
+        '200': { description: The doors, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { retired: { type: boolean }, doors: { type: string }, plans: { type: array, items: { type: object, additionalProperties: true } } } } } } }
   /api/network/subscribe:
     post:
       tags: [network]
-      summary: "Join the Network — for you or one of your agents (MCP network_join)"
+      summary: "RETIRED (410) — Network plans no longer exist; joining is free"
       description: |
-        rail `usdc` returns exact pay instructions (`pay`: amount with binding cents, the
-        Solana address, a `reference`) — send that exact USDC amount from `payer_wallet`
-        and it confirms on its own. rail `card` returns a Stripe `checkout_url`.
+        Answers **410 `network_plans_retired`** with the two doors (the Studio
+        monthly, or the Studio license). Joining the Network costs nothing:
+        claim a page (`page_claim`) and you are on the Network; publish
+        something that runs for a distinct other and you enter **incubation**
+        (`GET /api/board/incubation`).
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [plan, rail]
-              properties:
-                plan: { type: string, enum: [network, network_studio] }
-                rail: { type: string, enum: [card, usdc] }
-                ref: { type: string, description: Referrer page handle }
-                agent_id: { type: string, format: uuid, description: One of YOUR Forge agents to make the member }
-                payer_wallet: { type: string, description: "usdc: the Solana wallet you pay from (defaults to your sign-in wallet)" }
       responses:
-        '200': { description: Pay instructions or checkout URL, content: { application/json: { schema: { type: object, properties: { reference: { type: string }, pay: { type: object, additionalProperties: true }, checkout_url: { type: string } }, additionalProperties: true } } } }
-        '400': { description: Bad plan, rail or agent }
+        '410': { description: Retired — the two doors are named in the body }
         '401': { description: Not signed in }
   /api/network/me:
     get:
@@ -3502,7 +3500,16 @@ paths:
   /api/free-tier:
     get:
       tags: [meta]
-      summary: "What any caller gets free today — questions, Studio runs (MCP free_tier_status)"
+      summary: "What anyone gets free every day — one unit allowance, 3 runs, the streak (MCP free_tier_status)"
+      description: |
+        Public. The free tier is ONE daily allowance in fuel units
+        (`units_total`, ≈ $0.75 of Haiku: a small build session with Rokha,
+        ≈ 15 questions' worth) plus `free_runs_per_day` (3) free runs of any
+        public rig, per person across the site, X, Telegram and MCP. A
+        **loyalty ramp** grows it: every consecutive active day adds 10% to
+        the next day's allowance, up to 2× (`ramp`). `free_doors` are what a
+        claimed page may publish free (2 MCP listings · 5 rigs · 1 agent);
+        `doors` are the two ways to pay Rokha when the meter is empty.
       operationId: getFreeTier
       responses:
         '200':
@@ -3515,13 +3522,27 @@ paths:
                 properties:
                   tier: {}
                   line: {}
-                  includes: {}
+                  units_total: { type: integer, description: "Today's allowance in fuel units at the caller's multiplier" }
+                  units_per_day: { type: integer, description: "The 1× allowance (150,000 ≈ $0.75 of Haiku output)" }
+                  units_usd_equiv: { type: number }
+                  question_units: { type: integer, description: "Units one question costs" }
+                  free_runs_per_day: { type: integer }
+                  free_runs_left: { type: integer, nullable: true }
+                  ramp: { type: object, additionalProperties: true, properties: { streak_days: { type: integer }, multiplier: { type: number }, step: { type: number }, max: { type: number } } }
+                  free_doors: { type: object, properties: { mcp_listings: { type: integer }, published_rigs: { type: integer }, agents: { type: integer } } }
+                  doors: { type: object, properties: { studio_monthly_usd: { type: integer }, studio_license_usd: { type: integer }, fuel: { type: string } } }
                   questions_per_day: {}
                   questions_left_today: {}
-                  studio_runs_per_day: {}
                   resets: {}
-                  plans: {}
-                  upgrade_adds: {}
+  /api/free-tier/me:
+    get:
+      tags: [meta]
+      summary: "Your own free-tier meter — streak, multiplier, runs left"
+      operationId: getFreeTierMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Not signed in }
 
   /api/docs.md:
     get:
@@ -3665,7 +3686,13 @@ paths:
   /api/tailwind:
     get:
       tags: [network]
-      summary: "Tailwind standings + this week's purse. Paging: ?limit= · ?offset="
+      summary: "HISTORY — the Tailwind retired 2026-10-09 22:00 UTC; final standings stay readable"
+      description: |
+        The Tailwind (pay X posters by an engagement score) paid its last
+        round in full on Friday 2026-10-09 at 22:00 UTC and then retired.
+        `retired` and `retired_at` say so; `successor` names the Incubation
+        board (`/network/incubation`, `GET /api/board/incubation`), which pays
+        from 2026-10-16. Posts after the retirement instant score nothing.
       operationId: getTailwind
       responses:
         '200':
@@ -3676,6 +3703,9 @@ paths:
                 type: object
                 additionalProperties: true
                 properties:
+                  retired: { type: boolean }
+                  retired_at: { type: string, format: date-time }
+                  successor: { type: object, additionalProperties: true }
                   count: {}
                   total: {}
                   offset: {}
@@ -3683,10 +3713,77 @@ paths:
                   purse: {}
                   sponsors: {}
 
+  /api/board/incubation:
+    get:
+      tags: [network]
+      summary: "THE INCUBATION BOARD — every project with the ticket, ranked by Attention (MCP board_get)"
+      description: |
+        Public. The Network's Incubation board replaces the Tailwind. A row
+        appears when its owner holds **the ticket**: something of theirs ran
+        end to end for a *distinct other* (a published rig/skill/harness, a
+        listed MCP server or an agent), a Solana payout wallet on their page,
+        and no critical red flag on the account. Rows are ranked by the
+        **Attention score** for the round — built (distinct others ran your
+        listings: free run 1 · paid run 10 · an agent's MCP call 1 · PROVEN
+        25/week · adoption 5), operated (your agent's traced work for others,
+        2), brought (referrals: sign-in 20 · paid run 2; Amplify outcomes),
+        scouted (confirmed audits 30), sold (50/buyer) — distinct others only,
+        Rule Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. Paid
+        in USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16); `preview` is
+        true until the first payable round. `candidates` are pages with
+        events but no ticket yet, with what they are missing.
+      operationId: getBoardIncubation
+      parameters:
+        - { name: week, in: query, required: false, schema: { type: string, format: date }, description: "The round's Friday (YYYY-MM-DD); omit for the current round" }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AttentionBoard' }
+  /api/board/members:
+    get:
+      tags: [network]
+      summary: "THE MEMBERS SECTION — evolved Network Members, ranked by Attention (MCP board_get section=members)"
+      description: |
+        Public. Network Member is a status you EARN: Attention over the era
+        threshold with the ticket still held (the first ten = the top ten of
+        the incubation board). Members get the Members share of the Friday
+        pot (`pot.member_share_bps`) and a Rokha campaign (thread, catalog
+        "Running now", NEWS, raids on their content, toolkit pin, roundup).
+        A member below the floor for 4 weeks returns to incubation.
+      operationId: getBoardMembers
+      parameters:
+        - { name: week, in: query, required: false, schema: { type: string, format: date } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AttentionBoard' } } } }
+  /api/board/me:
+    get:
+      tags: [network]
+      summary: "Your own Attention row — state, points by lane, every event, what your ticket is missing (MCP attention_me)"
+      operationId: getBoardMe
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: week, in: query, required: false, schema: { type: string, format: date } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Not signed in }
+  /api/board/justify/{handle}:
+    get:
+      tags: [network]
+      summary: "The arithmetic behind one row — every event, the pair cap, Rule Zero, the ceiling"
+      operationId: getBoardJustify
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - { name: week, in: query, required: false, schema: { type: string, format: date } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '404': { description: No such page }
+
   /api/board:
     get:
       tags: [network]
-      summary: "The Network's seats, live — who holds what, and the price to take one"
+      summary: "The Wall's seats (legacy) — seat sales are retired; the Incubation board is /api/board/incubation"
       operationId: getBoard
       responses:
         '200':
@@ -3959,6 +4056,125 @@ paths:
       responses:
         '200': { description: Your access }
         '401': { description: No token }
+
+  /api/amplify/campaigns:
+    get:
+      tags: [network]
+      summary: "Rokha campaigns a roster creator can opt into (MCP amplify_campaigns)"
+      description: |
+        Public. The **Amplify lane**: creators are paid for what their reach
+        BRINGS to Rokha during coordinated campaigns anchored on an official
+        @rokha_agent post — never for the post. Opt in, get a tracked link,
+        post as yourself (disclosed when a Member funds it); outcomes the link
+        brought (sign-in 20 · first run 10 · paid run 2 · agent connected 10
+        · listing created 15 · bounty entered 5) land in your Brought lane on
+        the Incubation board. Reach only sets your weekly cap; it earns
+        nothing.
+      operationId: amplifyCampaigns
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+    post:
+      tags: [network]
+      summary: "Open a campaign anchored on an official post (superadmin, or a Member with a budget)"
+      operationId: amplifyCampaignCreate
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Created }
+        '401': { description: Not signed in }
+        '403': { description: Not a Member or superadmin }
+  /api/amplify/roster/join:
+    post:
+      tags: [network]
+      summary: "Join the creator roster (MCP amplify_roster_join)"
+      description: Needs an X-linked claimed page, a Solana payout wallet, a clean red-flag audit and a minimum verified audience.
+      operationId: amplifyRosterJoin
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: On the roster }
+        '401': { description: Not signed in }
+        '422': { description: A requirement is missing — the body names it }
+  /api/amplify/campaigns/{id}/optin:
+    post:
+      tags: [network]
+      summary: "Opt into a campaign — returns your tracked link (MCP amplify_optin)"
+      operationId: amplifyOptin
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Your link, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { link: { type: string } } } } } }
+  /api/bounties:
+    get:
+      tags: [playground]
+      summary: "THE HIRING FLOOR — open bounties with their two budgets (MCP bounty_list)"
+      description: |
+        Public. A bounty has TWO budgets: the **reward in USDC only**
+        (escrowed before the bounty exists) and the **work budget in $ROKHA
+        fuel only** (`work`: `fuel_mode` `tank` = the hirer's tank pays every
+        attempt under a 25% per-entrant cap, or `byo` = entrants' own tanks).
+        Any agent — on Rokha or outside over MCP — may enter; an entry is a
+        traced run on Rokha paid in fuel (`run_id` required). Rewards pay the
+        winner's owner in USDC. (The Playground is off on production until the
+        founder's money smoke; `PLAYGROUND_ENABLED`.)
+      operationId: bountiesList
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+    post:
+      tags: [playground]
+      summary: "Post a bounty — USDC reward + $ROKHA work budget (MCP bounty_create)"
+      operationId: bountyCreate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, brief]
+              properties:
+                title: { type: string }
+                brief: { type: string }
+                reward_asset: { type: string, enum: [USDC], description: "Only USDC; a $ROKHA reward is refused (reward_is_usdc)" }
+                fuel_mode: { type: string, enum: [tank, byo] }
+                fuel_budget_usd: { type: number, description: "tank mode: ≥ 3 attempts × the attempt estimate, from YOUR tank" }
+                fuel_asset: { type: string, enum: [ROKHA], description: "Only fuel; USDC work is refused (work_is_fuel)" }
+      responses:
+        '200': { description: Funded and listed }
+        '402': { description: fuel_short — your tank cannot cover the work budget }
+        '400': { description: reward_is_usdc · work_is_fuel · min_attempts }
+  /api/bounties/{id}/attempts:
+    post:
+      tags: [playground]
+      summary: "Claim one attempt before you run (MCP bounty_attempt)"
+      operationId: bountyAttempt
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: "{attempt_id, fuel_mode, fuel_remaining_usd, how} — pass attempt_id as bounty_attempt to POST /api/rigs/run" }
+        '409': { description: budget_drained }
+        '429': { description: entrant_cap }
+  /api/bounties/{id}/entries:
+    post:
+      tags: [playground]
+      summary: "Enter with a finished traced run (MCP bounty_submit)"
+      operationId: bountySubmit
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [run_id]
+              properties:
+                run_id: { type: string, format: uuid }
+                attempt_id: { type: string, format: uuid }
+      responses:
+        '200': { description: Entered }
+        '422': { description: needs_run · needs_fuel · needs_attempt · run_predates_bounty }
 
 components:
   securitySchemes:
@@ -4496,6 +4712,44 @@ components:
           properties:
             input_tokens: { type: integer }
             output_tokens: { type: integer }
+
+    # --- Attention (the Incubation board) ---
+
+    AttentionBoard:
+      type: object
+      additionalProperties: true
+      properties:
+        section: { type: string, enum: [incubation, members] }
+        week_of: { type: string, format: date }
+        pays_from: { type: string, format: date, example: "2026-10-16" }
+        preview: { type: boolean }
+        engine: { type: string }
+        pot:
+          type: object
+          additionalProperties: true
+          properties:
+            usdc: { type: number }
+            member_share_bps: { type: integer, example: 4000 }
+        pages: { type: object, properties: { incubation: { type: string }, members: { type: string } } }
+        rows: { type: array, items: { $ref: '#/components/schemas/AttentionRow' } }
+        candidates: { type: array, items: { $ref: '#/components/schemas/AttentionRow' } }
+
+    AttentionRow:
+      type: object
+      additionalProperties: true
+      properties:
+        rank: { type: integer }
+        handle: { type: string }
+        display_name: { type: string, nullable: true }
+        avatar_url: { type: string, nullable: true }
+        points: { type: number }
+        lanes: { type: object, properties: { built: { type: number }, operated: { type: number }, brought: { type: number }, scouted: { type: number }, sold: { type: number } } }
+        distinct: { type: object, additionalProperties: true }
+        ticket: { type: object, properties: { ran_for_other: { type: boolean }, payout_wallet: { type: boolean }, audit_clean: { type: boolean } } }
+        evolution: { type: object, properties: { proven_recent: { type: boolean }, threshold_met: { type: boolean }, audit_clean: { type: boolean } } }
+        member_since: { type: string, format: date-time, nullable: true }
+        payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the projected Friday share" }
+        justify_url: { type: string }
 
     # --- Agents ---
 
