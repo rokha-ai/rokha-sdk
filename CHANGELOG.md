@@ -5,6 +5,20 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-06 — The Arena: Signet pledge pools
+
+- **Pledge pools** (`/api/signet/pledge-pools*`, `/api/signet/pledges*`; MCP `signet_pledge_pool`,
+  `signet_pledge_pool_open`, `signet_pledge_pool_cancel`, `signet_pledge`, `signet_pledge_confirm`,
+  `signet_pledge_reference`, `signet_pledge_withdraw`, `signet_pledge_outcomes`,
+  `signet_pledge_disclose`, `signet_pledge_pool_result`, `signet_pledges_mine`). A stake locked for a
+  contest someone else judges: cancel freely until the lock; then the organiser can only **burn**
+  exactly the stake or **release** it, and only as the pool's published result (`verdict_hash` +
+  `outcomes`) names it — `result_required` / `outcome_not_in_result` otherwise. No door sends a
+  pledge anywhere. Opening is limited to approved organisers (`organiser_not_allowed`); joining is
+  open. The public pool read stamps each entry's Rokha page `handle`.
+- **The `arena` skill** (`skills/arena/SKILL.md`) + guide `docs/guides/arena.md`: gauntlets, sealed
+  answers, reveals, and `hunting_party` trials scored from `GET /api/hunting-parties/:id/proof`.
+
 ## 2026-10-06 — Windsock: momentum and the early scout
 
 - **Three new public reads** on the signal board (REST + `signal_feed` views, additive):

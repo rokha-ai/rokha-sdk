@@ -75,6 +75,10 @@ tags:
     description: The Rokha Network — join, get carried, promote members, earn as a creator, fuel boosts.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
+  - name: pledges
+    description: >-
+      Signet pledge pools — stakes locked for a contest someone else judges; the organiser
+      can only burn or release each stake as its published result names it, never send it.
   - name: signals
     description: Windsock — scored token signals (read-only market data, never advice, never trades)
 
@@ -1243,6 +1247,14 @@ paths:
         `signet_paper_buy` / `signet_paper_sell` → `signet_paper_positions`
         (open, closed, P&L), and `signet_paper_reset` — real Jupiter quotes,
         a recorded ledger, no money moves (REST twin POST /api/signet/paper).
+        PLEDGE POOLS (the Arena's rail): `signet_pledge_pool` (public read),
+        `signet_pledge_pool_open` / `signet_pledge_pool_cancel` /
+        `signet_pledge_pool_result` / `signet_pledge_outcomes` (organiser;
+        opening limited to approved organisers), `signet_pledge` /
+        `signet_pledge_confirm` / `signet_pledge_reference` /
+        `signet_pledge_disclose` / `signet_pledge_withdraw` /
+        `signet_pledges_mine` (pledger) — REST twins under /api/signet/pledge-pools
+        and /api/signet/pledges.
 
         Scope is identity-derived, never client-supplied: for the wallet-scoped
         JWT tools (`rig_author`, `create_harness`/`list_harnesses`/`get_harness`/
@@ -2549,6 +2561,404 @@ paths:
   # ============================================================
   # Data attachments — your own data, fed to a rig as fenced DATA
   # ============================================================
+
+  /api/signet/pledge-pools:
+    post:
+      tags: [pledges]
+      summary: Open a pledge pool you will judge (approved organisers only)
+      description: >-
+        Opens a pool: one SPL mint, one stake size, a lock time and a deadline. LIMITED
+        to approved organisers for now (superadmins + the `SIGNET_POOL_ORGANISERS`
+        allowlist) — anyone else is refused `organiser_not_allowed` (403); joining a pool
+        is open to everyone. Terms never change once opened. The organiser may later give
+        each funded pledge exactly one outcome — `burn` (a real token-program burn of
+        exactly the stake; supply falls) or `release` — and only as the pool's published
+        result names it. No door takes a destination from the organiser: a pledge can never
+        be SENT anywhere. MCP twin: `signet_pledge_pool_open`.
+      operationId: signetPledgePoolOpen
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slug, title, mint, stake_amount, max_pledges, locks_at, release_at]
+              properties:
+                slug: { type: string, description: "Unique among your pools." }
+                title: { type: string, maxLength: 120 }
+                mint: { type: string, description: The SPL token mint pledgers stake. }
+                stake_amount: { type: string, description: "Stake per pledge in base units, a whole-number string > 0." }
+                max_pledges: { type: integer, minimum: 2, maximum: 256 }
+                locks_at: { type: string, format: date-time, description: At least a minute from now. }
+                release_at: { type: string, format: date-time, description: 5 minutes to 30 days after locks_at. }
+                judge_agent: { type: string, description: Optional id of one of YOUR agents, shown as the judge. }
+                meta: { type: object, description: "Optional public JSON (≤ 64 KB), e.g. contest rules (`meta.arena`)." }
+      responses:
+        '200':
+          description: Opened
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  pool: { $ref: '#/components/schemas/PledgePool' }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '403': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledge-pools/{id}:
+    get:
+      tags: [pledges]
+      summary: Read a pledge pool and every pledge (public)
+      description: >-
+        Public, no login. The pool's terms, `phase` (`open` · `locked` · `released`), the
+        organiser's `meta`, the published `result`, and every pledge. A pledger appears as a
+        per-pool fingerprint, never an owner id. `handle` is the pledger's claimed Rokha page
+        handle, stamped by erebus from the verified owner — the one identity a contest may
+        match on (null for `pending`/`withdrawn` pledges). MCP twin: `signet_pledge_pool`.
+      operationId: signetPledgePoolGet
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The pool
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pool: { $ref: '#/components/schemas/PledgePool' }
+                  pledges:
+                    type: array
+                    items:
+                      allOf:
+                        - { $ref: '#/components/schemas/Pledge' }
+                        - type: object
+                          properties:
+                            handle: { type: string, nullable: true }
+                  as_of: { type: string, format: date-time }
+        '404': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledge-pools/{id}/cancel:
+    post:
+      tags: [pledges]
+      summary: Cancel your pool — every undecided pledge is free at once
+      description: Outcomes already given stand. MCP twin `signet_pledge_pool_cancel`.
+      operationId: signetPledgePoolCancel
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "`{ok, status: cancelled, note}`"
+        '404': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledge-pools/{id}/pledges:
+    post:
+      tags: [pledges]
+      summary: Join an open pool — returns a deposit address to fund
+      description: >-
+        One pledge per account per pool (`already_pledged`); the organiser cannot pledge into
+        their own pool (`organiser_cannot_pledge`). Send `fund.stake_amount` of `fund.mint`
+        plus `fund.sol_lamports` of SOL to `fund.deposit_address` (a session account the
+        signer holds), then confirm before `fund.before`. MCP twin `signet_pledge`.
+      operationId: signetPledgeCreate
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payout_address]
+              properties:
+                payout_address: { type: string, description: Solana address a prize is sent to. Public. }
+                memo: { type: string, maxLength: 200, description: "Public note; for a sealed entry, the answer's sha256 commitment." }
+      responses:
+        '200':
+          description: Pledge created (pending until confirmed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  pledge: { $ref: '#/components/schemas/Pledge' }
+                  fund:
+                    type: object
+                    properties:
+                      deposit_address: { type: string }
+                      mint: { type: string }
+                      stake_amount: { type: string }
+                      sol_lamports: { type: string }
+                      before: { type: string, format: date-time }
+                  next: { type: string }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '403': { $ref: '#/components/responses/PledgeError' }
+        '404': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledges/{id}/confirm:
+    post:
+      tags: [pledges]
+      summary: Check the deposit on-chain and mark the pledge funded
+      description: >-
+        Only a funded pledge is an entry. Refused `stake_short` / `sol_short` when the deposit
+        account is short, `pool_closed` / `pool_full` when the pool has locked or filled.
+        Idempotent (`already: true`). MCP twin `signet_pledge_confirm`.
+      operationId: signetPledgeConfirm
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "`{ok, status: funded, locks_at, release_at}` or `{ok, status: funded, already: true}`"
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '404': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
+        '502': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledges/{id}/reference:
+    post:
+      tags: [pledges]
+      summary: Attach a short public reference to your pledge
+      description: 1–200 printable characters, while the pledge awaits an outcome. MCP twin `signet_pledge_reference`.
+      operationId: signetPledgeReference
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference]
+              properties:
+                reference: { type: string, maxLength: 200 }
+      responses:
+        '200': { description: "`{ok, reference}`" }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '404': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledges/{id}/withdraw:
+    get:
+      tags: [pledges]
+      summary: Can this pledge be withdrawn now, and where to
+      description: >-
+        Destinations are ONLY addresses provably yours: your sign-in wallet, your payout
+        address, or an address that funded the pledge. MCP twin `signet_pledge_withdraw`
+        (without `to`).
+      operationId: signetPledgeWithdrawOptions
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Withdraw options
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pledge: { $ref: '#/components/schemas/Pledge' }
+                  phase: { type: string, enum: [open, locked, released] }
+                  can_withdraw: { type: boolean }
+                  why_not: { type: object, nullable: true, properties: { error: { type: string }, message: { type: string } } }
+                  locks_at: { type: string, format: date-time }
+                  release_at: { type: string, format: date-time }
+                  portfolio: { type: object, nullable: true }
+                  destinations:
+                    type: array
+                    items: { type: object, properties: { address: { type: string }, why: { type: string } } }
+        '404': { $ref: '#/components/responses/PledgeError' }
+    post:
+      tags: [pledges]
+      summary: Empty the pledge account to one of your own addresses
+      description: >-
+        Refused `locked` (409) while the pool is locked and the pledge has no outcome,
+        `settling` while a burn is in flight, `destination_not_allowed` for any address not in
+        the GET list. Withdrawing a funded pledge before the lock cancels the entry.
+      operationId: signetPledgeWithdraw
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to]
+              properties:
+                to: { type: string }
+      responses:
+        '200': { description: "`{ok, result}` — the signer's sweep receipt" }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '404': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
+        '502': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledges/{id}/disclose:
+    post:
+      tags: [pledges]
+      summary: Publish one public JSON on your funded pledge (the reveal)
+      description: >-
+        Only while the pool is locked, only once, never rewritten; ≤ 64 KB. For a sealed
+        entry: the answer + salt whose fingerprint is the pledge memo. Refused `not_locked`
+        outside the lock window, `bad_disclosure` for a bad body. MCP twin
+        `signet_pledge_disclose`.
+      operationId: signetPledgeDisclose
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [disclosure]
+              properties:
+                disclosure: { type: object }
+      responses:
+        '200': { description: "`{ok, disclosed: true}`" }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '404': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledges/mine:
+    get:
+      tags: [pledges]
+      summary: Your pledges (newest first, up to 200)
+      description: MCP twin `signet_pledges_mine`.
+      operationId: signetPledgesMine
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "`{pledges: [Pledge + pool_id]}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pledges:
+                    type: array
+                    items:
+                      allOf:
+                        - { $ref: '#/components/schemas/Pledge' }
+                        - type: object
+                          properties:
+                            pool_id: { type: string, format: uuid }
+
+  /api/signet/pledge-pools/{id}/result:
+    post:
+      tags: [pledges]
+      summary: Publish the pool's result — once, after it locks
+      description: >-
+        One public JSON object (≤ 256 KB), never rewritten. It MUST carry `verdict_hash`
+        (64 lowercase hex) and `outcomes` (pledge id → `burn` | `release`); anything else is
+        `bad_result`. A second publish or a pool that has not locked → `result_refused`
+        (409). MCP twin `signet_pledge_pool_result`.
+      operationId: signetPledgePoolResult
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [result]
+              properties:
+                result:
+                  type: object
+                  required: [verdict_hash, outcomes]
+                  properties:
+                    verdict_hash: { type: string, pattern: '^[0-9a-f]{64}$' }
+                    outcomes:
+                      type: object
+                      additionalProperties: { type: string, enum: [burn, release] }
+      responses:
+        '200': { description: "`{ok, published: true}`" }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
+
+  /api/signet/pledge-pools/{id}/outcomes:
+    post:
+      tags: [pledges]
+      summary: Burn or release 1–16 funded pledges, as the published result names them
+      description: >-
+        Outcomes come ONLY from the published result: no result → `result_required`; an
+        outcome the result does not name for that pledge → `outcome_not_in_result`. Only
+        while the pool is locked (`not_locked`), once per pledge. `burn` destroys exactly
+        the stake (token-program burn); `release` frees it for the pledger. A burn whose
+        fate is unknown is parked (`burn_unconfirmed`, status `burning`) and never re-sent.
+        Per-pledge results; the call answers 200 with each item's `ok`. MCP twin
+        `signet_pledge_outcomes`.
+      operationId: signetPledgeOutcomes
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [outcomes]
+              properties:
+                outcomes:
+                  type: array
+                  minItems: 1
+                  maxItems: 16
+                  items:
+                    type: object
+                    required: [pledge_id, outcome]
+                    properties:
+                      pledge_id: { type: string, format: uuid }
+                      outcome: { type: string, enum: [burn, release] }
+      responses:
+        '200':
+          description: Per-pledge results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  pool_id: { type: string, format: uuid }
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pledge_id: { type: string, format: uuid }
+                        ok: { type: boolean }
+                        status: { type: string, enum: [funded, burning, burned, released] }
+                        signature: { type: string, description: The burn transaction (burned only). }
+                        amount: { type: string }
+                        error: { type: string }
+                        message: { type: string }
+        '400': { $ref: '#/components/responses/PledgeError' }
+        '404': { $ref: '#/components/responses/PledgeError' }
+        '409': { $ref: '#/components/responses/PledgeError' }
 
   /api/data-attachments:
     get:
@@ -4314,6 +4724,24 @@ components:
         pattern: ^[a-z0-9]([a-z0-9]|-(?!-))*[a-z0-9]$|^[a-z0-9]$
 
   responses:
+    PledgeError:
+      description: >-
+        `{error, message}` — `organiser_not_allowed` (403) · `organiser_cannot_pledge` ·
+        `already_pledged` (duplicate) · `judge_not_yours` · `slug_taken` · `too_many_pools` ·
+        `pool_closed` · `pool_full` · `pool_crowded` · `not_pending` · `stake_short` ·
+        `sol_short` · `locked` · `settling` · `not_locked` · `destination_not_allowed` ·
+        `result_required` · `outcome_not_in_result` · `result_refused` · `bad_result` ·
+        `bad_outcome` · `bad_batch` · `bad_slug` · `bad_title` · `bad_stake` · `bad_size` ·
+        `bad_times` · `bad_meta` · `bad_mint` · `bad_payout_address` · `bad_memo` ·
+        `bad_reference` · `bad_disclosure` · `chain_unreadable` (502) · `not_found` (404 — a
+        foreign id reads as not found)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+              message: { type: string }
     BadRequest:
       description: Invalid input
       content:
@@ -4351,6 +4779,41 @@ components:
             required: [error]
 
   schemas:
+    PledgePool:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        title: { type: string }
+        mint: { type: string }
+        stake_amount: { type: string, description: Base units, whole-number string. }
+        sol_reserve_lamports: { type: string, description: SOL a pledge account holds beside its stake for fees. }
+        max_pledges: { type: integer }
+        locks_at: { type: string, format: date-time }
+        release_at: { type: string, format: date-time }
+        judge_actor: { type: string, nullable: true }
+        status: { type: string, enum: [open, cancelled] }
+        phase: { type: string, enum: [open, locked, released] }
+        meta: { type: object }
+        result: { type: object, nullable: true }
+        result_at: { type: string, format: date-time, nullable: true }
+    Pledge:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        pledger: { type: string, description: A per-pool fingerprint of the owner. }
+        deposit_address: { type: string }
+        payout_address: { type: string }
+        memo: { type: string }
+        reference: { type: string, nullable: true }
+        disclosure: { type: object, nullable: true }
+        disclosed_at: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [pending, funded, burning, burned, released, withdrawn] }
+        funded_at: { type: string, format: date-time, nullable: true }
+        outcome_at: { type: string, format: date-time, nullable: true }
+        burn_signature: { type: string, nullable: true }
+        withdrawn: { type: boolean }
+        created_at: { type: string, format: date-time }
     Product:
       type: object
       properties:
