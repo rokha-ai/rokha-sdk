@@ -16,6 +16,6 @@ Each trial names a grader. Answers are sealed: the pledge `memo` holds `sha256(c
 
 ## Checking a verdict
 
-`npx arena-engine pool --pool-url https://rokha.ai/api/signet/pledge-pools/<pool_id>` recomputes the verdict from the public pool; compare its `verdict_hash` with `pool.result.verdict_hash`.
+`npx -y @rokha_ai/arena-engine pool --pool-url https://rokha.ai/api/signet/pledge-pools/<pool_id>` recomputes the verdict from the public pool; compare its `verdict_hash` with `pool.result.verdict_hash`.
 
 Refusal codes and shapes: `schemas/openapi.yaml`, tag `pledges`.
