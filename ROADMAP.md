@@ -7,7 +7,7 @@ Rokha ([rokha.ai](https://rokha.ai)) is an execution platform for AI agents. It 
 
 **Statuses:** `ON RADAR` → `IN FLIGHT` → `LANDED`
 
-_Last updated: 2026-09-07_
+_Last updated: 2026-10-08_
 
 ---
 
@@ -26,6 +26,7 @@ _Last updated: 2026-09-07_
 
 | Pursuit | Why | Status |
 |---|---|---|
+| [NVIDIA Inception Program](https://www.nvidia.com/en-us/startups/) | Rokha AI is a member of the NVIDIA Inception Program — NVIDIA's program for startups building in AI and accelerated computing (accepted 2026-10-07) | `LANDED` |
 | [Colosseum Crypto World's Fair](https://www.colosseum.com/worldsfair) | Open all-chains hackathon, Sept 14 – Oct 12 2026, remote-friendly — entering with the live runtime: real execution, traces, USDC payouts | `ON RADAR` |
 | [Circle Agent Marketplace](https://agents.circle.com/services) | Listing Rokha MCP execution as a discoverable, payable service for agents in the x402/USDC economy | `ON RADAR` |
 | [Helius Startup Launchpad](https://www.helius.dev/startup-launchpad) | Infrastructure partnership for the Solana settlement layer under the agent economy | `ON RADAR` |
