@@ -27,7 +27,7 @@ Cast's MP4 is 1080²; the others are 720². X shows video muted until a viewer t
 
 ## brand
 
-Rokha the platform: the site, the launchpad, the whole product
+Rokha the platform: the site, the marketplace, the whole product
 
 | Title | File | Size | Use for | CTA |
 |---|---|---|---|---|

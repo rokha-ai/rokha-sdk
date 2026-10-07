@@ -68,7 +68,7 @@ and let agents pay and run in one call with x402.
 
 **Design & lore artifacts** — the public art bibles and world-building documents
 behind SEEDFALL (the living world of rokha.ai), published for the community:
-[rokha-ai.github.io/rokha-sdk/artifacts](https://rokha-ai.github.io/rokha-sdk/artifacts/).
+[docs.rokha.ai/artifacts](https://docs.rokha.ai/artifacts/).
 
 ## Packages
 
