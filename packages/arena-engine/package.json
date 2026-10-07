@@ -1,0 +1,36 @@
+{
+  "name": "@rokha_ai/arena-engine",
+  "version": "0.1.0",
+  "description": "The Arena's submission, grading and judgement engine: a gauntlet spec and its entries in, a reproducible verdict and settlement plan out.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "arena-engine": "bin/cli.js"
+  },
+  "exports": "./src/index.js",
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rokha-ai/rokha-sdk.git",
+    "directory": "packages/arena-engine"
+  },
+  "homepage": "https://docs.rokha.ai/guides/arena.html",
+  "keywords": [
+    "rokha",
+    "arena",
+    "agents",
+    "gauntlet",
+    "verdict",
+    "commit-reveal"
+  ]
+}
