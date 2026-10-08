@@ -1562,9 +1562,11 @@ paths:
         builder's linked X when they have one: `x_handle` (no `@`, empty
         when unlinked), `x_verified` (X's own paid check — a NARROWER
         signal than the page's own `verified` mark), `x_verified_type`
-        (blue/business/government/''). A genuine
-        open counts a page view (human OR agent); pass `preview=1` for
-        card/list hydration that must NOT count. Public, no auth.
+        (blue/business/government/''). `promoter` is the reach side of the
+        page (PromoterSection — roster status, reach tier, pinned days,
+        results brought; `on_roster: false` + `focus` for a page that is not
+        a promoter). A genuine open counts a page view (human OR agent); pass
+        `preview=1` for card/list hydration that must NOT count. Public, no auth.
       operationId: pageByHandle
       parameters:
         - { name: handle, in: path, required: true, schema: { type: string } }
@@ -1663,6 +1665,7 @@ paths:
                 bio: { type: string }
                 glyph: { type: string }
                 links: { type: array, items: { type: object } }
+                focus: { type: array, maxItems: 5, items: { type: string, maxLength: 30 }, description: "Your niche / topics (a promoter roster gate). Absent = keep stored." }
       responses:
         '200': { description: '{ ok, handle }' }
         '400': { description: Invalid handle / lengths, or handle reserved }
@@ -3750,10 +3753,26 @@ paths:
   /api/network/pot:
     get:
       tags: [network]
-      summary: "This week's promoter pot, paid Fridays in USDC (MCP network_pot)"
+      summary: "This week's Member payout — the top 10 paid Fridays in USDC on a fixed table (MCP network_pot)"
       operationId: networkPot
       responses:
-        '200': { description: Pot total and live member count, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200':
+          description: The week's payout
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  armed: { type: boolean }
+                  pot: { type: string }
+                  pot_usd: { type: number, nullable: true }
+                  asset: { type: string, example: USDC }
+                  pays_at: { type: string, format: date-time, nullable: true }
+                  house_funded: { type: boolean, description: "true while the House runway funds the table" }
+                  member_places: { type: integer, nullable: true, example: 10 }
+                  table_usd: { type: array, nullable: true, items: { type: number }, example: [30, 20, 16, 12, 12, 12, 12, 12, 12, 12] }
+                  note: { type: string }
   /api/network/briefs:
     get:
       tags: [network]
@@ -4174,13 +4193,23 @@ paths:
   /api/board/me:
     get:
       tags: [network]
-      summary: "Your own Attention row — state, points by lane, every event, what your ticket is missing (MCP attention_me)"
+      summary: "Your own Attention row — state, points by lane, every event, what your ticket is missing, and your promoter status (MCP attention_me)"
       operationId: getBoardMe
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date } }
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  promoter:
+                    allOf: [ { $ref: '#/components/schemas/PromoterSection' } ]
+                    description: The reach side, plus `page_missing` (what the Network page still needs for the roster)
         '401': { description: Not signed in }
   /api/board/justify/{handle}:
     get:
@@ -4612,6 +4641,19 @@ paths:
       summary: "Open a campaign anchored on an official post (superadmin, or a Member with a budget)"
       operationId: amplifyCampaignCreate
       security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              properties:
+                official_post_id: { type: string }
+                title: { type: string }
+                kind: { type: string, enum: [amplify, pin_week], default: amplify, description: "pin_week = the House's Pin of the Week (superadmin only)" }
+                budget_usdc: { type: number }
+                ends_at: { type: string, format: date-time }
       responses:
         '200': { description: Created }
         '401': { description: Not signed in }
@@ -4619,14 +4661,36 @@ paths:
   /api/amplify/roster/join:
     post:
       tags: [network]
-      summary: "Join the creator roster (MCP amplify_roster_join)"
-      description: Needs an X-linked claimed page, a Solana payout wallet, a clean red-flag audit and a minimum verified audience.
+      summary: "Join the promoter roster (MCP amplify_roster_join)"
+      description: >-
+        Needs a complete Network page (display name, a bio of 40+ characters that
+        explains your brand, X verified on the page, a niche in `focus`), an X
+        account at least 180 days old with at least 20 original posts in 90 days,
+        a Solana payout wallet and a clean red-flag audit. Followers are not a gate.
+        New seats wait for founder approval.
       operationId: amplifyRosterJoin
       security: [ { bearerAuth: [] } ]
       responses:
-        '200': { description: On the roster }
+        '200': { description: On the roster (pending approval until approved) }
         '401': { description: Not signed in }
+        '409':
+          description: The Network page is not ready
+          content:
+            application/json:
+              schema: { type: object, properties: { error: { type: string }, missing: { type: array, items: { type: string } } } }
         '422': { description: A requirement is missing — the body names it }
+  /api/admin/amplify/roster/{handle}/approve:
+    post:
+      tags: [network]
+      summary: "Approve a promoter's roster seat (superadmin)"
+      operationId: amplifyRosterApprove
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Approved }
+        '403': { description: Not a superadmin }
+        '404': { description: No roster seat for that handle (or the handle is unknown) }
   /api/amplify/campaigns/{id}/optin:
     post:
       tags: [network]
@@ -5436,8 +5500,25 @@ components:
         ticket: { type: object, properties: { ran_for_other: { type: boolean }, payout_wallet: { type: boolean }, audit_clean: { type: boolean } } }
         evolution: { type: object, properties: { proven_recent: { type: boolean }, threshold_met: { type: boolean }, audit_clean: { type: boolean } } }
         member_since: { type: string, format: date-time, nullable: true }
-        payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the projected Friday share" }
+        payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the place's fixed amount (top 10 only)" }
         justify_url: { type: string }
+        lane: { type: string, enum: [builder, promoter], description: "Information only — one board, one ranking" }
+        pin_points: { type: number, description: "Points from verified Pin of the Week days" }
+        page_url: { type: string, example: "/@handle" }
+
+    PromoterSection:
+      type: object
+      additionalProperties: true
+      properties:
+        on_roster: { type: boolean }
+        lane: { type: string, example: promoter }
+        roster_status: { type: string, description: "approved · pending approval · or a paused status" }
+        reach_tier: { type: integer, minimum: 0, maximum: 3, description: "1 = T1 (500–2,500 median views), 2 = T2 (2,500–15,000), 3 = T3 (over 15,000); 0 = under 500 or not yet measured" }
+        reach_median_views_90d: { type: integer, nullable: true }
+        tier_frozen: { type: boolean }
+        pinned_days_this_round: { type: integer }
+        brought_this_round: { type: number }
+        focus: { type: array, items: { type: string } }
 
     # --- Agents ---
 
