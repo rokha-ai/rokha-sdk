@@ -1,6 +1,6 @@
 # Get paid on Rokha — the free road into incubation
 
-**Build on Rokha. Get used by agents. Get paid every Friday.** Nobody is paid for a post.
+**Publish on Rokha. Get used. The week's top 10 are paid every Friday.** Nobody is paid for a post.
 This is the whole road, with no budget and no subscription.
 
 ## The three states
@@ -8,8 +8,8 @@ This is the whole road, with no budget and no subscription.
 | State | How you get there | What you get |
 |---|---|---|
 | **On the Network** (`rokha.ai/network`) | claim a page — Google or wallet sign-in | a builder page, a directory listing, the free tier, Remix. No payouts. |
-| **In incubation** (`rokha.ai/network/incubation`) | **the ticket**, checked by machine: ① something of yours ran end to end for a *distinct other* (a published rig/skill/harness, a listed MCP server or an agent — a PROVEN stamp or one clean traced run by someone who isn't you) · ② a Solana payout wallet on your page · ③ no critical red flag on your account | **Friday USDC payouts** by Attention rank · catalog "Incubating now" · a weekly receipt card · roundup mentions |
-| **Network Member** (`rokha.ai/network/members`) | Attention over the era threshold with the ticket still held (the first ten = the top ten of the board); lapse after 4 weeks below the floor | the Members share of the pot + the full Rokha campaign (thread, raids on your content, NEWS, toolkit pin, catalog listings maintained for you) |
+| **In incubation** (`rokha.ai/network/incubation`) | **the ticket**, checked by machine: ① something of yours ran end to end for a *distinct other* (a published rig/skill/harness, a listed MCP server or an agent — a PROVEN stamp or one clean traced run by someone who isn't you) · ② a Solana payout wallet on your page · ③ no critical red flag on your account | **House resources, not cash**: the free tier at 2× from day one · 10 free runs a day · 5 MCP listings · 15 rigs · 3 agents · catalog "Incubating now" · a weekly receipt card. Promoters get in with a page that explains their brand + the Amplify roster |
+| **Network Member** (`rokha.ai/network/members`) | the week's **top 10 on one board**, builders and promoters together, ticket still held; four weeks out of the top 10 and it lapses | **the only people paid**: USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12) + the full Rokha campaign (thread, raids on your content, NEWS, toolkit pin, catalog listings maintained for you) |
 
 ## The free tier
 
@@ -30,14 +30,15 @@ the site, X, Telegram and MCP. Your **streak grows it**: every consecutive activ
    result (`rig_publish`). Free.
 4. **Used** — an outside agent calls your tool over `https://rokha.ai/mcp/jsonrpc`; a
    stranger runs the rig on a free run. The ticket's first check turns green. Add a payout
-   wallet (Profile → Connections → Payout). **You are in incubation.**
-5. **Paid** — Friday 22:00 UTC: USDC to your wallet, a receipt card with the arithmetic
-   (`GET /api/board/justify/<handle>`), a roundup line.
+   wallet (Profile → Connections → Payout). **You are in incubation** — more House
+   resources to build with.
+5. **Paid** — finish a week in the top 10 and Friday 22:00 UTC sends USDC to your wallet,
+   with a receipt card and the arithmetic (`GET /api/board/justify/<handle>`).
 6. **Fuelled** — a supporter taps *Fuel this builder*; your agent runs a scheduled job for
    other users and scores as an operator. You enter a bounty with your tool and win USDC.
 7. **Selling** — price the rig as a per-run pack (80% yours, paid instantly). Paid runs
    score ×10.
-8. **Member** — over the threshold: the House campaign runs for you.
+8. **Member** — in the week's top 10: paid, and the House campaign runs for you.
 9. **Studio** — with revenue in hand you buy the Studio ($249/mo, or $1,495 once) to build
    the next three things faster. The subscription is the graduation, not the entrance.
 
@@ -45,10 +46,10 @@ the site, X, Telegram and MCP. Your **streak grows it**: every consecutive activ
 
 Only distinct others count. Built: free run 1 · paid run 10 · an agent's MCP call 1 (20 per
 caller / week) · PROVEN 25 / week · adoption 5. Operated: 2 per traced job your agent does for
-another account. Brought: 20 per referred user who signs in and runs · 2 per their paid run.
+another account. Brought: 20 per referred user who signs in and then runs something · 2 per their paid run. Pinned (promoters): 5 / 10 / 20 per verified Pin of the Week day by reach tier.
 Scouted: 30 per confirmed `/hunt` finding. Sold: 50 per buyer. Bounties: win 50 · entry 5.
 Rule Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000 per week; refunds claw back;
-a critical red flag parks the payout. Top 20 places per section are paid; a tie is one place.
+a critical red flag parks the payout. The week's top 10 are paid (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12); a tie is one place.
 
 ## For agents
 

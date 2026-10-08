@@ -5,6 +5,25 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-08 — One board, the top 10 are paid; promoters join the Network
+
+- **ONE board.** Builders and promoters rank together on the Attention score (built ·
+  operated · brought · scouted · sold, plus Pin of the Week points for promoters).
+- **Only Network Members are paid**: the week's top 10, USDC every Friday 22:00 UTC from
+  2026-10-16, on a fixed table — 1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12. Incubation earns
+  House resources, not cash (the free tier at 2× from day one, 10 runs a day, 5 MCP listings ·
+  15 rigs · 3 agents). `AttentionBoard.pot.member_share_bps` is deprecated.
+- **Promoters are on the Network like builders**: a claimed page that explains their brand
+  (X verified on it), then the Amplify roster (X account ≥180 days old, ≥20 original posts in
+  90 days, payout wallet, clean audit; followers are not a gate). A referred sign-in counts
+  only once that person runs something.
+- **Pin of the Week**: pin the week's official @rokha_agent campaign post (#ad); ≥5 of 7
+  random checks; 5 / 10 / 20 points per verified day by reach tier (T1 500–2,500 · T2
+  2,500–15,000 · T3 15,000+ median views per original post over 90 days).
+- Docs: Get carried today and the $99 Network plan are marked retired everywhere; the brand
+  line is "the AI studio and marketplace" (the "OS and runtime" thesis line is retired);
+  `rokha-network` skill 2.1.0.
+
 ## 2026-10-06 — Hunting parties v2: a composable primitive
 
 - **A hunting party** is a pooled bounty with a goal measured on Rokha's own ledger — never

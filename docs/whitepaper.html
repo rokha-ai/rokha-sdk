@@ -612,12 +612,14 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     arithmetic is public at <code>GET https://rokha.ai/api/board/justify/{handle}</code>.
   </p>
   <p>
-    <b>The payout.</b> USDC, every Friday 22:00 UTC, to the Solana wallet on the page. The pot is split
-    between the two sections by <code>MEMBER_POT_SHARE</code> (40% Members / 60% Incubation at launch),
-    then within each section by points to the <b>top 20 places</b>, a tie being one place. Eligibility is
-    tier-blind: a claimed page and a wallet; an X link is no longer required. The pot is 50% of paid-run
-    revenue, 50% of creator-sale fees, 50% of campaign spend, and a $100/week house floor for the first
-    eight rounds. The weighting of paid runs at ten times a free one is deliberate: the money is the vote.
+    <b>The payout (2026-10-08).</b> One board: builders and promoters rank together on the Attention
+    score, promoters adding Pin of the Week points. Incubation earns House resources, not cash. The week's
+    <b>top 10</b> are the Network Members and the only people paid &mdash; USDC every Friday 22:00 UTC, to the
+    Solana wallet on the page, on a fixed table: 1st $30 · 2nd $20 · 3rd $16 · 4th&ndash;10th $12 (a tie is one place). The House funds the
+    table from a counted runway for now; revenue from paid runs, creator-sale fees and campaigns adds on top.
+    Eligibility is tier-blind: a claimed page and a wallet. The weighting of paid runs at ten times a free one
+    is deliberate: the money is the vote. (The launch design &mdash; a 40/60 split between Members and Incubation,
+    the top 20 places in each, a $100/week floor &mdash; was superseded before its first round.)
   </p>
   <p>
     <b>Promotion</b> is now <b>Rokha campaigns</b>: the House incubates and markets every Member (a launch
@@ -792,7 +794,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <thead><tr><th>Path</th><th>Rule</th><th>Funded by</th></tr></thead>
     <tbody>
       <tr><td>The two doors</td><td>The Studio monthly ($249 &mdash; the Studio plus more platform access) or the Studio license ($1,495 once &mdash; the Studio plus more marketplace tooling, forever). Joining the Network, incubation, payouts and campaigns are free; the $99 plan is retired</td><td>The builder</td></tr>
-      <tr><td>The Friday pot (Attention)</td><td>50% of paid-run revenue + 50% of creator-sale fees + 50% of campaign spend + a $100/week house floor for the first eight rounds; split between Members and Incubation, then by Attention points to the top 20 places (section 4)</td><td>Use of the platform; the floor is the house's one out-of-pocket line</td></tr>
+      <tr><td>The Friday payout (Attention)</td><td>The week's top 10 on one board, a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th&ndash;10th $12); revenue from paid runs, creator-sale fees and campaigns adds on top (section 4)</td><td>A counted House runway for now, then use of the platform</td></tr>
       <tr><td>Weekly promoter pot (history)</td><td>50% of plan revenue, with a $100/week house floor for the first 8 weeks; paid in USDC every Friday by the Tailwind split above</td><td>Plan revenue; the floor is the house's one sanctioned out-of-pocket spend</td></tr>
       <tr><td>Creator share</td><td>A published rig's author earns 25% of the run fee each time a paying user other than the author runs it, capped per runner at 25% of what that runner paid in the trailing 30 days</td><td>The runner's own payments</td></tr>
       <tr><td>Creator sales</td><td>A creator sells a rig, agent or skill one-time, monthly or per run; 80% to the creator, 20% to the house; USDC and crypto settle instantly, card on Fridays</td><td>The buyer</td></tr>

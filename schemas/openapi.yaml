@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join, get carried, promote members, earn as a creator, fuel boosts.
+    description: The Rokha Network — join free, the Incubation board, Network Members (the week's top 10 are paid), promoters (Amplify + Pin of the Week), creator earnings, fuel boosts.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -1942,9 +1942,9 @@ paths:
   /api/discovery/recent:
     get:
       tags: [discovery]
-      summary: Recent mesh activity (cross-registry events, newest first)
+      summary: Recent registry activity (cross-registry events, newest first)
       description: |
-        JSON read of the mesh activity pulse — listings synced/updated across
+        JSON read of the registry activity pulse — listings synced/updated across
         connected registries, with provider, action, and counts. The
         agent-consumable mirror of the SSE pulse stream. No auth.
       operationId: discoverRecent
@@ -3859,7 +3859,7 @@ paths:
   /api/carry/orders:
     post:
       tags: [network]
-      summary: "Get carried today — $25, 24 hours (MCP carry_order); no account needed"
+      summary: "RETIRED (2026-10-06) — Get carried today answers 410 carry_retired; get marketed by earning it on the board"
       operationId: carryOrder
       requestBody:
         required: true
@@ -4136,11 +4136,15 @@ paths:
         **Attention score** for the round — built (distinct others ran your
         listings: free run 1 · paid run 10 · an agent's MCP call 1 · PROVEN
         25/week · adoption 5), operated (your agent's traced work for others,
-        2), brought (referrals: sign-in 20 · paid run 2; Amplify outcomes),
-        scouted (confirmed audits 30), sold (50/buyer) — distinct others only,
-        Rule Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. Paid
-        in USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16); `preview` is
-        true until the first payable round. `candidates` are pages with
+        2), brought (referrals: a sign-in that goes on to run something · paid
+        runs; Amplify outcomes), scouted (confirmed audits 30), sold (50/buyer),
+        plus Pin of the Week points for promoters — distinct others only, Rule
+        Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. ONE board:
+        builders and promoters rank together. Incubation earns House resources,
+        not cash; the week's top 10 are the Network Members, the only rows paid
+        — USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16) on a fixed table
+        (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12). `preview` is true until the
+        first payable round. `candidates` are pages with
         events but no ticket yet, with what they are missing.
       operationId: getBoardIncubation
       parameters:
@@ -4156,12 +4160,12 @@ paths:
       tags: [network]
       summary: "THE MEMBERS SECTION — evolved Network Members, ranked by Attention (MCP board_get section=members)"
       description: |
-        Public. Network Member is a status you EARN: Attention over the era
-        threshold with the ticket still held (the first ten = the top ten of
-        the incubation board). Members get the Members share of the Friday
-        pot (`pot.member_share_bps`) and a Rokha campaign (thread, catalog
-        "Running now", NEWS, raids on their content, toolkit pin, roundup).
-        A member below the floor for 4 weeks returns to incubation.
+        Public. Network Member is a status you EARN: the week's top 10 on the
+        one board, builders and promoters together, ticket still held. Members
+        are the only people paid — USDC every Friday on a fixed table (1st $30 ·
+        2nd $20 · 3rd $16 · 4th–10th $12) — and get a Rokha campaign (thread,
+        catalog "Running now", NEWS, raids on their content, toolkit pin,
+        roundup). Four weeks out of the top 10 and membership lapses.
       operationId: getBoardMembers
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date } }
@@ -4586,14 +4590,20 @@ paths:
       tags: [network]
       summary: "Rokha campaigns a roster creator can opt into (MCP amplify_campaigns)"
       description: |
-        Public. The **Amplify lane**: creators are paid for what their reach
-        BRINGS to Rokha during coordinated campaigns anchored on an official
-        @rokha_agent post — never for the post. Opt in, get a tracked link,
-        post as yourself (disclosed when a Member funds it); outcomes the link
-        brought (sign-in 20 · first run 10 · paid run 2 · agent connected 10
-        · listing created 15 · bounty entered 5) land in your Brought lane on
-        the Incubation board. Reach only sets your weekly cap; it earns
-        nothing.
+        Public. The **Amplify lane**: promoters earn points for what their
+        reach BRINGS to Rokha during campaigns anchored on an official
+        @rokha_agent post — never for a post's likes or views. Promoters are on
+        the Network like builders: a claimed page that explains their brand,
+        X verified on it, then the roster (X account ≥180 days old, ≥20
+        original posts in 90 days, payout wallet, clean audit; followers are
+        not a gate). Opt in, get a tracked link, post as yourself (disclosed
+        when a Member funds it); outcomes the link brought (a sign-in that
+        goes on to run something · first run · paid run · agent connected ·
+        listing created · bounty entered) land in your Brought lane. PIN OF THE
+        WEEK: pin the week's official campaign post (#ad); ≥5 of 7 random
+        checks; 5 / 10 / 20 points per verified day by reach tier (T1 500–2,500
+        · T2 2,500–15,000 · T3 15,000+ median views per original post over 90
+        days). The week's top 10 on the board are paid.
       operationId: amplifyCampaigns
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -5407,7 +5417,7 @@ components:
           additionalProperties: true
           properties:
             usdc: { type: number }
-            member_share_bps: { type: integer, example: 4000 }
+            member_share_bps: { type: integer, deprecated: true, description: "Legacy two-section split; superseded 2026-10-08 — only the week's top 10 are paid on a fixed table" }
         pages: { type: object, properties: { incubation: { type: string }, members: { type: string } } }
         rows: { type: array, items: { $ref: '#/components/schemas/AttentionRow' } }
         candidates: { type: array, items: { $ref: '#/components/schemas/AttentionRow' } }
