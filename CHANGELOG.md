@@ -5,6 +5,20 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-09 — The affiliate program; the creator run share is retired
+
+- **BREAKING (removed):** `GET /api/me/creator-earnings` and the MCP tool `creator_earnings` —
+  the 25% creator share on others' paid runs is retired. `network_me` no longer returns
+  `member.creator_earnings_live`.
+- **Added:** `GET /api/affiliate/me` + MCP `affiliate_me` — the affiliate program. Anyone with a
+  claimed page has a code (their handle, `rokha.ai/?ref=<handle>`); a referred buyer's Studio
+  purchase pays the affiliate a clean 25% of what they paid: the first month (once per buyer)
+  or the one-time license. Crypto pays at settle, card after a 30-day hold; refunds reverse.
+  `POST /api/studio/checkout` accepts an optional `ref_code`.
+- **Referrals:** the $25 bounty and free days are retired; a referral scores Brought points.
+- **Network Members, no grace:** out of the top 10 at a round's close = back to Incubation at
+  once; founding seats progress like any team.
+
 ## 2026-10-08 — One board, the top 10 are paid; promoters join the Network
 
 - **ONE board.** Builders and promoters rank together on the Attention score (built ·

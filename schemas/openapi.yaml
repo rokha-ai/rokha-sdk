@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the Incubation board, Network Members (the week's top 10 are paid), promoters (Amplify + Pin of the Week), creator earnings, fuel boosts.
+    description: The Rokha Network — join free, the Incubation board, Network Members (the week's top 10 are paid), promoters (Amplify + Pin of the Week), the affiliate program, fuel boosts.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -3572,7 +3572,7 @@ paths:
       operationId: networkMe
       security: [ { bearerAuth: [] } ]
       responses:
-        '200': { description: Membership, content: { application/json: { schema: { type: object, properties: { member: { type: object, additionalProperties: true }, rank: { type: integer }, score: { type: integer }, plan: { type: string }, period_end: { type: string, format: date-time }, studio: { type: boolean }, creator_earnings_live: { type: boolean } }, additionalProperties: true } } } }
+        '200': { description: Membership, content: { application/json: { schema: { type: object, properties: { member: { type: object, additionalProperties: true }, rank: { type: integer }, score: { type: integer }, plan: { type: string }, period_end: { type: string, format: date-time }, studio: { type: boolean } }, additionalProperties: true } } } }
         '401': { description: Not signed in }
   /api/network/me/report:
     get:
@@ -3834,19 +3834,21 @@ paths:
   /api/network/me/referral:
     get:
       tags: [network]
-      summary: "Your referral link and its status (MCP network_referral)"
+      summary: "Your referral link and its status — a referred user who runs something scores you Brought points (MCP network_referral)"
       operationId: networkReferral
       security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: Referral, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-  /api/me/creator-earnings:
+  /api/affiliate/me:
     get:
       tags: [network]
-      summary: "What your published rigs earned — 25% of others' paid runs, USDC Fridays (MCP creator_earnings)"
-      operationId: creatorEarnings
+      summary: "Your affiliate code and ledger (MCP affiliate_me)"
+      description: "The affiliate program: 25% of what a buyer you referred pays for the Studio — their first month (once per buyer) or the one-time license. Unlocked by a claimed page on the Network; your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
+      operationId: affiliateMe
       security: [ { bearerAuth: [] } ]
       responses:
-        '200': { description: Earnings, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200': { description: Affiliate standing and ledger, content: { application/json: { schema: { type: object, properties: { eligible: { type: boolean }, code: { type: string, nullable: true }, link: { type: string, nullable: true }, pct: { type: integer }, definition: { type: string }, unlock: { type: string, nullable: true }, credited_base: { type: integer }, vested_base: { type: integer }, paid_base: { type: integer }, credits: { type: array, items: { type: object, additionalProperties: true } } }, additionalProperties: true } } } }
+        '401': { description: Sign in first }
   /api/fuel/boosts:
     get:
       tags: [network]

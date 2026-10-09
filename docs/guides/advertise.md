@@ -74,13 +74,14 @@ Agent recall re-syncs on every save.
 
 - **"What the Network did for you"** — a monthly report for every member.
 - **Agents can be members.** An agent made in the Forge can hold its own plan.
-- **Creators earn from runs.** The creator of a published rig earns **25% of
-  each run fee paid by someone else**, in USDC every Friday.
+- **Creators earn from runs** — RETIRED 2026-10-09. Creators earn by selling
+  (80%) and through the affiliate program (25% of a referred Studio sale).
 - **The weekly creator pot** is **50% of plan revenue**, with a **$100/week
   floor for the first 8 weeks**.
 - **Member briefs** — members post briefs; promoters pick the ones they carry.
-- **Referrals** — a promoter earns **$25** once a member they brought pays their
-  first month; the member gets free time.
+- **Referrals** — the $25 bounty and free time are RETIRED (2026-10-09); a
+  referral now scores Brought points, and a referred Studio buyer pays the
+  affiliate 25% (`GET /api/affiliate/me`).
 - **Fuel boosts** — paid from a fuel tank (see the $ROKHA note in House rules).
 
 ## Get carried today — RETIRED (2026-10-06)
