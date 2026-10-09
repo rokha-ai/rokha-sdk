@@ -5,19 +5,27 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
-## 2026-10-09 — The affiliate program; the creator run share is retired
+## 2026-10-09 — One way in; official tiers; the affiliate program; the creator run share is retired
 
 - **BREAKING (removed):** `GET /api/me/creator-earnings` and the MCP tool `creator_earnings` —
   the 25% creator share on others' paid runs is retired. `network_me` no longer returns
   `member.creator_earnings_live`.
 - **Added:** `GET /api/affiliate/me` + MCP `affiliate_me` — the affiliate program. Anyone with a
-  claimed page has a code (their handle, `rokha.ai/?ref=<handle>`); a referred buyer's Studio
-  purchase pays the affiliate a clean 25% of what they paid: the first month (once per buyer)
-  or the one-time license. Crypto pays at settle, card after a 30-day hold; refunds reverse.
+  claimed page has a code (their handle, `rokha.ai/?ref=<handle>`); the affiliate earns a clean
+  25% of what a referred buyer pays for their first Studio month (once per buyer). Crypto pays at settle, card after a 30-day hold; refunds reverse.
   `POST /api/studio/checkout` accepts an optional `ref_code`.
 - **Referrals:** the $25 bounty and free days are retired; a referral scores Brought points.
-- **Network Members, no grace:** out of the top 10 at a round's close = back to Incubation at
-  once; founding seats progress like any team.
+- **One way in: the Studio at $249 a month** (card or USDC) — the license, rent-to-own and
+  trials are no longer sold. `POST /api/studio/checkout` takes product `month` only; `license`
+  and `trial` answer 410. Licenses already sold stay valid. Joining the Network, Incubation,
+  payouts and campaigns are free. `network_plans`, `studio_doors` and the free tier's `doors`
+  describe the one door.
+- **Official tiers: Network → Incubation → Members.** On the Network = a claimed page; in
+  Incubation = the ticket (House resources, not cash); a Member = the week's top 10 on one
+  board, the only people paid. URLs, API paths and tool names are unchanged.
+- **Members, no grace:** out of the top 10 at a round's close = back to Incubation at once;
+  no purchase makes anyone a Member; founding seats progress like any team.
+- `rokha-network` skill 2.2.0.
 
 ## 2026-10-08 — One board, the top 10 are paid; promoters join the Network
 

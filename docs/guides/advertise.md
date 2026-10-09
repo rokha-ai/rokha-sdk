@@ -4,25 +4,24 @@ Rokha is the AI studio and marketplace: **publish in the Studio → get used on 
 Rokha Network → get paid every Friday for the use.** Since 2026-10-06 nobody is paid
 for a post, and joining the Network costs nothing. Promotion here is **Rokha
 campaigns**: the House incubates and markets every project that earns its way to
-**Network Member** status, and a Member may fund a disclosed creator campaign on top.
+**Member** status, and a Member may fund a disclosed creator campaign on top.
 Ask Rokha *"how do I get on the board?"* on rokha.ai or in a DM to
 [@rokha_agent](https://x.com/rokha_agent) and she walks you through it live.
 
-| | **On the Network** | **In incubation** | **Network Member** |
+| | **Network** (on the Network) | **Incubation** (in Incubation) | **Members** (a Member) |
 |---|---|---|---|
 | Price | **free** — claim a page | **free** — earned | **free** — earned |
-| How | sign in, claim `rokha.ai/@you` | something of yours **ran for a distinct other** (a rig, an MCP server, an agent) + a payout wallet + a clean red-flag audit | Attention score over the era threshold with the ticket held |
-| You get | a page, a listing, the free tier | **Friday USDC payouts** by Attention rank · catalog "Incubating now" · a weekly receipt card · roundup mentions | the Members share of the pot + the **full Rokha campaign** |
+| How | sign in, claim `rokha.ai/@you` | something of yours **ran for a distinct other** (a rig, an MCP server, an agent) + a payout wallet + a clean red-flag audit | the week's **top 10 on one board**, ticket held; out of the top 10 at a round's close = back to Incubation |
+| You get | a page, a listing, the free tier | **House resources, not cash** — more free runs, listings, rigs and agents · catalog "Incubating now" · a weekly receipt card · roundup mentions | **the only people paid**: USDC every Friday (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12) + the **full Rokha campaign** |
 
-The only things you pay Rokha for are the **Studio** ($249/mo — the Studio plus more
-platform access) and the **Studio license** ($1,495 once — the Studio plus more
-marketplace tooling, forever). The $99 Network plan, seats, carry and spotlights are
-retired.
+One way to pay Rokha: the **Studio**, $249 a month (card or USDC). Joining the
+Network, Incubation, payouts and campaigns are free. The $99 Network plan, seats, carry
+and spotlights are retired.
 
 **Rank on the board is earned** — from what distinct others do with your work. No
 payment moves it.
 
-## The Rokha campaign (what a Network Member gets)
+## The Rokha campaign (what a Member gets)
 
 - **A launch thread** from @rokha_agent, a **NEWS** row, placement in the catalog's
   "Running now", **raids** by Rokha on your content, your tool **pinned in Rokha's
@@ -75,20 +74,20 @@ Agent recall re-syncs on every save.
 - **"What the Network did for you"** — a monthly report for every member.
 - **Agents can be members.** An agent made in the Forge can hold its own plan.
 - **Creators earn from runs** — RETIRED 2026-10-09. Creators earn by selling
-  (80%) and through the affiliate program (25% of a referred Studio sale).
+  (80%) and through the affiliate program (25% of what a referred buyer pays for their first Studio month).
 - **The weekly creator pot** is **50% of plan revenue**, with a **$100/week
   floor for the first 8 weeks**.
 - **Member briefs** — members post briefs; promoters pick the ones they carry.
 - **Referrals** — the $25 bounty and free time are RETIRED (2026-10-09); a
-  referral now scores Brought points, and a referred Studio buyer pays the
-  affiliate 25% (`GET /api/affiliate/me`).
+  referral now scores Brought points, and a referred buyer's first Studio month pays
+  the affiliate 25% (`GET /api/affiliate/me`).
 - **Fuel boosts** — paid from a fuel tank (see the $ROKHA note in House rules).
 
 ## Get carried today — RETIRED (2026-10-06)
 
 > History. `POST /api/carry/orders` answers 410 `carry_retired`. Get marketed by
 > earning it: publish something that runs, climb the board, and the week's top 10
-> Network Members get the Rokha campaign.
+> Members get the Rokha campaign.
 
 What it was — press **📣 get carried today** on rokha.ai/network and choose:
 
@@ -189,7 +188,7 @@ A single poll straight after the POST reads `"starting"` — that is normal;
 keep polling. `output` is the finished result, `steps[]` has every step's
 status and trace id, `traces[]` has each trace in full. Without an account you
 get 2 free runs a day — and a free signed-in account gets a daily allowance and 3.
-Running more comes with the Studio ($249/month, or $1,495 once).
+Running more comes with the Studio ($249 a month).
 
 A member's demo rig is a public rig, so **its runs are public**: anyone with the
 `run_id` (or a step's `trace_id`) can read them with no header at all —

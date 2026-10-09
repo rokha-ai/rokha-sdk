@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the Incubation board, Network Members (the week's top 10 are paid), promoters (Amplify + Pin of the Week), the affiliate program, fuel boosts.
+    description: The Rokha Network — join free, the tiers Network → Incubation → Members (the week's top 10 are the Members, the only people paid), promoters (Amplify + Pin of the Week), the affiliate program, fuel boosts.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -3537,33 +3537,33 @@ paths:
   /api/network/plans:
     get:
       tags: [network]
-      summary: "The two doors to pay Rokha, and what is free (MCP network_plans)"
+      summary: "The one way to pay Rokha, and what is free (MCP network_plans)"
       description: |
         Public. Since 2026-10-06 joining the Rokha Network is **free** and the
-        monthly Network plans are retired (`retired: true`). The only two ways
-        to pay Rokha directly are the two Studio doors: the Studio monthly
-        ($249/mo — the Studio plus more platform access) or the Studio
-        license ($1,495 once — the Studio plus more marketplace tooling,
-        forever; `POST /api/studio/checkout`). Everything else is usage:
+        monthly Network plans are retired (`retired: true`). One way to pay
+        Rokha: the Studio, $249 a month, card or USDC
+        (`POST /api/studio/checkout` with product `month`; `license` and
+        `trial` answer 410 — neither is sold). Joining the Network,
+        Incubation, payouts and campaigns are free. Everything else is usage:
         paid runs, creator sales, fuel, bounties, member-funded campaign
         deliverables.
       operationId: networkPlans
       responses:
-        '200': { description: The doors, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { retired: { type: boolean }, doors: { type: string }, plans: { type: array, items: { type: object, additionalProperties: true } } } } } } }
+        '200': { description: The one door and what is free, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { retired: { type: boolean }, doors: { type: string }, plans: { type: array, items: { type: object, additionalProperties: true } } } } } } }
   /api/network/subscribe:
     post:
       tags: [network]
       summary: "RETIRED (410) — Network plans no longer exist; joining is free"
       description: |
-        Answers **410 `network_plans_retired`** with the two doors (the Studio
-        monthly, or the Studio license). Joining the Network costs nothing:
+        Answers **410 `network_plans_retired`** with the one door (the Studio,
+        $249 a month). Joining the Network costs nothing:
         claim a page (`page_claim`) and you are on the Network; publish
         something that runs for a distinct other and you enter **incubation**
         (`GET /api/board/incubation`).
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
       responses:
-        '410': { description: Retired — the two doors are named in the body }
+        '410': { description: Retired — the one door (the Studio) is named in the body }
         '401': { description: Not signed in }
   /api/network/me:
     get:
@@ -3843,7 +3843,7 @@ paths:
     get:
       tags: [network]
       summary: "Your affiliate code and ledger (MCP affiliate_me)"
-      description: "The affiliate program: 25% of what a buyer you referred pays for the Studio — their first month (once per buyer) or the one-time license. Unlocked by a claimed page on the Network; your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
+      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Unlocked by a claimed page on the Network; your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
       operationId: affiliateMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3940,7 +3940,8 @@ paths:
         **loyalty ramp** grows it: every consecutive active day adds 10% to
         the next day's allowance, up to 2× (`ramp`). `free_doors` are what a
         claimed page may publish free (2 MCP listings · 5 rigs · 1 agent);
-        `doors` are the two ways to pay Rokha when the meter is empty.
+        `doors` is the one way to pay Rokha when the meter is empty (the
+        Studio, $249 a month).
       operationId: getFreeTier
       responses:
         '200':
@@ -4051,7 +4052,12 @@ paths:
   /api/studio/doors:
     get:
       tags: [network]
-      summary: "The two doors — the Studio license and the Network plans, priced (MCP studio_doors)"
+      summary: "The one door — the Studio at $249 a month, card or USDC, and what is free (MCP studio_doors)"
+      description: |
+        Public. One way to pay Rokha: the Studio, $249 a month (card or
+        USDC). The one-time license, rent-to-own and trials are not sold;
+        licenses already sold stay valid. Joining the Network, Incubation,
+        payouts and campaigns are free.
       operationId: getStudioDoors
       responses:
         '200':
@@ -4162,7 +4168,7 @@ paths:
         plus Pin of the Week points for promoters — distinct others only, Rule
         Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. ONE board:
         builders and promoters rank together. Incubation earns House resources,
-        not cash; the week's top 10 are the Network Members, the only rows paid
+        not cash; the week's top 10 are the Members, the only rows paid
         — USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16) on a fixed table
         (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12). `preview` is true until the
         first payable round. `candidates` are pages with
@@ -4179,14 +4185,15 @@ paths:
   /api/board/members:
     get:
       tags: [network]
-      summary: "THE MEMBERS SECTION — evolved Network Members, ranked by Attention (MCP board_get section=members)"
+      summary: "THE MEMBERS SECTION — the week's top 10, ranked by Attention (MCP board_get section=members)"
       description: |
-        Public. Network Member is a status you EARN: the week's top 10 on the
+        Public. Member is a status you EARN (Network → Incubation → Members): the week's top 10 on the
         one board, builders and promoters together, ticket still held. Members
         are the only people paid — USDC every Friday on a fixed table (1st $30 ·
         2nd $20 · 3rd $16 · 4th–10th $12) — and get a Rokha campaign (thread,
         catalog "Running now", NEWS, raids on their content, toolkit pin,
-        roundup). Four weeks out of the top 10 and membership lapses.
+        roundup). Out of the top 10 at a round's close = back to Incubation;
+        no purchase makes anyone a Member.
       operationId: getBoardMembers
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date } }

@@ -32,7 +32,7 @@ participants achieve it, never what is measured. Nobody is paid for a post.
 | `proven_listings` | the participant's listings that ran end to end | listings | own work |
 | `hunt_reports` | the participant's red-flag audits accepted by the owner or a superadmin | reports | own work |
 | `bounty_entries` | traced runs the participant entered in the attached Playground bounty | entries | own work |
-| `members_evolved` | pages that reached Network Member during the window | members | link |
+| `members_evolved` | pages that became a Member during the window | members | link |
 | `custom` | `goal: {lane, event}` over the Attention ledger (superadmins and Members) | events | per lane |
 
 Distinct others only: nobody counts their own outcomes, and the creator's outcomes never

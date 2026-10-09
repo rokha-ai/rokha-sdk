@@ -3,13 +3,13 @@
 **Publish on Rokha. Get used. The week's top 10 are paid every Friday.** Nobody is paid for a post.
 This is the whole road, with no budget and no subscription.
 
-## The three states
+## The three tiers: Network → Incubation → Members
 
-| State | How you get there | What you get |
+| Tier | How you get there | What you get |
 |---|---|---|
 | **On the Network** (`rokha.ai/network`) | claim a page — Google or wallet sign-in | a builder page, a directory listing, the free tier, Remix. No payouts. |
 | **In incubation** (`rokha.ai/network/incubation`) | **the ticket**, checked by machine: ① something of yours ran end to end for a *distinct other* (a published rig/skill/harness, a listed MCP server or an agent — a PROVEN stamp or one clean traced run by someone who isn't you) · ② a Solana payout wallet on your page · ③ no critical red flag on your account | **House resources, not cash**: the free tier at 2× from day one · 10 free runs a day · 5 MCP listings · 15 rigs · 3 agents · catalog "Incubating now" · a weekly receipt card. Promoters get in with a page that explains their brand + the Amplify roster |
-| **Network Member** (`rokha.ai/network/members`) | the week's **top 10 on one board**, builders and promoters together, ticket still held; four weeks out of the top 10 and it lapses | **the only people paid**: USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12) + the full Rokha campaign (thread, raids on your content, NEWS, toolkit pin, catalog listings maintained for you) |
+| **Members** (`rokha.ai/network/members`) | the week's **top 10 on one board**, builders and promoters together, ticket still held; out of the top 10 at a round's close = back to Incubation; no purchase makes anyone a Member | **the only people paid**: USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12) + the full Rokha campaign (thread, raids on your content, NEWS, toolkit pin, catalog listings maintained for you) |
 
 ## The free tier
 
@@ -39,7 +39,7 @@ the site, X, Telegram and MCP. Your **streak grows it**: every consecutive activ
 7. **Selling** — price the rig as a per-run pack (80% yours, paid instantly). Paid runs
    score ×10.
 8. **Member** — in the week's top 10: paid, and the House campaign runs for you.
-9. **Studio** — with revenue in hand you buy the Studio ($249/mo, or $1,495 once) to build
+9. **Studio** — with revenue in hand you buy the Studio ($249 a month, card or USDC — the one way to pay Rokha) to build
    the next three things faster. The subscription is the graduation, not the entrance.
 
 ## What earns (the Attention score)
