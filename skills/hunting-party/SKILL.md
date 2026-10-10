@@ -120,7 +120,7 @@ your webhook triggers) receives `party.started`, `party.progress` (each 25%) and
 
 ## Guards
 
-Money is gated: cash pots need `HUNTING_PARTIES_MONEY` on, a pot under the cap, and an
+Money is gated: cash pots need money parties switched on, a pot under the cap, and an
 escrow that already holds every committed pot. Settling flips the party before any payout
 row exists; payouts are claim-before-send. Every brief should carry the disclosure line:
 participants say they earn when the people they bring sign up or run.

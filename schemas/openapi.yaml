@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the tiers Network → Incubation → Members (the week's top 10 are the Members, the only people paid), promoters (Amplify + Pin of the Week), the affiliate program, fuel boosts.
+    description: The Rokha Network — join free, the tiers Network → Incubation → Members (the week's top 10 are the Members, paid every Friday), promoters (board points from Amplify outcomes + Pin of the Week, never cash per post), selling, the affiliate program. Rokha no longer pays for posting.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -1171,7 +1171,10 @@ paths:
         `network_briefs`, `fuel_boost_menu`, `campaigns`, `board_get`
         (the Network's Incubation board), `bounty_list`, `amplify_campaigns`,
         and every sponsor tool
-        (`<brand>__<tool>`). An MCP 2026-07-28 `server/discover` probe answers
+        (`<brand>__<tool>`). `justify_seeds`, `seeds_explain`,
+        `seeds_recent_posts`, `carry_brief`, `boosts_explain`, `network_briefs`,
+        `fuel_boost_menu` and `adnet_*` are read-only history — Rokha no longer
+        pays for posting. An MCP 2026-07-28 `server/discover` probe answers
         JSON-RPC `-32601` so the client falls back to `initialize`.
         Every other method/tool requires `Authorization: Bearer <JWT>`.
 
@@ -3544,9 +3547,8 @@ paths:
         Rokha: the Studio, $249 a month, card or USDC
         (`POST /api/studio/checkout` with product `month`; `license` and
         `trial` answer 410 — neither is sold). Joining the Network,
-        Incubation, payouts and campaigns are free. Everything else is usage:
-        paid runs, creator sales, fuel, bounties, member-funded campaign
-        deliverables.
+        Incubation and payouts are free. Everything else is usage: paid runs,
+        creator sales, fuel, bounties.
       operationId: networkPlans
       responses:
         '200': { description: The one door and what is free, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { retired: { type: boolean }, doors: { type: string }, plans: { type: array, items: { type: object, additionalProperties: true } } } } } } }
@@ -3584,7 +3586,7 @@ paths:
         - { name: month, in: query, schema: { type: string, example: "2026-10" }, description: "YYYY-MM; omit for the last 30 days" }
         - { name: agent_id, in: query, schema: { type: string, format: uuid }, description: One of your agents }
       responses:
-        '200': { description: Report — rokha_posts, raids, creator_posts, agent_calls, runs with reach, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkReport' } } } }
+        '200': { description: "Report — agent_calls and runs with reach; rokha_posts, raids and creator_posts are history (raids are over, Rokha's automated X posting is paused)", content: { application/json: { schema: { $ref: '#/components/schemas/NetworkReport' } } } }
   /api/network/members:
     get:
       tags: [network]
@@ -3776,7 +3778,7 @@ paths:
   /api/network/briefs:
     get:
       tags: [network]
-      summary: "Every live member's campaign brief (MCP network_briefs)"
+      summary: "LEGACY — member briefs for promoters (MCP network_briefs); promoters are not paid to post, picks earn nothing"
       operationId: networkBriefs
       responses:
         '200': { description: Briefs, content: { application/json: { schema: { type: object, properties: { briefs: { type: array, items: { $ref: '#/components/schemas/NetworkBrief' } } }, additionalProperties: true } } } }
@@ -3790,7 +3792,7 @@ paths:
         '200': { description: Brief, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkBrief' } } } }
     put:
       tags: [network]
-      summary: "Set what promoters say about you (MCP network_brief_set)"
+      summary: "LEGACY — set your brief (MCP network_brief_set); nobody is paid to post it"
       operationId: networkSetBrief
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -3811,7 +3813,7 @@ paths:
     parameters: [ { name: handle, in: path, required: true, schema: { type: string } } ]
     post:
       tags: [network]
-      summary: "Pick a member to promote (MCP network_pick) — needs a linked X account; never yourself"
+      summary: "LEGACY — pick a member (MCP network_pick); earns nothing"
       operationId: networkPick
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3852,14 +3854,14 @@ paths:
   /api/fuel/boosts:
     get:
       tags: [network]
-      summary: "Fuel boosts and their prices (public; MCP fuel_boost_menu)"
+      summary: "LEGACY — fuel boosts (MCP fuel_boost_menu); post and raid boosts are not offered (raids are over; Rokha's automated X posting is paused)"
       operationId: fuelBoostMenu
       responses:
         '200': { description: Boost menu, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
     post:
       tags: [network]
-      summary: "Spend your fuel on one boost (MCP fuel_boost)"
-      description: Half of every $ROKHA spent pays the model, the other half burns. Refused before any spend if the target isn't yours or the queue is full. Boosts never buy rank. An `Idempotency-Key` header works in place of the body field.
+      summary: "LEGACY — spend fuel on one boost (MCP fuel_boost); not offered"
+      description: Kept for history. Raids are over and Rokha's automated X posting is paused, so post and raid boosts are not offered; do not buy one. Half of every $ROKHA spent pays the model, the other half burns. Boosts never buy rank.
       operationId: fuelBoost
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -3902,7 +3904,8 @@ paths:
                 rail: { type: string, enum: [usdc, card] }
                 payer_wallet: { type: string }
       responses:
-        '200': { description: "Order with `reference` and USDC pay instructions or a checkout URL; check it at GET /api/board/orders/{reference} (MCP carry_order_check)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '410': { description: "carry_retired — Get carried today is not offered; Rokha no longer pays for posting" }
+        '200': { description: "History — before 2026-10-06: an order with `reference` and USDC pay instructions or a checkout URL (MCP carry_order_check)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
 
   # ============================================================
   # Public reads — no auth (verified live 2026-10-05)
@@ -4056,8 +4059,8 @@ paths:
       description: |
         Public. One way to pay Rokha: the Studio, $249 a month (card or
         USDC). The one-time license, rent-to-own and trials are not sold;
-        licenses already sold stay valid. Joining the Network, Incubation,
-        payouts and campaigns are free.
+        licenses already sold stay valid. Joining the Network, Incubation and
+        payouts are free.
       operationId: getStudioDoors
       responses:
         '200':
@@ -4082,7 +4085,7 @@ paths:
   /api/network:
     get:
       tags: [network]
-      summary: "The Network at a glance — adnet, ad space, agents, asks, doors"
+      summary: "The Network at a glance — agents, asks, doors (adnet and ad space are legacy)"
       operationId: getNetworkOverview
       responses:
         '200':
@@ -4127,8 +4130,9 @@ paths:
       description: |
         The Tailwind (pay X posters by an engagement score) paid its last
         round in full on Friday 2026-10-09 at 22:00 UTC and then retired.
-        `retired` and `retired_at` say so; `successor` names the Incubation
-        board (`/network/incubation`, `GET /api/board/incubation`), which pays
+        Rokha no longer pays for posting: nobody is paid for a post, a like,
+        a tag or a raid. `retired` and `retired_at` say so; `successor` names
+        the Incubation board (`/network/incubation`, `GET /api/board/incubation`), which pays
         from 2026-10-16. Posts after the retirement instant score nothing.
       operationId: getTailwind
       responses:
@@ -4190,9 +4194,7 @@ paths:
         Public. Member is a status you EARN (Network → Incubation → Members): the week's top 10 on the
         one board, builders and promoters together, ticket still held. Members
         are the only people paid — USDC every Friday on a fixed table (1st $30 ·
-        2nd $20 · 3rd $16 · 4th–10th $12) — and get a Rokha campaign (thread,
-        catalog "Running now", NEWS, raids on their content, toolkit pin,
-        roundup). Out of the top 10 at a round's close = back to Incubation;
+        2nd $20 · 3rd $16 · 4th–10th $12) — plus catalog placement. Out of the top 10 at a round's close = back to Incubation;
         no purchase makes anyone a Member.
       operationId: getBoardMembers
       parameters:
@@ -4281,7 +4283,7 @@ paths:
   /api/adnet/feed:
     get:
       tags: [network]
-      summary: "Placements an agent may carry, with the contract and points (MCP adnet_feed)"
+      summary: "LEGACY — the agent ad network feed (MCP adnet_feed); Rokha no longer pays anyone to push placements"
       operationId: getAdnetFeed
       responses:
         '200':
@@ -4301,7 +4303,7 @@ paths:
   /api/adnet/stats:
     get:
       tags: [network]
-      summary: "Ad-network totals — publishers, settled revenue, top reporters (MCP adnet_stats)"
+      summary: "LEGACY — ad-network totals (MCP adnet_stats); history"
       operationId: getAdnetStats
       responses:
         '200':
@@ -4325,7 +4327,7 @@ paths:
   /api/adnet/rounds:
     get:
       tags: [network]
-      summary: "Settlement rounds (MCP adnet_rounds)"
+      summary: "LEGACY — past ad-network settlement rounds (MCP adnet_rounds)"
       operationId: getAdnetRounds
       responses:
         '200':
@@ -4634,20 +4636,21 @@ paths:
         the Network like builders: a claimed page that explains their brand,
         X verified on it, then the roster (X account ≥180 days old, ≥20
         original posts in 90 days, payout wallet, clean audit; followers are
-        not a gate). Opt in, get a tracked link, post as yourself (disclosed
-        when a Member funds it); outcomes the link brought (a sign-in that
+        not a gate). Opt in, get a tracked link, post as yourself — nothing is
+        paid for the post; outcomes the link brought (a sign-in that
         goes on to run something · first run · paid run · agent connected ·
         listing created · bounty entered) land in your Brought lane. PIN OF THE
         WEEK: pin the week's official campaign post (#ad); ≥5 of 7 random
         checks; 5 / 10 / 20 points per verified day by reach tier (T1 500–2,500
         · T2 2,500–15,000 · T3 15,000+ median views per original post over 90
-        days). The week's top 10 on the board are paid.
+        days). These are board points, never cash per post; the week's top 10
+        on the board are paid.
       operationId: amplifyCampaigns
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
     post:
       tags: [network]
-      summary: "Open a campaign anchored on an official post (superadmin, or a Member with a budget)"
+      summary: "Open a campaign anchored on an official post (superadmin; Member-funded creator campaigns are not offered)"
       operationId: amplifyCampaignCreate
       security: [ { bearerAuth: [] } ]
       requestBody:

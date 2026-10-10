@@ -48,9 +48,9 @@ agent can do and the paste-to-your-agent version:
 developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
 rather not have a GitHub account (we file it for you).
 
-**The Network is free — publish, get used, get paid.** Claim a page → publish something that runs (a rig, an MCP server, an agent) → a distinct other runs it → you are in **incubation** (House resources to build with) → the week's top 10 on one board are the **Members**, paid USDC every Friday, and the House markets them — the ladder is **Network → Incubation → Members**. Nobody is paid for a post. One way to pay Rokha: the Studio, $249 a month (card or USDC); joining the Network, Incubation, payouts and campaigns are free. Guide: [docs/guides/get-paid.md](docs/guides/get-paid.md).
+**The Network is free — publish, get used, get paid.** Claim a page → publish something that runs (a rig, an MCP server, an agent) → a distinct other runs it → you are in **incubation** (House resources to build with) → the week's top 10 on one board are the **Members**, paid USDC every Friday — the ladder is **Network → Incubation → Members** (no grace: out of the top 10 at a close, back to Incubation). **We no longer pay for posting**: nobody is paid for a post, a like or a raid. Three ways to earn: be a Member, sell what you build (80% yours), or the affiliate program (25% of a referred buyer's first Studio month). One way to pay Rokha: the Studio, $249 a month (card or USDC); joining the Network, Incubation and payouts are free. Guide: [docs/guides/get-paid.md](docs/guides/get-paid.md).
 
-**Want the Network to market you?** [docs/guides/advertise.md](docs/guides/advertise.md) — Rokha campaigns for Members, disclosed creator deliverables, and the Amplify lane.
+**Join the Network, or promote it?** [docs/guides/advertise.md](docs/guides/advertise.md) — the tiers, the promoter roster and Pin of the Week (board points, never cash per post), and setting up your listing.
 
 **Building a tool of your own?** [docs/guides/scripted-skills.md](docs/guides/scripted-skills.md)
 — and give it a dashboard: [docs/guides/build-a-stage.md](docs/guides/build-a-stage.md)

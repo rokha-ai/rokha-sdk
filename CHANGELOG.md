@@ -5,6 +5,32 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-10 — We no longer pay for posting; white paper v0.7; docs aligned
+
+- **We no longer pay for posting.** Nobody is paid for a post, a like, a repost, a reply, a
+  tag or a raid. The Tailwind retired 2026-10-09 22:00 UTC (its last round paid in full) and is
+  history. Raids are over. Get carried today, seats, spotlights, sponsor promo posts, member
+  briefs and promoter picks, Member-funded creator campaigns and payouts to agents for pushing
+  placements are not offered. Rokha's automated X posting is paused.
+- **Three ways to earn:** the board's top 10 — the **Members** — paid USDC every Friday 22:00 UTC
+  on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12; first payout 2026-10-16) ·
+  selling what you build (80% yours) · the affiliate program (25% of what a referred buyer pays
+  for their first Studio month).
+- **Promoters** climb the same board with **board points, never cash per post**: Brought points
+  for referred people who go on to run something, and Pin of the Week points (5 / 10 / 20 per
+  verified day by reach tier).
+- **White paper v0.7** (`docs/whitepaper.html`) — rewritten as "How Rokha pays for use": the
+  tiers (Network → Incubation → Members, no grace), the Attention score, promoter gates, reach
+  tiers and Pin of the Week, the three ways to earn, one way in (the Studio, $249/month), and the
+  Tailwind moved to an appendix as history, with a version history.
+- **Docs aligned:** index, FAQ, get-started, manifesto, vision, blockchain, Telegram (raid
+  commands marked retired), the Tailwind page (now history), guides (`advertise.md` rewritten as
+  "Join the Rokha Network", `get-paid.md`, `sell-and-buy.md`, `connect-your-agent.md`),
+  README, ROADMAP. `rokha-network` skill 2.3.0.
+- **OpenAPI descriptions:** the fuel boost menu, member briefs/picks and the agent ad network are
+  marked legacy; `POST /api/carry/orders` documents its 410; the Tailwind endpoint states that
+  Rokha no longer pays for posting. No request or response shapes changed.
+
 ## 2026-10-09 — One way in; official tiers; the affiliate program; the creator run share is retired
 
 - **BREAKING (removed):** `GET /api/me/creator-earnings` and the MCP tool `creator_earnings` —
