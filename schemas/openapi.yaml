@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the tiers Network → Incubation → Members (the week's top 10 are the Members, paid every Friday), promoters (board points from Amplify outcomes + Pin of the Week, never cash per post), selling, the affiliate program. Rokha no longer pays for posting.
+    description: The Rokha Network — join free, the ladder Incubation → Member → Top 10 (claim a page to incubate; Member is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid every Friday), promoters (board points from Amplify outcomes + Pin of the Week, never cash per post), selling, the affiliate program. Rokha no longer pays for posting.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -1169,7 +1169,7 @@ paths:
         (a PUBLIC rig's run, by id), `agent_desk`, `signal_feed`,
         `network_plans`, `network_pot`, `network_members`, `product_get`,
         `network_briefs`, `fuel_boost_menu`, `campaigns`, `board_get`
-        (the Network's Incubation board), `bounty_list`, `amplify_campaigns`,
+        (the Network's boards), `bounty_list`, `amplify_campaigns`,
         and every sponsor tool
         (`<brand>__<tool>`). `justify_seeds`, `seeds_explain`,
         `seeds_recent_posts`, `carry_brief`, `boosts_explain`, `network_briefs`,
@@ -3546,8 +3546,8 @@ paths:
         monthly Network plans are retired (`retired: true`). One way to pay
         Rokha: the Studio, $249 a month, card or USDC
         (`POST /api/studio/checkout` with product `month`; `license` and
-        `trial` answer 410 — neither is sold). Joining the Network,
-        Incubation and payouts are free. Everything else is usage: paid runs,
+        `trial` answer 410 — neither is sold). Joining the Network and
+        payouts are free. Everything else is usage: paid runs,
         creator sales, fuel, bounties.
       operationId: networkPlans
       responses:
@@ -3559,9 +3559,8 @@ paths:
       description: |
         Answers **410 `network_plans_retired`** with the one door (the Studio,
         $249 a month). Joining the Network costs nothing:
-        claim a page (`page_claim`) and you are on the Network; publish
-        something that runs for a distinct other and you enter **incubation**
-        (`GET /api/board/incubation`).
+        claim a page (`page_claim`) and you are in **Incubation**; proof of
+        real use makes you a **Member** (`GET /api/board/members`).
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3845,7 +3844,7 @@ paths:
     get:
       tags: [network]
       summary: "Your affiliate code and ledger (MCP affiliate_me)"
-      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Unlocked by a claimed page on the Network; your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
+      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Unlocked by a claimed page (Incubation); your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
       operationId: affiliateMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4059,7 +4058,7 @@ paths:
       description: |
         Public. One way to pay Rokha: the Studio, $249 a month (card or
         USDC). The one-time license, rent-to-own and trials are not sold;
-        licenses already sold stay valid. Joining the Network, Incubation and
+        licenses already sold stay valid. Joining the Network and
         payouts are free.
       operationId: getStudioDoors
       responses:
@@ -4157,13 +4156,17 @@ paths:
   /api/board/incubation:
     get:
       tags: [network]
-      summary: "THE INCUBATION BOARD — every project with the ticket, ranked by Attention (MCP board_get)"
+      summary: "THE INCUBATION BOARD — the not-yet-Members, ranked by Attention (MCP board_get)"
       description: |
-        Public. The Network's Incubation board replaces the Tailwind. A row
-        appears when its owner holds **the ticket**: something of theirs ran
-        end to end for a *distinct other* (a published rig/skill/harness, a
-        listed MCP server or an agent), a Solana payout wallet on their page,
-        and no critical red flag on the account. Rows are ranked by the
+        Public. The Network's Incubation board replaces the Tailwind. It lists
+        the pages in **Incubation** — claimed, scoring, not yet Members (since
+        2026-10-10 Members are listed on `/api/board/members`). Member is
+        earned by proof of real use: **builder track** — something of theirs
+        (a published rig/skill/harness, a listed MCP server or an agent) got
+        runs, usage or sales from *distinct others*; **marketer track** — a
+        brand page, accepted to the roster, people they brought signed up and
+        ran something; both need a Solana payout wallet and a clean red-flag
+        audit. Rows are ranked by the
         **Attention score** for the round — built (distinct others ran your
         listings: free run 1 · paid run 10 · an agent's MCP call 1 · PROVEN
         25/week · adoption 5), operated (your agent's traced work for others,
@@ -4171,12 +4174,12 @@ paths:
         runs; Amplify outcomes), scouted (confirmed audits 30), sold (50/buyer),
         plus Pin of the Week points for promoters — distinct others only, Rule
         Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. ONE board:
-        builders and promoters rank together. Incubation earns House resources,
-        not cash; the week's top 10 are the Members, the only rows paid
+        builders and promoters rank together. Members earn bigger House credits
+        (compute and runs, never cash); the week's top 10 Members are the only rows paid
         — USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16) on a fixed table
         (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12). `preview` is true until the
         first payable round. `candidates` are pages with
-        events but no ticket yet, with what they are missing.
+        events still missing Member checks, with what they are missing.
       operationId: getBoardIncubation
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date }, description: "The round's Friday (YYYY-MM-DD); omit for the current round" }
@@ -4189,13 +4192,16 @@ paths:
   /api/board/members:
     get:
       tags: [network]
-      summary: "THE MEMBERS SECTION — the week's top 10, ranked by Attention (MCP board_get section=members)"
+      summary: "THE MEMBERS BOARD — every Member, the week's top 10 flagged, ranked by Attention (MCP board_get section=members)"
       description: |
-        Public. Member is a status you EARN (Network → Incubation → Members): the week's top 10 on the
-        one board, builders and promoters together, ticket still held. Members
-        are the only people paid — USDC every Friday on a fixed table (1st $30 ·
-        2nd $20 · 3rd $16 · 4th–10th $12) — plus catalog placement. Out of the top 10 at a round's close = back to Incubation;
-        no purchase makes anyone a Member.
+        Public. Member is a status you EARN by proof of real use (Incubation →
+        Member → Top 10), on the builder or marketer track. Since 2026-10-10
+        this returns ALL Members, builders and promoters together, ranked by
+        Attention; each row carries `top10`, and the paid rows carry
+        `paid_place`. The week's top 10 Members are the only people paid —
+        USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 ·
+        4th–10th $12) — plus top placement. No grace on the top 10; no
+        purchase makes anyone a Member.
       operationId: getBoardMembers
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date } }
@@ -4204,7 +4210,7 @@ paths:
   /api/board/me:
     get:
       tags: [network]
-      summary: "Your own Attention row — state, points by lane, every event, what your ticket is missing, and your promoter status (MCP attention_me)"
+      summary: "Your own Attention row — state, points by lane, every event, which Member checks you are missing, and your promoter status (MCP attention_me)"
       operationId: getBoardMe
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -5509,10 +5515,12 @@ components:
         points: { type: number }
         lanes: { type: object, properties: { built: { type: number }, operated: { type: number }, brought: { type: number }, scouted: { type: number }, sold: { type: number } } }
         distinct: { type: object, additionalProperties: true }
-        ticket: { type: object, properties: { ran_for_other: { type: boolean }, payout_wallet: { type: boolean }, audit_clean: { type: boolean } } }
+        ticket: { type: object, description: "The builder-track Member checks", properties: { ran_for_other: { type: boolean }, payout_wallet: { type: boolean }, audit_clean: { type: boolean } } }
         evolution: { type: object, properties: { proven_recent: { type: boolean }, threshold_met: { type: boolean }, audit_clean: { type: boolean } } }
         member_since: { type: string, format: date-time, nullable: true }
         payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the place's fixed amount (top 10 only)" }
+        top10: { type: boolean, description: "Members board: true on the week's top 10 Members (the paid rows)" }
+        paid_place: { type: integer, nullable: true, minimum: 1, maximum: 10, description: "Members board: the paid place 1–10 on top-10 rows; absent or null otherwise" }
         justify_url: { type: string }
         lane: { type: string, enum: [builder, promoter], description: "Information only — one board, one ranking" }
         pin_points: { type: number, description: "Points from verified Pin of the Week days" }

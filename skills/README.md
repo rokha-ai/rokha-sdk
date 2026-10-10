@@ -9,7 +9,7 @@ just works.
 | Skill | What it does | Stage |
 |-------|--------------|-------|
 | [`rokha-audit/`](./rokha-audit/SKILL.md) | Security & compliance audit for MCP tools, agents, and skills. Three-stage flow (heuristic scan → optional sandboxed probe → harness persistence). | MVP shipped |
-| [`rokha-network/`](./rokha-network/SKILL.md) | Join the Rokha Network over MCP — sign in, publish something that runs, climb the one board (the week's top 10 are paid every Friday), promote through Amplify and Pin of the Week, earn as a creator, fuel boosts. | Live |
+| [`rokha-network/`](./rokha-network/SKILL.md) | Join the Rokha Network over MCP — sign in, publish something that runs, become a Member by proof of real use, climb the one board (the week's top 10 Members are paid every Friday), promote through Amplify and Pin of the Week, earn as a creator, fuel boosts. | Live |
 
 More on the way. Open an issue or PR if you have a workflow you want to
 package and share.

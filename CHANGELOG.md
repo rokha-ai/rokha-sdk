@@ -5,6 +5,25 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-10 — The ladder: Incubation → Member → Top 10
+
+- **Incubation** — claim a page (free) and you are in: a page + directory listing, the daily
+  free allowance (a small build session + 3 runs), publish 2 MCP servers · 5 rigs · 1 agent, an
+  affiliate code; your board score starts counting.
+- **Member** — earned by proof of real use, on one of two tracks. **Builder**: something of
+  yours got runs, usage or sales from distinct others. **Marketer**: a page that explains your
+  brand, accepted to the roster, people you brought signed up and ran something. Both need a
+  Solana payout wallet and a clean audit. Members are listed on the Members page and get bigger
+  **House credits** (2× allowance, 10 runs a day, 5 MCP · 15 rigs · 3 agents) — compute and
+  runs, never cash. No purchase makes anyone a Member.
+- **Top 10** — the week's top 10 Members by board score: USDC every Friday 22:00 UTC on the
+  fixed table ($30 · $20 · $16 · $12×7) + top placement. No grace.
+- **OpenAPI (additive):** `GET /api/board/members` returns every Member with a `top10` flag and
+  `paid_place` on the paid rows; `GET /api/board/incubation` returns the not-yet-Members.
+- **White paper v0.8**; index, FAQ, get-started, manifesto, Telegram, guides (`advertise.md`,
+  `get-paid.md`), README, ROADMAP aligned; `rokha-network` skill 2.4.0. "House resources" →
+  "House credits".
+
 ## 2026-10-10 — We no longer pay for posting; white paper v0.7; docs aligned
 
 - **We no longer pay for posting.** Nobody is paid for a post, a like, a repost, a reply, a

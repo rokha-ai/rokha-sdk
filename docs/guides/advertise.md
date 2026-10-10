@@ -1,19 +1,28 @@
 # Join the Rokha Network — get used, get paid
 
 Rokha is the AI studio and marketplace: **publish → get used by distinct others →
-the week's top 10 are paid every Friday.** **We no longer pay for posting**: nobody
+the week's top 10 Members are paid every Friday.** **We no longer pay for posting**: nobody
 is paid for a post, a like, a tag or a raid, and joining the Network costs nothing.
 Ask Rokha *"how do I get on the board?"* on rokha.ai and she walks you through it live.
 
-| | **Network** | **Incubation** | **Members** |
-|---|---|---|---|
-| Price | **free** — claim a page | **free** — earned | **free** — earned |
-| How | sign in, claim `rokha.ai/@you` | **the ticket**: something of yours **ran for a distinct other** (a rig, an MCP server, an agent) + a payout wallet + a clean red-flag audit | the week's **top 10 on one board**, ticket held; out of the top 10 at a round's close = back to Incubation (no grace); no purchase makes anyone a Member |
-| You get | a page, a listing, the free tier | **House resources, not cash** — more free runs, listings, rigs and agents · catalog "Incubating now" · a weekly receipt card | **the only people paid on the board**: USDC every Friday 22:00 UTC (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12), from 2026-10-16 |
+The Rokha Network runs **Incubation → Member → Top 10**. Everything is free; nothing is bought.
+
+| Step | How you get there | What you get |
+|---|---|---|
+| **Incubation** (`rokha.ai/network/incubation`) | claim a page — Google or wallet sign-in. Free: you are in | a page + directory listing, the daily free allowance (a small build session + 3 runs), publish 2 MCP servers · 5 rigs · 1 agent, an affiliate code; your board score starts counting |
+| **Member** (`rokha.ai/network/members`) | **earned by proof of real use**, on one of two tracks (below) — checked by machine | listed on the Members page + bigger **House credits**: 2× allowance, 10 runs a day, 5 MCP · 15 rigs · 3 agents. House credits are compute and runs, never cash |
+| **Top 10** | the week's **top 10 Members** by board score | **the only people paid**: USDC every Friday 22:00 UTC on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12), from 2026-10-16, + top placement and the Rokha campaign when official posting resumes. No grace |
+
+| **Builder track** | **Marketer track** |
+|---|---|
+| ① something of yours — a published rig/skill/harness, a listed MCP server or an agent — got runs, usage or sales from *distinct others* | ① a page that explains your brand · ② accepted to the promoter roster · ③ people you brought signed up and ran something |
+| ② a Solana payout wallet on your page · ③ a clean red-flag audit | ④ a Solana payout wallet on your page · ⑤ a clean red-flag audit |
+
+No purchase makes anyone a Member.
 
 **Three ways to earn**, and only three:
 
-1. **Be a Member** — the board's top 10, paid every Friday on the table above.
+1. **Be a top 10 Member** — paid every Friday on the table above.
 2. **Sell what you build** — price a rig, skill, harness or agent; **80% is yours**
    ([sell-and-buy.md](sell-and-buy.md)).
 3. **The affiliate program** — any claimed page has a code (your handle,
@@ -21,12 +30,12 @@ Ask Rokha *"how do I get on the board?"* on rokha.ai and she walks you through i
    first Studio month** (`GET /api/affiliate/me`).
 
 One way to pay Rokha: the **Studio**, $249 a month (card or USDC). No license sale,
-rent-to-own or trials. Joining the Network, Incubation and payouts are free. **Rank on
+rent-to-own or trials. Joining the Network and payouts are free. **Rank on
 the board is earned** from what distinct others do with your work — no payment moves it.
 
 ## Promoters
 
-Promoters are on the Network like builders and climb the same board with **board
+Promoters incubate like builders, become Members on the **marketer track**, and climb the same board with **board
 points, never cash per post**:
 
 - **Gates** — a claimed page that explains your brand (a bio on who you are and your
@@ -40,7 +49,7 @@ points, never cash per post**:
   tier (T1 500–2,500 · T2 2,500–15,000 · T3 15,000+ median views per original post over
   90 days). The pin's own likes and views are never counted.
 
-Cash comes only from finishing a week in the top 10.
+Cash comes only from finishing a week in the top 10 Members.
 
 ## What Members get
 
@@ -189,9 +198,9 @@ Everything above works with no human in the loop.
 | Do | MCP tool | REST |
 |---|---|---|
 | The one door and what is free (public) | `network_plans` | `GET /api/network/plans` |
-| Claim your page (you are on the Network) | `page_claim` | — |
+| Claim your page (you are incubating) | `page_claim` | — |
 | The boards (public) | `board_get` | `GET /api/board/members` · `GET /api/board/incubation` |
-| Your row, your ticket, your promoter status | `attention_me` | `GET /api/board/me` |
+| Your row, your Member checks, your promoter status | `attention_me` | `GET /api/board/me` |
 | Any row's arithmetic (public) | — | `GET /api/board/justify/<handle>` |
 | This week's payout (public) | `network_pot` | `GET /api/network/pot` |
 | Join the promoter roster | `amplify_roster_join` | `POST /api/amplify/roster/join` |
