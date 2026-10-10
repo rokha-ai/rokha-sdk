@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rokha White Paper</title>
-<meta name="description" content="How Rokha pays for use, never for posts: the Network, Incubation and Members tiers, the Attention score read from Rokha's own ledger, the three ways to earn, the one way in, and how anyone can recount their own row.">
+<meta name="description" content="How Rokha pays for use, never for posts: Incubation, Member and the top 10, the Attention score read from Rokha's own ledger, the three ways to earn, the one way in, and how anyone can recount their own row.">
 <meta property="og:title" content="Rokha White Paper — how Rokha pays for use">
-<meta property="og:description" content="Nobody is paid for a post. The week's top 10 by use of their work are paid every Friday in USDC — on a published score anyone can recount.">
+<meta property="og:description" content="Nobody is paid for a post. The week's top 10 Members by use of their work are paid every Friday in USDC — on a published score anyone can recount.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://docs.rokha.ai/whitepaper.html">
 <meta name="twitter:card" content="summary">
@@ -225,7 +225,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.7</p>
+  <p class="label">White paper · v0.8</p>
   <h1>How Rokha pays for use.</h1>
   <p class="abstract">
     Rokha pays the people whose work gets used &mdash; never for a post. This paper states who is
@@ -254,7 +254,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <p class="label">Contents</p>
     <ol>
       <li><a href="#thesis">1. The thesis</a></li>
-      <li><a href="#tiers">2. Network &rarr; Incubation &rarr; Members</a></li>
+      <li><a href="#tiers">2. Incubation &rarr; Member &rarr; Top 10</a></li>
       <li><a href="#score">3. The Attention score</a></li>
       <li><a href="#promoters">4. Promoters on the board</a></li>
       <li><a href="#earn">5. Three ways to earn</a></li>
@@ -292,20 +292,27 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     </p>
   </div>
 
-  <h2 id="tiers">2. Network &rarr; Incubation &rarr; Members</h2>
-  <p>Three official tiers, one ledger. Each is reached by machine checks, never by a purchase.</p>
+  <h2 id="tiers">2. Incubation &rarr; Member &rarr; Top 10</h2>
+  <p>The Rokha Network: one ledger, one board. Membership is reached by machine checks of real use, never by a purchase.</p>
   <div class="tw"><table>
-    <thead><tr><th>Tier</th><th>How you get there</th><th>What you get</th></tr></thead>
+    <thead><tr><th>Step</th><th>How you get there</th><th>What you get</th></tr></thead>
     <tbody>
-      <tr><td><b>Network</b></td><td>Claim a page (Google or wallet sign-in). Free.</td><td>A builder page, a directory listing, the free tier, Remix, a place to publish. No payouts.</td></tr>
-      <tr><td><b>Incubation</b></td><td><b>The ticket</b>: &#9312; something of yours ran end to end for a <i>distinct other</i> (a published rig, skill or harness, a listed MCP server, or an agent &mdash; a PROVEN stamp or one clean traced run by someone who is not you) &middot; &#9313; a Solana payout wallet on your page &middot; &#9314; a clean red-flag audit on your account. Promoters enter through the roster (section 4).</td><td><b>House resources, not cash</b>: the free tier at its 2&times; ceiling from day one, 10 free runs a day, raised publish limits (5 MCP listings &middot; 15 rigs &middot; 3 agents), a catalog &ldquo;Incubating now&rdquo; place and a weekly receipt card.</td></tr>
-      <tr><td><b>Members</b></td><td>The week's <b>top 10 on one board</b>, builders and promoters together, ticket still held.</td><td><b>The only people paid in cash</b>: USDC every Friday on a fixed table (section 5).</td></tr>
+      <tr><td><b>Incubation</b></td><td>Claim a page (Google or wallet sign-in). Free &mdash; you are in.</td><td>A builder page and a directory listing, the daily free allowance (a small build session and 3 runs), publish 2 MCP servers &middot; 5 rigs &middot; 1 agent, and an affiliate code. Your board score starts counting.</td></tr>
+      <tr><td><b>Member</b></td><td>Earned by <b>proof of real use</b>, on one of two tracks (below).</td><td>Listed on the Members page, and bigger <b>House credits</b>: 2&times; the daily allowance, 10 runs a day, 5 MCP servers &middot; 15 rigs &middot; 3 agents. House credits are compute and runs, never cash.</td></tr>
+      <tr><td><b>Top 10</b></td><td>The week's <b>top 10 Members</b> by board score.</td><td><b>The only people paid in cash</b>: USDC every Friday on a fixed table (section 5), plus top placement and the Rokha campaign when official posting resumes.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tw"><table>
+    <thead><tr><th>Builder track</th><th>Marketer track</th></tr></thead>
+    <tbody>
+      <tr><td>&#9312; something of yours &mdash; a published rig, skill or harness, a listed MCP server, or an agent &mdash; got runs, usage or sales from <i>distinct others</i></td><td>&#9312; a page that explains your brand &middot; &#9313; accepted to the promoter roster (section 4) &middot; &#9314; people you brought signed up and ran something</td></tr>
+      <tr><td>&#9313; a Solana payout wallet on your page &middot; &#9314; a clean red-flag audit on your account</td><td>&#9315; a Solana payout wallet on your page &middot; &#9316; a clean red-flag audit on your account</td></tr>
     </tbody>
   </table></div>
   <p>
-    <b>No grace.</b> A Member who is out of the top 10 when a round closes is back in Incubation at once
-    (or on the Network, if the ticket no longer holds). <b>No purchase makes anyone a Member</b> &mdash; not
-    the Studio, not a founding seat, not fuel. Founding teams progress like any other.
+    <b>No grace on the top 10.</b> A Member out of the top 10 when a round closes is paid nothing that week and
+    stays a Member while the proof holds. <b>No purchase makes anyone a Member</b> &mdash; not the Studio, not a
+    founding seat, not fuel. Founding teams progress like any other.
   </p>
 
   <h2 id="score">3. The Attention score</h2>
@@ -343,9 +350,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h2 id="promoters">4. Promoters on the board</h2>
   <p>
-    Promoters are on the Network like builders and rank on the same board. They earn <b>board points,
+    Promoters incubate like builders, become Members on the marketer track, and rank on the same board. They earn <b>board points,
     not cash per post</b>: Brought points for people their tracked link brings who then run something,
-    and Pin of the Week points. Cash comes only from finishing a week in the top 10.
+    and Pin of the Week points. Cash comes only from finishing a week in the top 10 Members.
   </p>
   <h3>4.1 The gates (all fail closed)</h3>
   <ul>
@@ -387,9 +394,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 
   <h2 id="earn">5. Three ways to earn</h2>
   <p>There are exactly three. Nobody is paid for a post.</p>
-  <h3>5.1 Be a Member &mdash; the Friday payout</h3>
+  <h3>5.1 Be a top 10 Member &mdash; the Friday payout</h3>
   <p>
-    The week's top 10 on the board are paid in USDC every Friday at 22:00 UTC, to the Solana wallet on
+    The week's top 10 Members on the board are paid in USDC every Friday at 22:00 UTC, to the Solana wallet on
     their page, on a fixed table. The first Member payout is <b>2026-10-16</b>.
   </p>
   <div class="tw"><table>
@@ -402,7 +409,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     A tie is one place, and every tied row takes that place's amount. An empty place is not paid. The House
     funds the table from a counted runway for now; revenue from paid runs and creator-sale fees
     adds on top, pro rata. A pot short of the table scales every row down &mdash; never more than the pot.
-    Eligibility is tier-blind: a claimed page, a payout wallet and the ticket; no subscription buys standing.
+    Eligibility is tier-blind: Membership (a claimed page, a payout wallet, a clean audit and proof of real use); no subscription buys standing.
     (The launch design &mdash; a 40/60 split between Members and Incubation and a $100/week floor &mdash; was
     superseded before its first round.)
   </p>
@@ -428,7 +435,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     There is one way to pay Rokha: <b>the Studio, at $249 a month</b>, by card or USDC &mdash; the builder's
     bench plus more platform access. No license sale, no rent-to-own, no trials. Licenses already sold stay
-    valid. Joining the Network, Incubation, payouts and the board are free, and the Studio never moves a rank.
+    valid. Joining the Network, incubation, payouts and the board are free, and the Studio never moves a rank.
     Agents pay for their own work in fuel; people pay per paid run or not at all.
   </p>
 
@@ -442,8 +449,8 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     <b>A public door per participant.</b> <code>GET https://rokha.ai/api/board/justify/{handle}</code>
     returns, without authentication, every counted event by lane, the caps that bound, and the final total.
-    The board itself is public at <code>GET https://rokha.ai/api/board/members</code> and
-    <code>/api/board/incubation</code>.
+    The board itself is public at <code>GET https://rokha.ai/api/board/members</code> (every Member, the paid top 10 flagged) and
+    <code>/api/board/incubation</code> (not yet Members).
   </p>
   <p>
     <b>We audit ourselves before we pay.</b> Before each payout the board is re-checked against the
@@ -541,6 +548,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <div class="tw"><table>
     <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
     <tbody>
+      <tr><td>v0.8</td><td class="num">2026-10-10</td><td>Incubation &rarr; Member &rarr; Top 10: Membership is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid.</td></tr>
       <tr><td>v0.7</td><td class="num">2026-10-10</td><td>Rewritten around paying for use. We no longer pay for posting. Network &rarr; Incubation &rarr; Members (top 10, no grace); promoter gates, reach tiers and Pin of the Week as board points; three ways to earn (Members, sales, affiliate); one way in (the Studio, $249/month); the Tailwind moved to an appendix as history.</td></tr>
       <tr><td>v0.6</td><td class="num">2026-10-06</td><td>The Incubation board announced; the Tailwind's retirement dated.</td></tr>
       <tr><td>v0.3&ndash;v0.5</td><td class="num">2026-10-02 &ndash; 10-03</td><td>Tailwind v3: X's weights, the day decay, the top-20 split.</td></tr>

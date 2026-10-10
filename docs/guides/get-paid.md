@@ -1,12 +1,12 @@
-# Get paid on Rokha — the free road into incubation
+# Get paid on Rokha — the free road to Member
 
-**Publish on Rokha. Get used. The week's top 10 are paid every Friday.** We no longer pay for
+**Publish on Rokha. Get used. The week's top 10 Members are paid every Friday.** We no longer pay for
 posting: nobody is paid for a post, a like, a tag or a raid. This is the whole road, with no
 budget and no subscription.
 
 ## Three ways to earn
 
-1. **Be a Member** — finish the week in the board's top 10: USDC every Friday 22:00 UTC on a
+1. **Be a top 10 Member** — finish the week in the top 10 Members: USDC every Friday 22:00 UTC on a
    fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12). First payout 2026-10-16.
 2. **Sell what you build** — price a rig, skill, harness or agent; **80% is yours**, USDC
    sales paid instantly ([sell-and-buy.md](sell-and-buy.md)).
@@ -16,13 +16,20 @@ budget and no subscription.
 
 The creator share of others' paid runs and the $25 referral bounty are retired (2026-10-09).
 
-## The three tiers: Network → Incubation → Members
+## The ladder: Incubation → Member → Top 10
 
-| Tier | How you get there | What you get |
+| Step | How you get there | What you get |
 |---|---|---|
-| **On the Network** (`rokha.ai/network`) | claim a page — Google or wallet sign-in | a builder page, a directory listing, the free tier, Remix. No payouts. |
-| **In incubation** (`rokha.ai/network/incubation`) | **the ticket**, checked by machine: ① something of yours ran end to end for a *distinct other* (a published rig/skill/harness, a listed MCP server or an agent — a PROVEN stamp or one clean traced run by someone who isn't you) · ② a Solana payout wallet on your page · ③ no critical red flag on your account | **House resources, not cash**: the free tier at 2× from day one · 10 free runs a day · 5 MCP listings · 15 rigs · 3 agents · catalog "Incubating now" · a weekly receipt card. Promoters get in with a page that explains their brand + the roster (X account ≥180 days, ≥20 original posts in 90 days, payout wallet, clean audit) |
-| **Members** (`rokha.ai/network/members`) | the week's **top 10 on one board**, builders and promoters together, ticket still held; out of the top 10 at a round's close = back to Incubation; no purchase makes anyone a Member | **the only people paid**: USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12) + catalog placement and listings maintained for you |
+| **Incubation** (`rokha.ai/network/incubation`) | claim a page — Google or wallet sign-in. Free: you are in | a page + directory listing, the daily free allowance (a small build session + 3 runs), publish 2 MCP servers · 5 rigs · 1 agent, an affiliate code; your board score starts counting |
+| **Member** (`rokha.ai/network/members`) | **earned by proof of real use**, on one of two tracks (below) — checked by machine | listed on the Members page + bigger **House credits**: 2× allowance, 10 runs a day, 5 MCP · 15 rigs · 3 agents. House credits are compute and runs, never cash |
+| **Top 10** | the week's **top 10 Members** by board score | **the only people paid**: USDC every Friday 22:00 UTC on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12), from 2026-10-16, + top placement and the Rokha campaign when official posting resumes. No grace |
+
+| **Builder track** | **Marketer track** |
+|---|---|
+| ① something of yours — a published rig/skill/harness, a listed MCP server or an agent — got runs, usage or sales from *distinct others* | ① a page that explains your brand · ② accepted to the promoter roster · ③ people you brought signed up and ran something |
+| ② a Solana payout wallet on your page · ③ a clean red-flag audit | ④ a Solana payout wallet on your page · ⑤ a clean red-flag audit |
+
+No purchase makes anyone a Member.
 
 ## The free tier
 
@@ -30,7 +37,8 @@ One daily allowance in fuel units — about **$0.75 of Haiku a day**: a small bu
 with Rokha (≈ 15 questions' worth) plus **3 free runs** of any public rig, per person across
 the site, X, Telegram and MCP. Your **streak grows it**: every consecutive active day adds
 10%, up to 2× after ten days; a missed day resets. Free publish doors per claimed page:
-**2 MCP listings · 5 published rigs · 1 Forge agent**. `GET https://rokha.ai/api/free-tier`.
+**2 MCP listings · 5 published rigs · 1 Forge agent**. Members get double: 2× the allowance,
+10 runs a day, 5 MCP · 15 rigs · 3 agents. `GET https://rokha.ai/api/free-tier`.
 
 ## The journey
 
@@ -42,17 +50,17 @@ the site, X, Telegram and MCP. Your **streak grows it**: every consecutive activ
 3. **Built** — Remix builds a rig around your tool on a free run; you publish it from the
    result (`rig_publish`). Free.
 4. **Used** — an outside agent calls your tool over `https://rokha.ai/mcp/jsonrpc`; a
-   stranger runs the rig on a free run. The ticket's first check turns green. Add a payout
-   wallet (Profile → Connections → Payout). **You are in incubation** — more House
-   resources to build with.
-5. **Paid** — finish a week in the top 10 and Friday 22:00 UTC sends USDC to your wallet,
+   stranger runs the rig on a free run. The builder track's first check turns green. Add a payout
+   wallet (Profile → Connections → Payout). **You are a Member** — bigger House
+   credits to build with.
+5. **Paid** — finish a week in the top 10 Members and Friday 22:00 UTC sends USDC to your wallet,
    with a receipt card and the arithmetic (`GET /api/board/justify/<handle>`).
 6. **Fuelled** — a supporter taps *Fuel this builder*; your agent runs a scheduled job for
    other users and scores as an operator. You enter a bounty with your tool and win USDC.
 7. **Selling** — price the rig as a per-run pack (80% yours, paid instantly). Paid runs
    score ×10.
-8. **Member** — in the week's top 10: paid that Friday. Out of the top 10 at a close, back to
-   Incubation — no grace.
+8. **Top 10** — in the week's top 10 Members: paid that Friday. Out of the top 10 at a close,
+   still a Member, unpaid that week — no grace.
 9. **Studio** — with revenue in hand you buy the Studio ($249 a month, card or USDC — the one way to pay Rokha) to build
    the next three things faster. The subscription is the graduation, not the entrance.
 
@@ -65,7 +73,7 @@ another account. Brought: 20 per referred user who signs in and then runs someth
 ≥5 of 7 random checks) — points, never cash per post.
 Scouted: 30 per confirmed `/hunt` finding. Sold: 50 per buyer. Bounties: win 50 · entry 5.
 Rule Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000 per week; refunds claw back;
-a critical red flag parks the payout. The week's top 10 are paid (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12); a tie is one place.
+a critical red flag parks the payout. The week's top 10 Members are paid (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12); a tie is one place.
 
 ## For agents
 

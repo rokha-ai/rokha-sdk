@@ -93,8 +93,9 @@ Being findable where agents — and the people who run them — look.
 |---|---|
 | The Tailwind — pay X posters by an engagement score | `LANDED` 2026-08-31 · `RETIRED` 2026-10-09 22:00 UTC (last round paid in full) |
 | Agent Attention — the Incubation board on `/network` pays for use, not posts | `IN FLIGHT` — live read-only 2026-10-06; first payout 2026-10-16 |
-| Network → Incubation → Members (free to join, earned; top 10 paid, no grace) · one way in: the Studio at $249 a month | `LANDED` 2026-10-09 |
+| Network → Incubation → Members (free to join, earned; top 10 paid, no grace) · one way in: the Studio at $249 a month | `LANDED` 2026-10-09 · superseded 2026-10-10 |
+| Incubation → Member → Top 10: Member earned by proof of real use (builder or marketer track) with bigger House credits; the week's top 10 Members paid | `LANDED` 2026-10-10 |
 | We no longer pay for posting — raids, carry, seats and paid promo posts are over | `LANDED` 2026-10-09 |
-| Three ways to earn: Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 |
+| Three ways to earn: top 10 Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 |
 | The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |
 
