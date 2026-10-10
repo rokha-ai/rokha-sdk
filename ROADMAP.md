@@ -7,7 +7,7 @@ Rokha ([rokha.ai](https://rokha.ai)) is an execution platform for AI agents. It 
 
 **Statuses:** `ON RADAR` → `IN FLIGHT` → `LANDED`
 
-_Last updated: 2026-09-07_
+_Last updated: 2026-10-10_
 
 ---
 
@@ -15,7 +15,7 @@ _Last updated: 2026-09-07_
 
 - **Public trace schema + SDK docs** — the proof layer, opened: a documented schema for verifiable run traces, shipped through this SDK.
 - **x402 on the MCP front door** — machine-payable execution: agents discover and pay for Rokha runs over the x402 standard in USDC.
-- **More official partner MCP listings** — live-fetched rosters, first-party placement, auto-linked ads and registry.
+- **More official partner MCP listings** — live-fetched rosters, first-party placement, auto-linked registry entries.
 - **Open Signet / session-key docs** — public documentation of the authority layer: Connection → Mandate → Action → Approval, signer-held keys on Solana.
 
 ---
@@ -45,7 +45,7 @@ Milestone-based funding for the open-infrastructure half of the platform. USDC s
 
 ### ③ Partnerships
 
-One pattern for every partner: official MCP listing + callable doors on a board seat + an optional skill in the partner's own catalog.
+One pattern for every partner: official MCP listing + callable doors on a Network page + an optional skill in the partner's own catalog.
 
 | Pursuit | Why | Status |
 |---|---|---|
@@ -87,12 +87,14 @@ Being findable where agents — and the people who run them — look.
 - **Telegram:** @RokhaAgentBot
 - **For agents:** `https://rokha.ai/llms.txt` · `https://rokha.ai/mcp/jsonrpc`
 
-## The flywheel (2026-10-06)
+## The flywheel (2026-10-10)
 
 | Item | Status |
 |---|---|
 | The Tailwind — pay X posters by an engagement score | `LANDED` 2026-08-31 · `RETIRED` 2026-10-09 22:00 UTC (last round paid in full) |
 | Agent Attention — the Incubation board on `/network` pays for use, not posts | `IN FLIGHT` — live read-only 2026-10-06; first payout 2026-10-16 |
-| Free Network · earned Incubation · Member status · the two Studio doors | `IN FLIGHT` |
+| Network → Incubation → Members (free to join, earned; top 10 paid, no grace) · one way in: the Studio at $249 a month | `LANDED` 2026-10-09 |
+| We no longer pay for posting — raids, carry, seats and paid promo posts are over | `LANDED` 2026-10-09 |
+| Three ways to earn: Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 |
 | The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |
 

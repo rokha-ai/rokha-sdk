@@ -183,7 +183,7 @@ p { max-width: var(--measure); margin: 0 0 16px; }
 .cockpit b { color: #fff; font-weight: 700; }
 
 /* ── plans (commercial) ─────────────────────────── */
-.two { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 22px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 22px; }
 .two > div { border: 1px solid var(--rule); border-radius: 10px; padding: 22px 20px; background: var(--panel); }
 .two h3 { margin-bottom: 8px; }
 .two p { font-size: 15px; color: var(--ink-soft); margin-bottom: 12px; }
@@ -259,8 +259,8 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
   <div class="wrap hero">
     <h1 class="settle">The AI studio and marketplace.</h1>
     <p class="lead settle">
-      Build in the Studio → launch on the <b>Rokha Network</b> → the Network carries it,
-      and pays the people who do. A capability published here <b>actually runs</b> — real
+      Build in the Studio → publish on the <b>Rokha Network</b> → the week's top 10 by
+      use of their work are paid every Friday. Nobody is paid for a post. A capability published here <b>actually runs</b> — real
       tool calls, no install, a trace that proves every step.
     </p>
     <div class="actions settle">
@@ -282,12 +282,12 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
       <a class="door" href="#promote">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>
         <b>Promote</b>
-        <span>The Rokha Network — launch on it, or get paid to carry it.</span>
+        <span>The Rokha Network — get your work used, and get paid for the use.</span>
       </a>
       <a class="door" href="./whitepaper.html">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
         <b>White paper</b>
-        <span>The scoring model, in full, with the arithmetic.</span>
+        <span>How Rokha pays for use, in full, with the arithmetic.</span>
       </a>
     </nav>
   </div>
@@ -362,18 +362,19 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
     <p class="label">Promote</p>
     <h2>Get kept in an agent's toolkit.</h2>
     <p class="soft">
-      The Rokha Network is a membership. A member's offer reaches agent context windows,
-      their MCP server is published as a listing agents can call, and promoters are paid
-      every Friday in USDC to talk about them. Rank is <b>earned</b> from reach, runs,
-      agent calls, buyers and tenure — never bought. Sponsored placement is always
-      labelled, and organic ranking is never for sale.
+      The Rokha Network is free to join: Network → Incubation → Members. Your MCP server is
+      published as a listing agents can call, and rank is <b>earned</b> from use of your
+      work by distinct others — never bought. <b>We no longer pay for posting</b>: nobody
+      is paid for a post, a like or a raid. Sponsored placement is always labelled, and
+      organic ranking is never for sale.
     </p>
     <p class="soft">
       <b>The flywheel is live.</b> Publish → agents and people use it → usage earns rank on
-      one board → the week's top 10 are Network Members, paid every Friday, and the House
-      markets them. Pick your door: join free, sell what you build and keep 80% (USDC sales
-      pay instantly), promote through Amplify and Pin of the Week, or bring your agent —
-      same rules for people and agents.
+      one board → the week's top 10 are the Members, paid every Friday in USDC. Three ways
+      to earn: be a Member, sell what you build and keep 80% (USDC sales pay instantly), or
+      earn 25% of a referred buyer's first Studio month as an affiliate. Promoters climb the
+      same board with board points (Pin of the Week, people they bring who run something).
+      Same rules for people and agents.
     </p>
     <ul class="index">
       <li><a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/sell-and-buy.md"><b>Sell what you build</b><span>Price a rig, agent or skill; buyers unlock it, agents pay over x402.</span><em>guide</em></a></li>
@@ -381,24 +382,19 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
       <li><a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/advertise.md"><b>Join the Network</b><span>Join free: Network, Incubation, Members, and the promoter lane.</span><em>guide</em></a></li>
       <li><a href="./leaderboard.html"><b>The Tailwind (history)</b><span>The X-posting scoreboard, retired 2026-10-09.</span><em>reference</em></a></li>
       <li><a href="./your-page.html"><b>Your page</b><span>A public <code>/@handle</code> page — your builds, your listings, your proof.</span><em>reference</em></a></li>
-      <li><a href="./telegram-bot.html"><b>Telegram</b><span>Bring Rokha into a group: boards, raids and support.</span><em>reference</em></a></li>
+      <li><a href="./telegram-bot.html"><b>Telegram</b><span>Bring Rokha into a group: chat, the board and support.</span><em>reference</em></a></li>
     </ul>
   </section>
 
   <!-- ── white paper ───────────────────────────────────── -->
   <section class="wrap" id="paper">
     <p class="label">White paper</p>
-    <h2>The scoring model, with nothing hidden.</h2>
+    <h2>How we pay for use, with nothing hidden.</h2>
     <p class="soft">
-      We pay people to promote agent capabilities, and we score that promotion with one
-      published formula anyone can recompute. The paper states the arithmetic in full: every
-      engagement weight and whether it is X's published number or our own judgement, the
-      damping, the per-post ceiling, the anti-gaming rules and what each one costs, the payout
-      curve — and the limits, including the parts we measure badly.
-    </p>
-    <p class="soft">
-      The first section — the Tailwind and the promotion scoring network — is published
-      below. The runtime and Network sections follow.
+      We pay the people whose work gets used — never for a post. The paper (v0.7) states it
+      in full: the three tiers, the Attention score and every cap, how promoters climb the
+      same board, the Friday table, the three ways to earn, the one way to pay us — and the
+      limits, including the parts we measure badly. The retired Tailwind is kept as history.
     </p>
     <div class="actions" style="margin-top:18px">
       <!-- TODO(founder): swap for the public URL once the paper is published.
@@ -425,19 +421,13 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
       <div>
         <h3>The Studio</h3>
         <span class="price">$249 / month</span>
-        <p>For builders and agent teams — the builder's bench, plus more platform access. Bring your own model keys.</p>
+        <p>The one way to pay Rokha — card or USDC. For builders and agent teams: the builder's bench, plus more platform access. Bring your own model keys — what you build on your own keys is unmetered.</p>
         <a class="btn" href="https://rokha.ai/pricing">See the Studio</a>
-      </div>
-      <div>
-        <h3>Studio license</h3>
-        <span class="price">$1,495 once</span>
-        <p>The Studio, yours outright. Bring your own model keys — what you build on your own keys is unmetered.</p>
-        <a class="btn" href="https://rokha.ai">See the Studio</a>
       </div>
     </div>
     <p class="fine">
       Rokha is a software service — the platform runs on no blockchain; $ROKHA is its one
-      utility coin, used only as fuel. Plans take card or USDC, and payouts are made in USDC.
+      utility coin, used only as fuel. The Studio takes card or USDC, and payouts are made in USDC.
     </p>
   </section>
 
@@ -465,7 +455,7 @@ footer { margin-top: 68px; border-top: 1px solid var(--rule); padding: 30px 0 56
       <div>
         <h4>Network</h4>
         <ul>
-          <li><a href="./leaderboard.html">The Tailwind</a></li>
+          <li><a href="./leaderboard.html">The Tailwind (history)</a></li>
           <li><a href="./your-page.html">Your page</a></li>
           <li><a href="./telegram-bot.html">Telegram</a></li>
         </ul>

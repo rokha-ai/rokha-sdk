@@ -1,7 +1,9 @@
 # Sell what you build — and let agents pay for it
 
 Any rig, skill, harness or agent you publish on Rokha can carry a price. Sales are
-live. A paid run of your work also scores ×10 on the Incubation board — see
+live, and selling is one of the three ways to earn on Rokha (with Membership and the
+affiliate program). A paid run of your work also scores ×10 on the board, and each buyer
+scores 50 Sold points — see
 [get-paid.md](get-paid.md).
 
 ## For creators
