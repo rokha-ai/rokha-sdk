@@ -104,11 +104,11 @@ Selling what you build: price a rig, keep 80% of every sale
 
 ## network
 
-The Rokha Network: promoters, measured reach, Friday payouts
+The Rokha Network: builders, promoters, pay per use
 
 | Title | File | Size | Use for | CTA |
 |---|---|---|---|---|
 | The network: real accounts, measured reach. | [`network/network-measured-reach-wide.jpg`](network/network-measured-reach-wide.jpg) | 1792×1008 | x_post, tg_card, article_header | https://rokha.ai/network |
 
-**The network: real accounts, measured reach.** — alt: The network: real accounts, measured reach. Link your X and you're in it. Join the Network, start creating and earn Fridays.  
+**The network: real accounts, measured reach.** — alt: The network: real accounts, measured reach. Link your X and you're in it. Join the Network, start creating and get paid per use.  
 **Caution:** Shows illustrative reach numbers (followers, impressions, posts) and a few garbled labels. Never present those numbers as live; prefer it where the copy carries the real figures.
