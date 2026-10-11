@@ -3675,7 +3675,12 @@ paths:
       summary: "Buy for yourself (MCP product_checkout)"
       description: >-
         `card` → a Stripe `checkout_url` for a person. `usdc` + `payer_wallet` → exact pay
-        instructions (the odd cents bind the deposit; it confirms on its own). `x402` → a
+        instructions (the odd cents bind the deposit; it confirms on its own). `sol` +
+        `payer_wallet` → the USD price quoted in exact lamports from a fresh SOL/USD read
+        (`amount_sol`, `lamports`, `pay_to`, `expires_at` — valid 15 minutes); send exactly that
+        from `payer_wallet` before `expires_at` and it confirms on its own (any other amount,
+        sender or a later transfer does not settle; `price_stale`/`price_unavailable` 503 =
+        no order was made). `x402` → a
         challenge; transfer, then call again with `signature` — verified on-chain, settles at
         once. `signet` (signed-in session only) → your own USDC Signet mandate pays: an
         autonomous mandate pays inside its caps at once, a guarded one answers
@@ -3693,14 +3698,24 @@ paths:
               type: object
               required: [rail]
               properties:
-                rail: { type: string, enum: [card, usdc, x402, signet, fuel] }
-                payer_wallet: { type: string, description: "usdc — the Solana address the USDC is sent FROM" }
+                rail: { type: string, enum: [card, usdc, sol, x402, signet, fuel] }
+                payer_wallet: { type: string, description: "usdc / sol — the Solana address the payment is sent FROM" }
                 signature: { type: string, description: "x402 — the landed transfer's signature" }
       responses:
-        '200': { description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card/usdc instructions)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200':
+          description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card / usdc / sol instructions — the `sol` shape is `SolCheckout`)"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SolCheckout'
+                  - { type: object, additionalProperties: true }
+        '400': { description: "`payer_wallet` — usdc / sol need the Solana public key the payment is sent FROM", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
         '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate · tank empty" }
         '403': { description: "`key_cannot_spend` — an rk_ key cannot spend a mandate or a tank" }
         '409': { description: "`sales_open_after_friday` · `yours` · `already_pending`" }
+        '429': { description: "`too_many_open` — orders already await payment; pay or let one expire first", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
+        '503': { description: "sol: `price_stale` · `price_unavailable` (no fresh SOL/USD read — no order was made) · `rail_off` (SOL rail not configured) · `unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
   /api/products/{id}/access:
     get:
       tags: [sales]
@@ -3717,7 +3732,15 @@ paths:
       operationId: purchasesMine
       security: [ { bearerAuth: [] } ]
       responses:
-        '200': { description: Purchases, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200':
+          description: Paid purchases, newest first (up to 200)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  purchases: { type: array, items: { $ref: '#/components/schemas/Purchase' } }
   /api/keys:
     get:
       tags: [sales]
@@ -4274,6 +4297,94 @@ paths:
                   purse: {}
                   sponsors: {}
 
+  /api/front:
+    get:
+      tags: [network]
+      summary: "The front board — every published thing and claimed page as a card, ranked by real use (MCP front_board)"
+      description: |
+        Public, no auth, cached 60 s per (sort, kind, limit). Every published
+        rig, skill, Forge agent, claimed page and marketer gets a card the
+        moment it exists. `top` (qualified first, then earned all-time, uses
+        in 7 days, uses all-time, last active) and `earning` (qualified first,
+        then earned in 7 days) rank qualified cards first: a thing qualifies at
+        3 distinct signed-in users, a marketer once one person they brought ran
+        something. Official (House) cards never earn. A card never carries an
+        owner wallet or a runner identity. An unknown `sort`/`kind` or a
+        non-numeric `limit` answers 400; a numeric `limit` is clamped to 1–60.
+      operationId: getFrontBoard
+      parameters:
+        - { name: sort, in: query, required: false, schema: { type: string, enum: [top, earning, live, active, new], default: top } }
+        - { name: kind, in: query, required: false, schema: { type: string, enum: [all, rig, skill, agent, page, marketer], default: all } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 60, default: 24 }, description: "Clamped to 1–60; a non-number is a 400" }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontBoard' } } } }
+        '400': { description: "Unknown `sort` / `kind` (with `allowed`), or a non-numeric `limit` (with `max`)", content: { application/json: { schema: { $ref: '#/components/schemas/FrontBoardRefusal' } } } }
+        '503': { description: "The board could not be read — never a half board", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/front/stats:
+    get:
+      tags: [network]
+      summary: "The front board's headline numbers — live rate, paid out, uses in 24 h, live now, builders"
+      operationId: getFrontStats
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontStats' } } } }
+        '503': { description: "The board could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/earnings/rate:
+    get:
+      tags: [network]
+      summary: "The live per-use rate and the rules behind it (MCP earnings_rate)"
+      description: |
+        Public, no auth. Each qualifying use by a signed-in other pays the
+        owner `rate_usd` — set from the House budget spread over the pay
+        window, held between $0.01 and $0.25. The rate when a use happened is
+        the rate kept. When the rate cannot be read the door still answers 200
+        with `rate_usd: 0`, `paused: true` and a `note` (nothing accrues until
+        it can); `budget_today_usd`, `spent_today_usd` and
+        `expected_uses_per_day` are then absent.
+      operationId: getEarningsRate
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRate' } } } }
+  /api/earnings/me:
+    get:
+      tags: [network]
+      summary: "Your balance, today, all-time, per-thing breakdown and withdrawals (MCP earnings_me)"
+      description: |
+        Signed-in. `can_withdraw` says whether `POST /api/earnings/withdraw`
+        would go now; when it would not, `reason` carries the same code and
+        message the withdraw door would refuse with.
+      operationId: getEarningsMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EarningsMe' } } } }
+        '401': { description: "Not signed in (`sign_in`)", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
+        '503': { description: "`try_again` — the balance could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
+  /api/earnings/withdraw:
+    post:
+      tags: [network]
+      summary: "Withdraw your whole accrued balance in USDC to your page's payout wallet (MCP earnings_withdraw)"
+      description: |
+        Signed-in; no request body — the caller names nothing. The balance and
+        the destination (the Solana payout wallet on your page) are read
+        server-side. One transaction claims every accrued row; the House
+        wallet sends within minutes and the withdrawal shows under
+        `GET /api/earnings/me` → `withdrawals`. A failed send returns the rows
+        to your balance — never forfeited. Any fact that cannot be read
+        refuses (fail closed). Every refusal is `{ok: false, error, message}`:
+        `sign_in` 401 · `slow_down` 429 (one request a minute) · `paused` 503
+        (usage pay is off; the balance is kept) · `try_again` 503 ·
+        `needs_page` 403 · `blocked` 403 · `audit_flag` 403 (a critical red
+        flag on the account's audit) · `needs_payout_wallet` 403 ·
+        `held_for_review` 403 (the payout wallet is shared with another
+        account) · `withdrawal_open` 409 (one at a time) · `below_minimum` 409
+        (under `min_withdraw_usd`, $5).
+      operationId: earningsWithdraw
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: "Claimed — the House sends it on the next tick", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsWithdrawal' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
+        '403': { description: "`needs_page` · `blocked` · `audit_flag` · `needs_payout_wallet` · `held_for_review`", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
+        '409': { description: "`withdrawal_open` · `below_minimum`", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
+        '429': { description: "`slow_down` — one withdrawal request a minute", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
+        '503': { description: "`paused` · `try_again`", content: { application/json: { schema: { $ref: '#/components/schemas/EarningsRefusal' } } } }
   /api/board/incubation:
     get:
       tags: [network]
@@ -5583,6 +5694,234 @@ components:
             output_tokens: { type: integer }
 
     # --- Attention (the retired weekly board; back-compat) ---
+
+    FrontCard:
+      type: object
+      description: "One card on the front board. There is deliberately no owner field — never an owner wallet, a runner identity or an email."
+      required: [kind, id, title, href, official, qualified, proven, earned_usd, earned_7d_usd, uses_total, uses_7d, users_7d, first_seen_at, live, new, cta]
+      properties:
+        kind: { type: string, enum: [rig, skill, agent, page, marketer] }
+        id: { type: string, description: "`rokha/<slug>` (rig/skill) · `agent:<handle>` · `page:<handle>` · `marketer:<handle>`", example: "rokha/x-audit" }
+        title: { type: string, maxLength: 120, description: "User data — escape before rendering" }
+        handle: { type: [string, 'null'], example: "@sage" }
+        href: { type: string, example: "/@sage/x-audit" }
+        image: { type: [string, 'null'], description: "https or a same-site path" }
+        avatar: { type: [string, 'null'] }
+        official: { type: boolean, description: "A House card — never earns" }
+        qualified: { type: boolean, description: "A thing: 3 distinct signed-in users; a marketer: one brought person who ran something" }
+        proven: { type: boolean, description: "Ran end to end with no step error" }
+        earned_usd: { type: number }
+        earned_7d_usd: { type: number }
+        uses_total: { type: integer }
+        uses_7d: { type: integer }
+        users_7d: { type: integer, description: "Distinct users in the last 7 days" }
+        reach: { type: ['object', 'null'], properties: { followers: { type: integer } } }
+        first_seen_at: { type: string, format: date-time }
+        last_active_at: { type: [string, 'null'], format: date-time }
+        live: { type: boolean, description: "Used in the last 15 minutes" }
+        new: { type: boolean, description: "First seen in the last 7 days" }
+        cta: { $ref: '#/components/schemas/FrontCta' }
+        cta_secondary:
+          description: "`Clone it` → the Studio, on rigs that can be adopted; else null"
+          oneOf: [ { $ref: '#/components/schemas/FrontCta' }, { type: 'null' } ]
+
+    FrontCta:
+      type: object
+      required: [label, href]
+      properties:
+        label: { type: string, example: "Run it", description: "Run it · Talk to it · Open · Clone it" }
+        href: { type: string }
+
+    FrontBoard:
+      type: object
+      required: [sort, kind, limit, total, count, cards, generated_at, sorts, kinds]
+      properties:
+        sort: { type: string, enum: [top, earning, live, active, new] }
+        kind: { type: string, enum: [all, rig, skill, agent, page, marketer] }
+        limit: { type: integer, minimum: 1, maximum: 60 }
+        total: { type: integer, description: "Cards of this kind before the limit" }
+        count: { type: integer }
+        cards: { type: array, items: { $ref: '#/components/schemas/FrontCard' } }
+        generated_at: { type: string, format: date-time }
+        sorts: { type: array, items: { type: string } }
+        kinds: { type: array, items: { type: string } }
+        note: { type: string }
+
+    FrontBoardRefusal:
+      type: object
+      required: [error, param]
+      properties:
+        error: { type: string, example: "unknown sort 'bogus'" }
+        param: { type: string, enum: [sort, kind, limit] }
+        allowed: { type: array, items: { type: string }, description: "sort / kind — the accepted values" }
+        max: { type: integer, example: 60, description: "limit only" }
+
+    FrontStats:
+      type: object
+      required: [rate_usd, paid_out_usd, uses_24h, live_now, builders, generated_at]
+      properties:
+        rate_usd: { type: [number, 'null'], description: "The live per-use rate; null when there is none" }
+        paid_out_usd: { type: number, description: "Usage earnings paid out, all time" }
+        uses_24h: { type: integer }
+        live_now: { type: integer, description: "Non-page cards used in the last 15 minutes" }
+        builders: { type: integer, description: "Distinct non-House owners with a published thing or agent" }
+        generated_at: { type: string, format: date-time }
+
+    EarningsRate:
+      type: object
+      required: [ok, rate_usd, paused, enabled, weights, min_withdraw_usd, rule_zero, runner_daily_cap, owner_day_share, reach, rule]
+      properties:
+        ok: { type: boolean }
+        rate_usd: { type: number, example: 0.25, description: "Dollars per qualifying use, right now" }
+        paused: { type: boolean, description: "true when the rate is 0 (nothing accrues)" }
+        enabled: { type: boolean, description: "Usage pay is switched on" }
+        budget_today_usd: { type: number, description: "Absent when the rate could not be read" }
+        spent_today_usd: { type: number, description: "Absent when the rate could not be read" }
+        expected_uses_per_day: { type: number, description: "Absent when the rate could not be read" }
+        note: { type: string, description: "Present only when the rate could not be read" }
+        weights:
+          type: object
+          description: "Uses per event"
+          properties:
+            run: { type: number, example: 1 }
+            job: { type: number, example: 1 }
+            call: { type: number, example: 0.25 }
+            brought_run: { type: number, example: 1 }
+            brought_first: { type: number, example: 5 }
+            reply: { type: number, example: 0.25 }
+            repost: { type: number, example: 0.1 }
+            like: { type: number, example: 0.02 }
+        min_withdraw_usd: { type: number, example: 5 }
+        rule_zero: { type: integer, example: 3, description: "Distinct signed-in users before a thing pays" }
+        runner_daily_cap: { type: integer, example: 3, description: "Paying uses per person per thing per UTC day" }
+        owner_day_share: { type: number, example: 0.2, description: "The most of one day's budget one owner may earn" }
+        reach:
+          type: object
+          properties:
+            share: { type: number, example: 0.25 }
+            post_cap_uses: { type: number, example: 20 }
+            campaign_cap_uses: { type: number, example: 50 }
+        rule: { type: string }
+
+    EarningsThing:
+      type: object
+      properties:
+        thing_key: { type: string }
+        label: { type: string, description: "User data — escape before rendering" }
+        lane: { type: string, enum: [run, job, call, brought_run, brought_first, reach] }
+        lane_label: { type: string }
+        uses: { type: number }
+        earned_usd: { type: number }
+        earned_today_usd: { type: number }
+        last_at: { type: string, format: date-time }
+
+    EarningsWithdrawalRow:
+      type: object
+      properties:
+        id: { type: integer }
+        amount_usd: { type: number }
+        address: { type: string }
+        status: { type: string, enum: [claimed, sending, paid, failed] }
+        tx_sig: { type: [string, 'null'] }
+        error: { type: [string, 'null'], description: "Set only on failed" }
+        created_at: { type: string, format: date-time }
+
+    EarningsMe:
+      type: object
+      required: [ok, balance_usd, can_withdraw, things, withdrawals]
+      properties:
+        ok: { type: boolean, const: true }
+        balance_usd: { type: number, description: "Accrued and withdrawable" }
+        withdrawing_usd: { type: number }
+        paid_usd: { type: number }
+        today_usd: { type: number }
+        uses_today: { type: number }
+        all_time_usd: { type: number }
+        rate_usd: { type: number }
+        paused: { type: boolean }
+        min_withdraw_usd: { type: number }
+        payout_address: { type: [string, 'null'], description: "Your page's valid Solana payout wallet, else null" }
+        can_withdraw: { type: boolean }
+        reason:
+          description: "Why a withdrawal would be refused now (same code as the withdraw door); null when it can go"
+          oneOf:
+            - type: object
+              properties:
+                code: { type: string, enum: [sign_in, paused, try_again, needs_page, blocked, audit_flag, withdrawal_open, needs_payout_wallet, held_for_review, below_minimum] }
+                message: { type: string }
+            - type: 'null'
+        things: { type: array, maxItems: 40, items: { $ref: '#/components/schemas/EarningsThing' } }
+        withdrawals: { type: array, maxItems: 20, items: { $ref: '#/components/schemas/EarningsWithdrawalRow' } }
+        rule: { type: string }
+
+    EarningsWithdrawal:
+      type: object
+      required: [ok, withdrawal_id, amount_usd, address, status]
+      properties:
+        ok: { type: boolean, const: true }
+        withdrawal_id: { type: integer }
+        amount_usd: { type: number }
+        address: { type: string, description: "Your page's Solana payout wallet" }
+        status: { type: string, const: claimed }
+        note: { type: string }
+
+    EarningsRefusal:
+      type: object
+      required: [ok, error, message]
+      properties:
+        ok: { type: boolean, const: false }
+        error: { type: string, enum: [sign_in, slow_down, paused, try_again, needs_page, blocked, audit_flag, withdrawal_open, needs_payout_wallet, held_for_review, below_minimum] }
+        message: { type: string }
+
+    SaleRefusal:
+      type: object
+      required: [ok, error, code, message]
+      properties:
+        ok: { type: boolean, const: false }
+        error: { type: string }
+        code: { type: string, description: "Same as `error`" }
+        message: { type: string }
+
+    SolCheckout:
+      type: object
+      description: "`rail: sol` — the USD price quoted in exact lamports from a fresh SOL/USD read, valid 15 minutes. Send exactly `lamports` from `payer_wallet` to `pay_to` before `expires_at`; any other amount, sender or a later transfer does not settle. Confirmed automatically on finality."
+      required: [mode, product, reference, amount_sol, lamports, pay_to, expires_at, quote, solana_pay, pay]
+      properties:
+        mode: { type: string, const: sol }
+        product: { $ref: '#/components/schemas/Product' }
+        reference: { type: string, example: "sol:3f1c…", description: "The order reference" }
+        amount_sol: { type: string, example: "0.084213517", description: "Exact SOL, as a decimal string" }
+        lamports: { type: integer, description: "Exact lamports — the last digits bind the payment to this order" }
+        pay_to: { type: string, description: "The House sales wallet (Solana)" }
+        expires_at: { type: string, format: date-time }
+        quote:
+          type: object
+          properties:
+            usd: { type: string, example: "$15" }
+            sol_usd: { type: number, description: "The SOL/USD price the quote used" }
+            source: { type: string, example: jupiter }
+        solana_pay: { type: string, example: "solana:<pay_to>?amount=0.084213517", description: "A Solana Pay link (`solana:` URI)" }
+        pay:
+          type: object
+          properties:
+            asset: { type: string, const: SOL }
+            chain: { type: string, const: solana }
+            address: { type: string }
+            note: { type: string }
+
+    Purchase:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: string, format: uuid }
+        product: { $ref: '#/components/schemas/Product' }
+        status: { type: string, example: paid }
+        rail: { type: string, enum: [card, usdc, sol, x402, signet, fuel] }
+        amount_cents: { type: integer }
+        amount_sol: { type: [string, 'null'], description: "sol only — the exact SOL paid, as a decimal string" }
+        runs_left: { type: [integer, 'null'] }
+        period_end: { type: [string, 'null'], format: date-time }
+        paid_at: { type: [string, 'null'], format: date-time }
 
     AttentionBoard:
       type: object

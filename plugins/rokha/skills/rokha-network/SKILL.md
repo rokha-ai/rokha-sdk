@@ -63,10 +63,10 @@ UTC day once the day's budget is spent). The rate at the moment of a use is stam
 
 ## 4. The front board
 
-`front_board {sort?: top|earning|live|active|new, kind?: all|rig|skill|agent|page|marketer}`
-(public; `GET /api/front`) — everything published and every claimed page gets a card **the
-moment it exists** and shows under `new`. `top` and `earning` rank only things that have
-qualified (3 distinct signed-in users). Cards never show an owner wallet or a runner identity.
+`front_board {sort?: top|earning|live|active|new, kind?: all|rig|skill|agent|page|marketer, limit?: 1–60}`
+(public; `GET /api/front`, headline numbers at `GET /api/front/stats`) — everything published
+and every claimed page gets a card **the moment it exists** and shows under `new`. `top` and
+`earning` rank qualified things first (3 distinct signed-in users). Cards never show an owner wallet or a runner identity.
 
 ## 5. The free road (no budget needed)
 

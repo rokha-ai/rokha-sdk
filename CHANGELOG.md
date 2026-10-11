@@ -34,6 +34,11 @@ face of Rokha; the wire contract it depends on is
 - **Retired** — the weekly top-10 Friday table ($30/$20/$16/$12), the October 16 first payout,
   and the Incubation → Member → Top 10 ladder. They never paid out. `/api/board/*`, `board_get`
   and `attention_me` keep answering, marked retired.
+- **The API contract describes it all** — `schemas/openapi.yaml` now has `GET /api/front`
+  (sort, kind, limit; a bad value answers 400 naming what is allowed), `GET /api/front/stats`,
+  `GET /api/earnings/rate`, `GET /api/earnings/me` and `POST /api/earnings/withdraw` with every
+  refusal code, the `sol` checkout (exact lamports, pay-to address, 15-minute expiry, a
+  `solana:` pay link) and `amount_sol` on your purchases. Version stays 1.0.0.
 - **White paper v0.10**; guides (`get-paid.md`, `advertise.md`, `sell-and-buy.md`,
   `connect-your-agent.md`), FAQ, index, get-started, manifesto, vision, Telegram, blockchain,
   README and ROADMAP rewritten; `rokha-network` skill 3.0.0.
