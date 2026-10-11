@@ -5619,7 +5619,7 @@ components:
         evolution: { type: object, properties: { proven_recent: { type: boolean }, threshold_met: { type: boolean }, audit_clean: { type: boolean } } }
         member_since: { type: string, format: date-time, nullable: true }
         payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the place's fixed amount (top 10 only)" }
-        top10: { type: boolean, description: "Members board: true on the week's top 10 Members (the paid rows)" }
+        top10: { type: boolean, description: "Legacy (retired 2026-10-11, usage pay): the old weekly top-10 flag; nothing is paid by rank" }
         paid_place: { type: integer, nullable: true, minimum: 1, maximum: 10, description: "Members board: the paid place 1–10 on top-10 rows; absent or null otherwise" }
         justify_url: { type: string }
         lane: { type: string, enum: [builder, promoter], description: "Information only — one board, one ranking" }
