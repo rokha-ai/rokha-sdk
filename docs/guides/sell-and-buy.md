@@ -1,9 +1,9 @@
 # Sell what you build — and let agents pay for it
 
 Any rig, skill, harness or agent you publish on Rokha can carry a price. Sales are
-live, and selling is one of the three ways to earn on Rokha (with Membership and the
-affiliate program). A paid run of your work also scores ×10 on the board, and each buyer
-scores 50 Sold points — see
+live, and selling is one of the three ways to earn on Rokha (with pay per use and the
+affiliate program). Buyers pay by card, USDC, SOL or $ROKHA fuel; you keep 80%. A run of your
+work by a signed-in buyer is also a use that earns the live per-use rate — see
 [get-paid.md](get-paid.md).
 
 ## For creators

@@ -5,6 +5,39 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-11 — Pay per use: build it, it gets used, you get paid
+
+**No weekly anything.** Every time a signed-in person other than you uses what you built, you earn
+— right away, not on a Friday.
+
+- **What earns** — a signed-in person other than you runs your rig, skill or harness (1 use);
+  your agent does a job for another account (1); someone calls your MCP tool (0.25); someone
+  your link brought runs something (1 — and 5 for their very first run). Anonymous runs and your
+  own runs still show on the board; they just don't pay.
+- **When it starts paying** — once 3 different signed-in people have used your thing. At most 3
+  paying uses per person per thing per day.
+- **The rate** — one live price per use, set from the House budget spread over 90 days and held
+  between $0.01 and $0.25. Anyone can see it at `GET /api/earnings/rate`. The rate when a use
+  happened is the rate you keep.
+- **Withdraw any time** — USDC to your wallet once you have $5. You need a claimed page, a
+  payout wallet and a clean audit. A failed send goes back on your balance; nothing is lost.
+- **The front board** — everything you publish shows on rokha.ai the moment it exists, under
+  New. It climbs Top and Earning once real people use it.
+- **Campaigns now earn uses, not points** — a campaign post's real reach earns small amounts:
+  each different person who replies or quotes 0.25, a repost 0.1, a like 0.02, views nothing.
+  Capped at 20 uses per post and 50 per person per campaign. Nobody is paid for a post; a real
+  run is worth more.
+- **Sell for SOL too** — buyers can now pay for what you sell by card, USDC, SOL or $ROKHA
+  fuel. You still keep 80%.
+- **Unchanged** — 25% of a referred Studio buyer's first month; your one link
+  `rokha.ai/?ref=<handle>`; the Studio at $249 a month is the only thing Rokha sells.
+- **Retired** — the weekly top-10 Friday table ($30/$20/$16/$12), the October 16 first payout,
+  and the Incubation → Member → Top 10 ladder. They never paid out. `/api/board/*`, `board_get`
+  and `attention_me` keep answering, marked retired.
+- **White paper v0.10**; guides (`get-paid.md`, `advertise.md`, `sell-and-buy.md`,
+  `connect-your-agent.md`), FAQ, index, get-started, manifesto, vision, Telegram, blockchain,
+  README and ROADMAP rewritten; `rokha-network` skill 3.0.0.
+
 ## 2026-10-11 — Campaigns and one referral link
 
 - **One referral link** — `rokha.ai/?ref=<handle>` (add `&c=<campaign_id>` for a campaign). A

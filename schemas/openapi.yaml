@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the ladder Incubation → Member → Top 10 (claim a page to incubate; Member is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid every Friday), promoters (board points from what their referral link brings + capped Campaign support points from founder-run campaigns, never cash per post), selling, one referral link (rokha.ai/?ref=<handle> — Brought points + 25% of a referred Studio first month). Rokha no longer pays for posting.
+    description: 'The Rokha Network — join free; pay per use (every qualifying use of your work by a signed-in other earns the live per-use rate, withdraw USDC at $5+, no weekly anything), selling (80%), one referral link (rokha.ai/?ref=<handle> — the runs it brings are uses + 25% of a referred Studio first month), founder-run campaigns (organic reach earns small capped uses). Nobody is paid for a post. The weekly top-10 board and the Incubation → Member ladder are retired (2026-10-11); `/api/board/*` still answers for back-compat with `retired: "usage pay"`.'
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -3559,8 +3559,8 @@ paths:
       description: |
         Answers **410 `network_plans_retired`** with the one door (the Studio,
         $249 a month). Joining the Network costs nothing:
-        claim a page (`page_claim`) and you are in **Incubation**; proof of
-        real use makes you a **Member** (`GET /api/board/members`).
+        claim a page (`page_claim`); every qualifying use of what you publish
+        earns the live per-use rate.
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3754,7 +3754,7 @@ paths:
   /api/network/pot:
     get:
       tags: [network]
-      summary: "This week's Member payout — the top 10 paid Fridays in USDC on a fixed table (MCP network_pot)"
+      summary: "RETIRED (usage pay, 2026-10-11) — the old weekly Member payout table; still answers for back-compat (MCP network_pot)"
       operationId: networkPot
       responses:
         '200':
@@ -3835,7 +3835,7 @@ paths:
   /api/network/me/referral:
     get:
       tags: [network]
-      summary: "Your referral link and its status — a referred user who runs something scores you Brought points (MCP network_referral)"
+      summary: "Your referral link and its status — a referred user who runs something earns you uses (MCP network_referral)"
       operationId: networkReferral
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3854,7 +3854,7 @@ paths:
     get:
       tags: [network]
       summary: "Your one referral link and its tally (MCP referrals_me)"
-      description: "ONE referral link (2026-10-11): rokha.ai/?ref=<handle> (add &c=<campaign_id> for a campaign). A person who signs up through it and RUNS something scores you Brought points — 20 for the first run, 2 per paid run; if they subscribe to the Studio you also earn 25% of their first month in USDC (see /api/affiliate/me). The person brought needs no Rokha page — signing in is enough. Returns your link and the tally (signed up → ran → bought). The same card is on the profile as Share & earn."
+      description: "ONE referral link (2026-10-11): rokha.ai/?ref=<handle> (add &c=<campaign_id> for a campaign). A person who signs up through it and RUNS something earns you uses at the live per-use rate — 5 for their first run, 1 per run after, for 90 days; if they subscribe to the Studio you also earn 25% of their first month in USDC (see /api/affiliate/me). The person brought needs no Rokha page — signing in is enough. Returns your link and the tally (signed up → ran → bought). The same card is on the profile as Share & earn."
       operationId: referralsMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3889,13 +3889,12 @@ paths:
         @rokha_agent post; any length from 1 hour to 90 days. To support it:
         quote or reply to the official post, or post your own with your campaign
         link (rokha.ai/?ref=<handle>&c=<campaign_id>) → submit it
-        (`POST /api/campaigns/{id}/support`) → optionally pin it. Points follow
-        how the post does — likes 0.05 · reposts 0.25 · replies 0.5 · quotes 0.5,
-        capped at 30 per week of the campaign, +1 per verified pinned day (when
-        the pin check is on) — on the board's Campaign support lane. Board
-        points, never cash; nobody is paid for a post. For scale: a paid run of
-        your work by someone else = 10, a person your link brings who runs
-        something = 20. Replaces Pin of the Week.
+        (`POST /api/campaigns/{id}/support`). The post's organic reach earns
+        small uses at the live per-use rate — each distinct replier or quoter
+        0.25, a repost 0.1, a like 0.02, views 0; distinct accounts only, the
+        author never counts, only growth since the last read pays — capped at
+        20 uses per post and 50 per promoter per campaign. Nobody is paid for a
+        post; a real run (1 use) is worth more. Replaces Pin of the Week.
       operationId: campaignsList
       responses:
         '200': { description: Live and recent campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -3924,7 +3923,7 @@ paths:
   /api/campaigns/me:
     get:
       tags: [network]
-      summary: "Your campaign links, submitted posts and points (MCP campaigns_me)"
+      summary: "Your campaign links, submitted posts and uses (MCP campaigns_me)"
       operationId: campaignsMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4254,8 +4253,7 @@ paths:
         round in full on Friday 2026-10-09 at 22:00 UTC and then retired.
         Rokha no longer pays for posting: nobody is paid for a post, a like,
         a tag or a raid. `retired` and `retired_at` say so; `successor` names
-        the Incubation board (`/network/incubation`, `GET /api/board/incubation`), which pays
-        from 2026-10-16. Posts after the retirement instant score nothing.
+        pay per use. Posts after the retirement instant score nothing.
       operationId: getTailwind
       responses:
         '200':
@@ -4279,32 +4277,14 @@ paths:
   /api/board/incubation:
     get:
       tags: [network]
-      summary: "THE INCUBATION BOARD — the not-yet-Members, ranked by Attention (MCP board_get)"
+      summary: "RETIRED (usage pay, 2026-10-11) — the old Incubation board; still answers for back-compat with `retired: \"usage pay\"` (MCP board_get)"
       description: |
-        Public. The Network's Incubation board replaces the Tailwind. It lists
-        the pages in **Incubation** — claimed, scoring, not yet Members (since
-        2026-10-10 Members are listed on `/api/board/members`). Member is
-        earned by proof of real use: **builder track** — something of theirs
-        (a published rig/skill/harness, a listed MCP server or an agent) got
-        runs, usage or sales from *distinct others*; **marketer track** — a
-        brand page, accepted to the roster, people they brought signed up and
-        ran something; both need a Solana payout wallet and a clean red-flag
-        audit. Rows are ranked by the
-        **Attention score** for the round — built (distinct others ran your
-        listings: free run 1 · paid run 10 · an agent's MCP call 1 · PROVEN
-        25/week · adoption 5), operated (your agent's traced work for others,
-        2), brought (referrals: a sign-in that goes on to run something · paid
-        runs; Amplify outcomes), scouted (confirmed audits 30), sold (50/buyer),
-        plus Campaign support (posts backing a live founder campaign: likes
-        0.05 · reposts 0.25 · replies 0.5 · quotes 0.5, +1 per verified pinned
-        day, capped at 30 per campaign week) — distinct others only, Rule
-        Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. ONE board:
-        builders and promoters rank together. Members earn bigger House credits
-        (compute and runs, never cash); the week's top 10 Members are the only rows paid
-        — USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16) on a fixed table
-        (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12). `preview` is true until the
-        first payable round. `candidates` are pages with
-        events still missing Member checks, with what they are missing.
+        Public, back-compat only. The weekly Attention board, its
+        Incubation → Member → Top 10 ladder and its Friday table were retired
+        on 2026-10-11 before they ever paid. Rokha now pays per use: every
+        qualifying use of your work by a signed-in other earns the live
+        per-use rate, withdrawn in USDC at $5+. The response carries
+        `retired: "usage pay"`.
       operationId: getBoardIncubation
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date }, description: "The round's Friday (YYYY-MM-DD); omit for the current round" }
@@ -4317,16 +4297,11 @@ paths:
   /api/board/members:
     get:
       tags: [network]
-      summary: "THE MEMBERS BOARD — every Member, the week's top 10 flagged, ranked by Attention (MCP board_get section=members)"
+      summary: "RETIRED (usage pay, 2026-10-11) — the old Members board; still answers for back-compat with `retired: \"usage pay\"` (MCP board_get section=members)"
       description: |
-        Public. Member is a status you EARN by proof of real use (Incubation →
-        Member → Top 10), on the builder or marketer track. Since 2026-10-10
-        this returns ALL Members, builders and promoters together, ranked by
-        Attention; each row carries `top10`, and the paid rows carry
-        `paid_place`. The week's top 10 Members are the only people paid —
-        USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 ·
-        4th–10th $12) — plus top placement. No grace on the top 10; no
-        purchase makes anyone a Member.
+        Public, back-compat only. Member as a rank and the weekly top-10
+        payout are retired (2026-10-11); nobody is paid from this board.
+        Rokha now pays per use. The response carries `retired: "usage pay"`.
       operationId: getBoardMembers
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date } }
@@ -4335,7 +4310,7 @@ paths:
   /api/board/me:
     get:
       tags: [network]
-      summary: "Your own Attention row — state, points by lane, every event, which Member checks you are missing, and your promoter status (MCP attention_me)"
+      summary: "RETIRED (usage pay, 2026-10-11) — your old Attention row; still answers for back-compat (MCP attention_me)"
       operationId: getBoardMe
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -4368,7 +4343,7 @@ paths:
   /api/board:
     get:
       tags: [network]
-      summary: "The Wall's seats (legacy) — seat sales are retired; the Incubation board is /api/board/incubation"
+      summary: "The Wall's seats (legacy) — seat sales are retired"
       operationId: getBoard
       responses:
         '200':
@@ -4774,8 +4749,7 @@ paths:
         tier (T1 500–2,500 · T2 2,500–15,000 · T3 15,000+ median views per
         original post over 90 days) sets a roster marketer's weekly Brought cap.
         Pin of the Week is replaced (2026-10-11) by founder-run campaigns —
-        see `GET /api/campaigns`. These are board points, never cash per post;
-        the week's top 10 on the board are paid.
+        see `GET /api/campaigns`. Nobody is paid for a post.
       operationId: amplifyCampaigns
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -5608,7 +5582,7 @@ components:
             input_tokens: { type: integer }
             output_tokens: { type: integer }
 
-    # --- Attention (the Incubation board) ---
+    # --- Attention (the retired weekly board; back-compat) ---
 
     AttentionBoard:
       type: object
@@ -5616,7 +5590,8 @@ components:
       properties:
         section: { type: string, enum: [incubation, members] }
         week_of: { type: string, format: date }
-        pays_from: { type: string, format: date, example: "2026-10-16" }
+        retired: { type: string, example: "usage pay", description: "Set since 2026-10-11: this board no longer pays; Rokha pays per use" }
+        pays_from: { type: string, format: date, deprecated: true }
         preview: { type: boolean }
         engine: { type: string }
         pot:

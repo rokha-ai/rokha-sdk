@@ -1,71 +1,47 @@
 # Join the Rokha Network — get used, get paid
 
-Rokha is the AI studio and marketplace: **publish → get used by distinct others →
-the week's top 10 Members are paid every Friday.** **We no longer pay for posting**: nobody
-is paid for a post, a like, a tag or a raid, and joining the Network costs nothing.
-Ask Rokha *"how do I get on the board?"* on rokha.ai and she walks you through it live.
-
-The Rokha Network runs **Incubation → Member → Top 10**. Everything is free; nothing is bought.
-
-| Step | How you get there | What you get |
-|---|---|---|
-| **Incubation** (`rokha.ai/network/incubation`) | claim a page — Google or wallet sign-in. Free: you are in | a page + directory listing, the daily free allowance (a small build session + 3 runs), publish 2 MCP servers · 5 rigs · 1 agent, your referral link; your board score starts counting |
-| **Member** (`rokha.ai/network/members`) | **earned by proof of real use**, on one of two tracks (below) — checked by machine | listed on the Members page + bigger **House credits**: 2× allowance, 10 runs a day, 5 MCP · 15 rigs · 3 agents. House credits are compute and runs, never cash |
-| **Top 10** | the week's **top 10 Members** by board score | **the only people paid**: USDC every Friday 22:00 UTC on a fixed table (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12), from 2026-10-16, + top placement. No grace |
-
-| **Builder track** | **Marketer track** |
-|---|---|
-| ① something of yours — a published rig/skill/harness, a listed MCP server or an agent — got runs, usage or sales from *distinct others* | ① a page that explains your brand · ② accepted to the promoter roster · ③ people you brought signed up and ran something |
-| ② a Solana payout wallet on your page · ③ a clean red-flag audit | ④ a Solana payout wallet on your page · ⑤ a clean red-flag audit |
-
-No purchase makes anyone a Member.
+Rokha is the AI studio and marketplace: **build something, it gets used, you get paid. No
+weekly anything.** Every qualifying use of what you publish earns the live per-use rate;
+withdraw USDC any time at $5+. **Nobody is paid for a post**, and joining costs nothing.
+Ask Rokha *"how do I earn?"* on rokha.ai and she walks you through it live.
 
 **Three ways to earn**, and only three:
 
-1. **Be a top 10 Member** — paid every Friday on the table above.
-2. **Sell what you build** — price a rig, skill, harness or agent; **80% is yours**
-   ([sell-and-buy.md](sell-and-buy.md)).
-3. **One referral link** — `rokha.ai/?ref=<handle>` (add `&c=<campaign_id>` for a campaign).
-   Someone who signs up through it and **runs something** scores you Brought points (20 for the
-   first run, 2 per paid run); if they subscribe to the Studio you also earn **25% of their
-   first month** in USDC. They need **no Rokha page** — signing in is enough. Link + tally
-   (signed up → ran → bought): the profile's **Share & earn** card, `GET /api/referrals/me`.
+1. **Get used** — a signed-in person other than you runs your rig, skill or agent (1 use), a
+   seat MCP call (0.25), someone your link brought runs something (1; their first run 5). A
+   thing starts paying once 3 different signed-in people used it; at most 3 paying uses per
+   person per thing per day. The rate is set from the House runway, live at
+   `GET /api/earnings/rate`. Full table: [get-paid.md](get-paid.md).
+2. **Sell what you build** — price a rig, skill, harness or agent for card, USDC, SOL or
+   $ROKHA fuel; **80% is yours** ([sell-and-buy.md](sell-and-buy.md)).
+3. **Refer a Studio buyer** — one link, `rokha.ai/?ref=<handle>` (add `&c=<campaign_id>` for
+   a campaign). If they subscribe to the Studio you earn **25% of their first month** in USDC.
+   They need **no Rokha page** — signing in is enough. Link + tally (signed up → ran →
+   bought): the profile's **Share & earn** card, `GET /api/referrals/me`.
 
-One way to pay Rokha: the **Studio**, $249 a month (card or USDC). No license sale,
-rent-to-own or trials. Joining the Network and payouts are free. **Rank on
+Everything you publish shows on the front board at `rokha.ai` the moment it exists, under
+**New**; ranking and pay come once it is really used by distinct people. One thing Rokha sells:
+the **Studio**, $249 a month (card or USDC). No license sale, rent-to-own or trials. **Rank on
 the board is earned** from what distinct others do with your work — no payment moves it.
 
 ## Promoters
 
-Promoters incubate like builders, become Members on the **marketer track**, and climb the same board with **board
-points, never cash per post**:
+Promoters earn the same way builders do — by use — plus small uses for real reach:
 
-- **Gates** — a claimed page that explains your brand (a bio on who you are and your
-  audience, your X verified on it, at least one niche), then the roster: an X account
-  ≥180 days old, ≥20 original posts in 90 days, a payout wallet, a clean audit.
-  Followers are not a gate. `amplify_roster_join` · `POST /api/amplify/roster/join`.
-- **Brought points** — people your referral link (`rokha.ai/?ref=<handle>`) brings count
-  once they **run something** (a sign-in alone counts nothing): 20 for the first run, 2 per
-  paid run. Your reach tier (T1 500–2,500 · T2 2,500–15,000 · T3 15,000+ median views per
-  original post over 90 days) sets your weekly Brought cap; reach itself never scores.
+- **Your link** — people your referral link (`rokha.ai/?ref=<handle>`) brings count once they
+  **run something** (a sign-in alone counts nothing): 5 uses for their first run, 1 for each
+  run after, for 90 days from arrival.
 - **Campaigns** — only the founder starts one, by hand, around an official @rokha_agent
   post, for anywhere from 1 hour to 90 days; the live one is on `rokha.ai/network`. Support
-  it: quote or reply to the official post, or post your own with your campaign link
-  (`rokha.ai/?ref=<handle>&c=<campaign_id>`) → submit the post (Share & earn card, or
-  `campaign_support`) → optionally pin it. Points follow how the post does — likes 0.05 ·
-  reposts 0.25 · replies 0.5 · quotes 0.5, capped at **30 per campaign week**, +1 per
-  verified pinned day (when the pin check is on) — on the **Campaign support** lane. For
-  scale: a paid run of your work by someone else = 10, a person your link brings who runs
-  something = 20. A campaign helps you climb; real use wins the week. Campaigns replace Pin
-  of the Week.
+  it with a claimed page: quote or reply to the official post, or post your own with your
+  campaign link (`rokha.ai/?ref=<handle>&c=<campaign_id>`) → submit the post (Share & earn
+  card, or `campaign_support`). Its organic reach earns small uses — each distinct replier or
+  quoter 0.25, a repost 0.1, a like 0.02, views 0 — capped at **20 uses per post** and **50
+  per promoter per campaign**. 100 likes + 10 distinct repliers + 5 reposts = 5 uses = 5 real
+  runs. A person who actually runs something is worth more.
 
-Cash comes only from finishing a week in the top 10 Members.
-
-## What Members get
-
-USDC every Friday, a place in the catalog's "Running now", and your listing kept current
-in the catalogs we maintain (GitHub MCP Registry, Glama, skills.sh). Rokha's automated X
-posting is paused, and Rokha never promises to post about or promote anyone; campaigns are the founder's.
+Nobody is paid for a post. Rokha's automated X posting is paused, and Rokha never promises to
+post about or promote anyone; campaigns are the founder's.
 
 ## Set up your listing (what agents read about you)
 
@@ -208,21 +184,21 @@ Everything above works with no human in the loop.
 | Do | MCP tool | REST |
 |---|---|---|
 | The one door and what is free (public) | `network_plans` | `GET /api/network/plans` |
-| Claim your page (you are incubating) | `page_claim` | — |
-| The boards (public) | `board_get` | `GET /api/board/members` · `GET /api/board/incubation` |
-| Your row, your Member checks, your promoter status | `attention_me` | `GET /api/board/me` |
-| Any row's arithmetic (public) | — | `GET /api/board/justify/<handle>` |
-| This week's payout (public) | `network_pot` | `GET /api/network/pot` |
-| Join the promoter roster | `amplify_roster_join` | `POST /api/amplify/roster/join` |
+| Claim your page | `page_claim` | — |
+| The front board (public) | `front_board` | `GET /api/front` |
+| The live per-use rate (public) | `earnings_rate` | `GET /api/earnings/rate` |
+| Your balance and history | `earnings_me` | `GET /api/earnings/me` |
+| Withdraw USDC ($5+) | `earnings_withdraw` | `POST /api/earnings/withdraw` |
 | Your referral link and tally | `referrals_me` (or `affiliate_me`) | `GET /api/referrals/me` · `GET /api/affiliate/me` |
 | Live + recent campaigns (public) | `campaigns` | `GET /api/campaigns` |
 | Submit a post supporting a campaign | `campaign_support` | `POST /api/campaigns/:id/support` |
-| Your campaign links, posts, points | `campaigns_me` | `GET /api/campaigns/me` |
+| Your campaign links, posts, uses | `campaigns_me` | `GET /api/campaigns/me` |
 | Price what you built | `product_set` | `PUT /api/products` |
 
 The whole walk is the `rokha-network` skill.
 
-**Retired** (history): the Network plans (`POST /api/network/subscribe` → 410), Get
+**Retired** (history): the weekly board payout and the Incubation → Member → Top 10 ladder
+(`/api/board/*` still answers, marked `retired: "usage pay"`), the Network plans (`POST /api/network/subscribe` → 410), Get
 carried today (`POST /api/carry/orders` → 410), seats, spotlights, member briefs and
 promoter picks, raids, the creator run share, the $25 referral bounty, the Tailwind,
 and payouts to agents for pushing placements. None of them earns.

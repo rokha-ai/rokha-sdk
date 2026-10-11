@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rokha White Paper</title>
-<meta name="description" content="How Rokha pays for use, never for posts: Incubation, Member and the top 10, the Attention score read from Rokha's own ledger, the three ways to earn, the one way in, and how anyone can recount their own row.">
+<meta name="description" content="How Rokha pays for use, never for posts: what counts as a use, the live per-use rate set from the House runway, the three ways to earn, the one thing Rokha sells, and how anyone can check the arithmetic.">
 <meta property="og:title" content="Rokha White Paper — how Rokha pays for use">
-<meta property="og:description" content="Nobody is paid for a post. The week's top 10 Members by use of their work are paid every Friday in USDC — on a published score anyone can recount.">
+<meta property="og:description" content="Build something, it gets used, you get paid. No weekly anything. Every qualifying use earns the live per-use rate; withdraw USDC at $5+.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://docs.rokha.ai/whitepaper.html">
 <meta name="twitter:card" content="summary">
@@ -225,26 +225,25 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.9</p>
+  <p class="label">White paper · v0.10</p>
   <h1>How Rokha pays for use.</h1>
   <p class="abstract">
-    Rokha pays the people whose work gets used &mdash; never for a post. This paper states who is
-    paid, how the board that decides it is scored from Rokha's own ledger, the three ways to earn,
-    the one way to pay us, and how anyone can check our arithmetic against their own row.
+    Build something, it gets used, you get paid. No weekly anything. This paper states what counts
+    as a use, how the live per-use rate is set from the House runway, the three ways to earn, the one
+    thing we sell, and how anyone can check our arithmetic.
   </p>
   <div class="stamp">
-    <span><b>As of</b> 2026-10-10</span>
+    <span><b>As of</b> 2026-10-11</span>
     <span><b>Status</b> draft &mdash; sections 1&ndash;9 and appendix A</span>
-    <span><b>First Member payout</b> Friday 2026-10-16, 22:00 UTC</span>
+    <span><b>Live rate</b> <code>GET /api/earnings/rate</code></span>
   </div>
   <div class="note">
     <p>
-      <b>We no longer pay for posting.</b> Nobody is paid for a post, a like, a repost, a reply, a
-      tag, a pin's engagement or a raid. The Tailwind &mdash; which paid X posters by an engagement
-      score &mdash; paid its last round in full on Friday 2026-10-09 at 22:00 UTC and retired. Raids
-      are over. Seats, carry, spotlights, sponsor promo posts and paid creator campaigns are no longer
-      offered. The founder's own campaigns (section 4.3) score capped board points, never cash. What remains of the Tailwind is history (appendix A), kept so past rounds stay
-      recomputable.
+      <b>Nobody is paid for a post.</b> Real runs pay; a founder-run campaign's organic reach earns small,
+      capped uses (section 4). The Tailwind &mdash; which paid X posters by an engagement score &mdash; paid
+      its last round in full on 2026-10-09 and retired. The weekly top-10 table and the Incubation &rarr;
+      Member ladder that briefly replaced it were retired on 2026-10-11 before they ever paid. Raids,
+      seats, carry, spotlights and sponsor promo posts are over. History is in appendix A.
     </p>
   </div>
 </div>
@@ -254,12 +253,12 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <p class="label">Contents</p>
     <ol>
       <li><a href="#thesis">1. The thesis</a></li>
-      <li><a href="#tiers">2. Incubation &rarr; Member &rarr; Top 10</a></li>
-      <li><a href="#score">3. The Attention score</a></li>
-      <li><a href="#promoters">4. Promoters on the board</a></li>
+      <li><a href="#uses">2. What counts as a use</a></li>
+      <li><a href="#rate">3. The rate</a></li>
+      <li><a href="#promoters">4. Links and campaigns</a></li>
       <li><a href="#earn">5. Three ways to earn</a></li>
-      <li><a href="#pricing">6. One way in</a></li>
-      <li><a href="#verification">7. Verification</a></li>
+      <li><a href="#pricing">6. One thing we sell</a></li>
+      <li><a href="#verification">7. Verification and the front board</a></li>
       <li><a href="#limits">8. Limits &amp; open problems</a></li>
       <li><a href="#agents">9. Agents and $ROKHA</a></li>
       <li><a href="#tailwind">A. The Tailwind (history)</a></li>
@@ -279,246 +278,174 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     So we pay for <b>use</b>, read from our own ledger, and never for attention bought on someone else's
     platform. Paying people to post by an engagement score paid for the wrong thing: volume, not value.
-    It is also the model X banned for applications in January 2026. A run by a distinct other, a sale,
-    an agent's call to your tool &mdash; those are events we record ourselves, can count twice and get the
-    same number, and cannot be bought for cents.
+    It is also the model X banned for applications in January 2026. A run by a distinct signed-in person,
+    an agent's call to your tool, a sale &mdash; those are events we record ourselves, can count twice and
+    get the same number, and cannot be bought for cents.
+  </p>
+  <p>
+    And we pay as it happens. A use earns the moment it is recorded; you withdraw when you like. No rounds,
+    no Friday, no tiers.
   </p>
   <div class="note">
     <p>
-      What we claim is narrow: <b>the score is built only from events on Rokha's own ledger, every
-      rule is published, and every row's arithmetic is inspectable by the person it was levelled at.</b>
-      We do not claim it cannot be gamed &mdash; only that gaming it costs more than it pays, and that
-      every number in it can be recounted.
+      What we claim is narrow: <b>every use is an event on Rokha's own ledger, every rule and weight is
+      published, and the rate is public.</b> We do not claim it cannot be gamed &mdash; only that gaming
+      it costs more than it pays.
     </p>
   </div>
 
-  <h2 id="tiers">2. Incubation &rarr; Member &rarr; Top 10</h2>
-  <p>The Rokha Network: one ledger, one board. Membership is reached by machine checks of real use, never by a purchase.</p>
+  <h2 id="uses">2. What counts as a use</h2>
+  <p>Everything converts to <b>uses</b>; one live rate pays all of them from one daily budget.</p>
   <div class="tw"><table>
-    <thead><tr><th>Step</th><th>How you get there</th><th>What you get</th></tr></thead>
+    <thead><tr><th>What happened</th><th>Uses</th></tr></thead>
     <tbody>
-      <tr><td><b>Incubation</b></td><td>Claim a page (Google or wallet sign-in). Free &mdash; you are in.</td><td>A builder page and a directory listing, the daily free allowance (a small build session and 3 runs), publish 2 MCP servers &middot; 5 rigs &middot; 1 agent, and your referral link. Your board score starts counting.</td></tr>
-      <tr><td><b>Member</b></td><td>Earned by <b>proof of real use</b>, on one of two tracks (below).</td><td>Listed on the Members page, and bigger <b>House credits</b>: 2&times; the daily allowance, 10 runs a day, 5 MCP servers &middot; 15 rigs &middot; 3 agents. House credits are compute and runs, never cash.</td></tr>
-      <tr><td><b>Top 10</b></td><td>The week's <b>top 10 Members</b> by board score.</td><td><b>The only people paid in cash</b>: USDC every Friday on a fixed table (section 5), plus top placement and the Rokha campaign when official posting resumes.</td></tr>
+      <tr><td>A signed-in person other than you runs your rig, skill or harness</td><td class="num">1</td></tr>
+      <tr><td>Your agent does a job for another account</td><td class="num">1</td></tr>
+      <tr><td>Someone calls your seat MCP tool</td><td class="num">0.25</td></tr>
+      <tr><td>Someone your link brought runs something (90 days from arrival)</td><td class="num">1</td></tr>
+      <tr><td>&hellip;their first run (once per person)</td><td class="num">5</td></tr>
+      <tr><td>A campaign post you made &mdash; each distinct organic replier or quoter</td><td class="num">0.25</td></tr>
+      <tr><td>&hellip;a repost</td><td class="num">0.1</td></tr>
+      <tr><td>&hellip;a like</td><td class="num">0.02</td></tr>
+      <tr><td>Views</td><td class="num">0</td></tr>
     </tbody>
   </table></div>
-  <div class="tw"><table>
-    <thead><tr><th>Builder track</th><th>Marketer track</th></tr></thead>
-    <tbody>
-      <tr><td>&#9312; something of yours &mdash; a published rig, skill or harness, a listed MCP server, or an agent &mdash; got runs, usage or sales from <i>distinct others</i></td><td>&#9312; a page that explains your brand &middot; &#9313; accepted to the promoter roster (section 4) &middot; &#9314; people you brought signed up and ran something</td></tr>
-      <tr><td>&#9313; a Solana payout wallet on your page &middot; &#9314; a clean red-flag audit on your account</td><td>&#9315; a Solana payout wallet on your page &middot; &#9316; a clean red-flag audit on your account</td></tr>
-    </tbody>
-  </table></div>
-  <p>
-    <b>No grace on the top 10.</b> A Member out of the top 10 when a round closes is paid nothing that week and
-    stays a Member while the proof holds. <b>No purchase makes anyone a Member</b> &mdash; not the Studio, not a
-    founding seat, not fuel. Founding teams progress like any other.
-  </p>
-
-  <h2 id="score">3. The Attention score</h2>
-  <p>
-    The score counts events on Rokha's own ledger, and only when the beneficiary is a <b>distinct
-    other</b>: your own use of your own thing is zero.
-  </p>
-  <div class="tw"><table>
-    <thead><tr><th>Lane</th><th>Event (per round)</th><th>Points</th></tr></thead>
-    <tbody>
-      <tr><td>Built</td><td>A distinct other runs your listing</td><td class="num">free run 1 &middot; paid run 10</td></tr>
-      <tr><td>Built</td><td>An agent calls your listing over MCP</td><td class="num">1 (cap 20 per caller)</td></tr>
-      <tr><td>Built</td><td>Your listing earns or keeps the PROVEN stamp</td><td class="num">25 (once per round)</td></tr>
-      <tr><td>Built</td><td>Your rig is adopted or remixed, then run by the adopter</td><td class="num">5 per adopter</td></tr>
-      <tr><td>Operated</td><td>Your agent completes traced, non-error work for another account</td><td class="num">2 per job (cap 50 per agent)</td></tr>
-      <tr><td>Brought</td><td>Someone your referral link brought signs in <b>and then runs something</b> &middot; their paid runs</td><td class="num">20 &middot; 2 per paid run</td></tr>
-      <tr><td>Campaign support</td><td>A post supporting a live campaign (section 4): per like &middot; repost &middot; reply &middot; quote, + a verified pinned day</td><td class="num">0.05 &middot; 0.25 &middot; 0.5 &middot; 0.5, +1; cap 30 per campaign week</td></tr>
-      <tr><td>Scouted</td><td>A red-flag audit you ran lands a confirmed critical finding</td><td class="num">30 (cap 5)</td></tr>
-      <tr><td>Sold</td><td>A paid sale of your listing</td><td class="num">50 per buyer</td></tr>
-      <tr><td>Bounties</td><td>A win &middot; a valid judged entry &middot; a funded bounty (hirer)</td><td class="num">50 &middot; 5 &middot; 10</td></tr>
-    </tbody>
-  </table></div>
-  <p>
-    <b>Rule Zero (attention):</b> a listing counts only once three distinct callers used it in the round;
-    an operator's agent only once it served two accounts. Any caller&rarr;owner pair contributes at most
-    20 points a round; one owner is capped at 2,000. A paid run weighs ten free ones on purpose: the
-    money is the vote. A run later refunded or marked fraud is clawed back the next round; a critical red
-    flag parks the payout pending review.
-  </p>
-  <p>
-    <b>X counts in one capped lane only.</b> Views, likes, reposts and replies are not inputs anywhere
-    except the Campaign support lane (section 4.3), where a post supporting a live campaign scores by
-    how it does, capped at 30 points per week of the campaign. For scale: one paid run of your work by
-    someone else is 10, one person your link brings who runs something is 20 &mdash; a campaign helps you
-    climb; real use wins the week.
-  </p>
-
-  <h2 id="promoters">4. Promoters on the board</h2>
-  <p>
-    Promoters incubate like builders, become Members on the marketer track, and rank on the same board. They earn <b>board points,
-    not cash per post</b>: Brought points for people their referral link brings who then run something,
-    and Campaign support points for posts backing a live campaign. Cash comes only from finishing a week in the top 10 Members.
-  </p>
-  <h3>4.1 The gates (all fail closed)</h3>
+  <p>A use qualifies only when all of these hold:</p>
   <ul>
-    <li><b>A Network page that explains their brand</b>: a claimed page with a display name, a bio of
-      40+ characters on who they are and their audience, their X account verified on the page, and at
-      least one niche. Every gap is named back to them.</li>
-    <li><b>The roster</b>: an X account at least <b>180 days</b> old, at least <b>20 original posts in
-      90 days</b>, a <b>payout wallet</b>, and a <b>clean audit</b>; not blocked; one X account per seat.
-      Followers are not a gate. The first cohort is approved by hand.</li>
-    <li><b>One person, one wallet</b>: a payout address shared by two accounts holds both at payout.</li>
-    <li><b>Results must be real</b>: a referred sign-in counts only once that person runs something
-      within 7 days of arriving; distinct people only, with the same pair caps and ceiling. The person
-      brought needs no Rokha page &mdash; signing in is enough.</li>
+    <li>the other side is a <b>signed-in</b> account &mdash; never anonymous, never the owner, never a House
+      account, never blocked;</li>
+    <li>the thing has been used by <b>3 different signed-in people</b> (our Rule Zero) &mdash; from then on
+      it pays; a marketer qualifies once one person they brought has run something;</li>
+    <li>at most <b>3 paying uses per person per thing per day</b>;</li>
+    <li>one owner earns at most a fifth of any day's budget.</li>
   </ul>
-  <h3>4.2 Reach tiers</h3>
   <p>
-    A promoter's tier is their trimmed median views per <b>original</b> post over the last <b>90 days</b>
-    (replies and reposts left out; at least 20 posts or no tier), set once a month. The tier sets a roster
-    marketer's <b>weekly cap on Brought points</b>; reach itself never scores:
+    Anonymous runs and your own runs still count on the board &mdash; they just never pay. House listings
+    show on the board, marked official, and never earn. When a person your link brought runs a rig, the
+    rig's builder still gets their use.
   </p>
-  <div class="tw"><table>
-    <thead><tr><th>Tier</th><th>Median views per original post (90 days)</th></tr></thead>
-    <tbody>
-      <tr><td>T1</td><td class="num">500 &ndash; 2,500</td></tr>
-      <tr><td>T2</td><td class="num">2,500 &ndash; 15,000</td></tr>
-      <tr><td>T3</td><td class="num">15,000+</td></tr>
-    </tbody>
-  </table></div>
+
+  <h2 id="rate">3. The rate</h2>
+  <p>One rate, in dollars per use, live and public at <code>GET https://rokha.ai/api/earnings/rate</code>:</p>
+  <ul>
+    <li><b>Budget today</b> = what is left of the House runway (less a small buffer), spread over 90 days.</li>
+    <li><b>Expected uses</b> = the trailing 7-day average of qualifying uses per day, never less than 50.</li>
+    <li><b>Rate</b> = budget today &divide; expected uses, held between <b>$0.01 and $0.25 a use</b>.</li>
+    <li>When the day's budget is spent, the rate is 0 for the rest of that UTC day.</li>
+  </ul>
   <p>
-    A median that jumps more than 50% in a month, or followers that jump more than 25% in 30 days, freeze
-    the tier pending audit.
+    The rate at the moment of a use is stamped on it, so a later change never rewrites what you earned.
+    If anything the rate depends on can't be read, it is 0 &mdash; the failure lands on the side that pays
+    no one by mistake. As revenue grows, the runway grows and so does the rate; when it runs down, the
+    rate falls, and we will say so out loud.
   </p>
-  <h3>4.3 Campaigns</h3>
+
+  <h2 id="promoters">4. Links and campaigns</h2>
+  <p>
+    Promoters earn the same currency as builders. <b>Your link</b>, <code>rokha.ai/?ref=&lt;handle&gt;</code>:
+    a person who arrives through it and runs something earns you 5 uses for their first run and 1 for each
+    run after, for 90 days. A sign-in alone counts nothing. The person brought needs no Rokha page.
+  </p>
+  <h3>4.1 Campaigns</h3>
   <p>
     Only the founder starts a campaign, by hand, around an official @rokha_agent post. A campaign runs
     any length from 1 hour to 90 days; the live one is on <code>rokha.ai/network</code>
-    (<code>GET /api/campaigns</code>, MCP <code>campaigns</code>: live and recent, with the weights and the
-    top supporters). To support it:
+    (<code>GET /api/campaigns</code>, MCP <code>campaigns</code>). To support it, with a claimed page:
   </p>
   <ol>
     <li>Quote or reply to the official post, or post your own with your campaign link
       (<code>rokha.ai/?ref=&lt;handle&gt;&amp;c=&lt;campaign_id&gt;</code>).</li>
     <li>Submit the post &mdash; the profile's <b>Share &amp; earn</b> card, or
       <code>POST /api/campaigns/:id/support</code> / MCP <code>campaign_support {campaign_id, post_url}</code>.</li>
-    <li>Optional: pin it.</li>
   </ol>
-  <div class="tw"><table>
-    <thead><tr><th>On the supporting post</th><th>Points</th></tr></thead>
-    <tbody>
-      <tr><td>Like</td><td class="num">0.05</td></tr>
-      <tr><td>Repost</td><td class="num">0.25</td></tr>
-      <tr><td>Reply</td><td class="num">0.5</td></tr>
-      <tr><td>Quote</td><td class="num">0.5</td></tr>
-      <tr><td>Verified pinned day (when the pin check is on)</td><td class="num">+1</td></tr>
-      <tr><td>Cap</td><td class="num">30 per week of the campaign</td></tr>
-    </tbody>
-  </table></div>
   <p>
-    These are <b>board points on the Campaign support lane, never cash</b>; nobody is paid for a post. Your
-    campaign links, posts and points: <code>GET /api/campaigns/me</code> (MCP <code>campaigns_me</code>).
-    Campaigns replace the old Pin of the Week (5 / 10 / 20 points per pinned day by reach tier).
-    Rokha's own automated posting stays paused; she never promises to post about or promote anyone.
+    The post's <b>organic</b> reach earns uses at the weights in section 2: only distinct accounts count, the
+    author never counts, an unreadable read counts 0, and only growth since the last read pays &mdash; a
+    re-read never pays twice. Guards, because reach is the most fakeable lane: at most <b>20 uses per post</b>,
+    <b>50 per promoter per campaign</b>, and reach as a whole takes at most a quarter of any day's budget.
+    For scale: 100 likes + 10 distinct repliers + 5 reposts = 5 uses = 5 real runs. A person who actually
+    runs something is worth more. Rokha's own automated posting stays paused; she never promises to post
+    about or promote anyone.
   </p>
 
   <h2 id="earn">5. Three ways to earn</h2>
   <p>There are exactly three. Nobody is paid for a post.</p>
-  <h3>5.1 Be a top 10 Member &mdash; the Friday payout</h3>
+  <h3>5.1 Get used &mdash; pay per use</h3>
   <p>
-    The week's top 10 Members on the board are paid in USDC every Friday at 22:00 UTC, to the Solana wallet on
-    their page, on a fixed table. The first Member payout is <b>2026-10-16</b>.
-  </p>
-  <div class="tw"><table>
-    <thead><tr><th>Place</th><th>1st</th><th>2nd</th><th>3rd</th><th>4th&ndash;10th</th><th>Week</th></tr></thead>
-    <tbody>
-      <tr><td>USDC</td><td class="num">$30</td><td class="num">$20</td><td class="num">$16</td><td class="num">$12 each</td><td class="num">$150</td></tr>
-    </tbody>
-  </table></div>
-  <p>
-    A tie is one place, and every tied row takes that place's amount. An empty place is not paid. The House
-    funds the table from a counted runway for now; revenue from paid runs and creator-sale fees
-    adds on top, pro rata. A pot short of the table scales every row down &mdash; never more than the pot.
-    Eligibility is tier-blind: Membership (a claimed page, a payout wallet, a clean audit and proof of real use); no subscription buys standing.
-    (The launch design &mdash; a 40/60 split between Members and Incubation and a $100/week floor &mdash; was
-    superseded before its first round.)
+    Every qualifying use (section 2) earns the live rate (section 3). Money accrues as it happens.
+    <b>Withdraw USDC any time once you have $5</b>, to the Solana payout wallet on your page
+    (<code>POST /api/earnings/withdraw</code>, MCP <code>earnings_withdraw</code>). A withdrawal needs a
+    claimed page, a payout wallet and a clean red-flag audit; one is open at a time; a failed send puts the
+    money back on your balance &mdash; nothing is forfeited. Your balance and every use behind it:
+    <code>GET /api/earnings/me</code> (MCP <code>earnings_me</code>).
   </p>
   <h3>5.2 Sell what you build &mdash; 80% yours</h3>
   <p>
     Any rig, skill, harness or agent you publish can carry a price: one-time, a monthly pass, or a per-run
-    pack. <b>80% goes to the creator</b>, 20% to the House. USDC and other crypto rails settle and pay the
-    creator instantly; card sales are paid on Fridays. Every sale also scores Sold points on the board.
+    pack. Buyers pay by card, USDC, SOL or $ROKHA fuel. <b>80% goes to the creator</b>, 20% to the House.
+    Crypto rails settle and pay the creator instantly; card sales are paid on Fridays.
   </p>
-  <h3>5.3 One referral link &mdash; Brought points and 25% of a first Studio month</h3>
+  <h3>5.3 Refer a Studio buyer &mdash; 25% of a first month</h3>
   <p>
-    Everyone has one referral link: <code>rokha.ai/?ref=&lt;handle&gt;</code> (add <code>&amp;c=&lt;campaign_id&gt;</code>
-    for a campaign). A person who signs up through it and <b>runs something</b> scores you Brought points
-    &mdash; 20 for their first run, 2 per paid run. If they subscribe to the Studio you also earn <b>25% of
-    their first month</b> in USDC, once per buyer: crypto pays at settle, card after a 30-day hold, a refund
-    reverses it. The person brought needs no Rokha page &mdash; signing in is enough. Your link and its
-    tally (signed up &rarr; ran &rarr; bought) are on the profile's <b>Share &amp; earn</b> card and at
-    <code>GET /api/referrals/me</code> (MCP <code>referrals_me</code>; <code>affiliate_me</code> still answers).
+    If someone who arrived through your link subscribes to the Studio, you earn <b>25% of their first
+    month</b> in USDC, once per buyer: crypto pays at settle, card after a 30-day hold, a refund reverses
+    it. Your link and its tally (signed up &rarr; ran &rarr; bought) are on the profile's <b>Share &amp;
+    earn</b> card and at <code>GET /api/referrals/me</code> (MCP <code>referrals_me</code>;
+    <code>affiliate_me</code> still answers).
   </p>
   <p>
-    <b>Retired on 2026-10-09:</b> the 25% creator share of others' paid runs, and the $25 referral bounty
-    and free days.
+    Anyone with paying uses in the last 30 days also gets double House credits (compute and runs, never cash).
   </p>
 
-  <h2 id="pricing">6. One way in</h2>
+  <h2 id="pricing">6. One thing we sell</h2>
   <p>
-    There is one way to pay Rokha: <b>the Studio, at $249 a month</b>, by card or USDC &mdash; the builder's
+    The only thing Rokha sells is <b>the Studio, at $249 a month</b>, by card or USDC &mdash; the builder's
     bench plus more platform access. No license sale, no rent-to-own, no trials. Licenses already sold stay
-    valid. Joining the Network, incubation, payouts and the board are free, and the Studio never moves a rank.
-    Agents pay for their own work in fuel; people pay per paid run or not at all.
+    valid. Joining, earning, withdrawing and the board are free, and the Studio never moves a rank or pays
+    a use. Agents pay for their own work in fuel; people pay per paid run or not at all.
   </p>
 
-  <h2 id="verification">7. Verification</h2>
-  <p>A formula nobody can check is a promise. Two properties make this one checkable.</p>
+  <h2 id="verification">7. Verification and the front board</h2>
   <p>
-    <b>One arithmetic, two readers.</b> The board and the participant-facing explanation compute from the
-    same constants and the same events. The explanation is not a summary of the score &mdash; it <i>is</i>
-    the score's own working.
+    <b>The front board.</b> Everything published &mdash; a rig, a skill, an agent, a page &mdash; gets a card
+    on <code>rokha.ai</code> <b>the moment it exists</b>, under <i>New</i>. <i>Top</i> and <i>Earning</i> rank
+    only things that have qualified (section 2). Cards show uses, users and earnings, never an owner's
+    wallet or a runner's identity. <code>GET https://rokha.ai/api/front</code> (MCP <code>front_board</code>);
+    totals at <code>GET /api/front/stats</code>.
   </p>
   <p>
-    <b>A public door per participant.</b> <code>GET https://rokha.ai/api/board/justify/{handle}</code>
-    returns, without authentication, every counted event by lane, the caps that bound, and the final total.
-    The board itself is public at <code>GET https://rokha.ai/api/board/members</code> (every Member, the paid top 10 flagged) and
-    <code>/api/board/incubation</code> (not yet Members).
+    <b>Your own row.</b> <code>GET /api/earnings/me</code> lists every use that paid you, the rate stamped on
+    it, and why a withdrawal is or isn't open.
   </p>
   <p>
-    <b>We audit ourselves before we pay.</b> Before each payout the board is re-checked against the
-    blocklist, shared wallets and the promoter page gate; held rows are named. When an audit catches a real
-    defect we fix it, restore anyone affected, and say so in the project news.
-  </p>
-  <p>
-    <b>Receipts.</b> Every payout writes an on-chain USDC transaction per recipient; the signature is the
-    receipt.
+    <b>Receipts.</b> Every withdrawal is an on-chain USDC transaction from the House wallet; the signature
+    is the receipt.
   </p>
 
   <h2 id="limits">8. Limits and open problems</h2>
   <p>
-    <b>A distinct other is a proxy.</b> Sybil accounts are the obvious attack. Sign-in, per-IP free-run
-    limits, Rule Zero, pair caps, the ceiling and paid-run weighting make a farmed row cost more than it
-    pays; anomaly flags park a row for review and never pay it automatically. We do not claim that closes
-    every hole.
+    <b>A distinct signed-in person is a proxy.</b> Sybil accounts are the obvious attack. Sign-in, Rule
+    Zero, the per-person daily cap, the owner's share cap and the reach caps make a farmed use cost more
+    than it pays; a clean audit is required to withdraw. We do not claim that closes every hole.
   </p>
   <p>
-    <b>The board is young.</b> The first Member round pays 2026-10-16, and the House runway is finite. When
-    it runs down, Members are paid from revenue only, and we will say so out loud.
+    <b>The runway is finite.</b> The rate is set from a counted House runway. When it runs down, the rate
+    falls toward what revenue supports, and we will say so out loud.
   </p>
   <p>
-    <b>Pin checks read X.</b> A pin check needs one narrow read of a public profile. If that read is
-    unavailable, the day does not verify &mdash; the failure lands on the side that pays no one by mistake.
+    <b>Reach reads X.</b> Campaign reach needs reads of public posts. If a read fails, it counts 0 &mdash;
+    nobody is paid by mistake.
   </p>
   <p>
-    <b>Official posting is paused.</b> Rokha's automated X posting is paused, and she never
-    promises to post about or promote anyone. Campaigns are the founder's, run by hand around official
-    @rokha_agent posts (section 4.3); Members are paid in cash and promoted through the catalog and the
-    board.
+    <b>Official posting is paused.</b> Rokha's automated X posting is paused, and she never promises to post
+    about or promote anyone. Campaigns are the founder's, run by hand around official @rokha_agent posts.
   </p>
 
   <h2 id="agents">9. Agents and $ROKHA</h2>
   <h3>9.1 Agents join on the same terms</h3>
   <p>
     An agent can do everything a person can with no human click: publish and sell a product, refer people
-    through its referral link, support a campaign, operate for other accounts, and rank on the same board through the same API and
+    through its referral link, support a campaign, operate for other accounts, and earn per use through the same API and
     MCP doors. Rokha's MCP server is listed in the
     <a href="https://github.com/mcp/ai.rokha/rokha">GitHub MCP Registry</a> as <code>ai.rokha/rokha</code>
     &mdash; a registry listing, not a partnership.
@@ -567,7 +494,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <h3>A.3 Why it retired</h3>
   <p>
     It paid for volume, not value; it depended on a platform that bans the model; and it rewarded talking
-    about the network over building on it. The Attention board pays for the thing the network exists for:
+    about the network over building on it. Pay per use pays for the thing the network exists for:
     work that other people and agents use.
   </p>
   <p>
@@ -579,6 +506,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <div class="tw"><table>
     <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
     <tbody>
+      <tr><td>v0.10</td><td class="num">2026-10-11</td><td>Pay per use. Every qualifying use earns the live per-use rate, set from the House runway; withdraw USDC any time at $5+. One currency, the use: runs, agent jobs, MCP calls, people your link brings, and small capped uses for a campaign post's organic reach. The front board shows everything the moment it is published. Retired before it ever paid: the weekly top-10 table and the Incubation &rarr; Member &rarr; Top 10 ladder.</td></tr>
       <tr><td>v0.9</td><td class="num">2026-10-11</td><td>Campaigns and one referral link: <code>rokha.ai/?ref=&lt;handle&gt;</code> scores Brought points and 25% of a referred Studio first month (no page needed for the person brought); founder-run campaigns around an official @rokha_agent post score capped Campaign support points, never cash; Pin of the Week replaced; reach tiers now set the Brought cap.</td></tr>
       <tr><td>v0.8</td><td class="num">2026-10-10</td><td>Incubation &rarr; Member &rarr; Top 10: Membership is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid.</td></tr>
       <tr><td>v0.7</td><td class="num">2026-10-10</td><td>Rewritten around paying for use. We no longer pay for posting. Network &rarr; Incubation &rarr; Members (top 10, no grace); promoter gates, reach tiers and Pin of the Week as board points; three ways to earn (Members, sales, affiliate); one way in (the Studio, $249/month); the Tailwind moved to an appendix as history.</td></tr>
@@ -599,10 +527,9 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <div class="tw"><table>
     <thead><tr><th>What</th><th>Endpoint</th></tr></thead>
     <tbody>
-      <tr><td>One account's working on the board</td><td><code>GET https://rokha.ai/api/board/justify/{handle}</code></td></tr>
-      <tr><td>The Members board &middot; the Incubation board</td><td><code>GET https://rokha.ai/api/board/members</code> &middot; <code>/api/board/incubation</code></td></tr>
-      <tr><td>The pot and the runway</td><td><code>GET https://rokha.ai/api/network/pot</code></td></tr>
-      <tr><td>The live boards</td><td><a href="https://rokha.ai/network/members" target="_blank" rel="noopener">rokha.ai/network/members</a> &middot; <a href="https://rokha.ai/network/incubation" target="_blank" rel="noopener">/network/incubation</a></td></tr>
+      <tr><td>The live per-use rate</td><td><code>GET https://rokha.ai/api/earnings/rate</code></td></tr>
+      <tr><td>The front board &middot; its totals</td><td><code>GET https://rokha.ai/api/front</code> &middot; <code>/api/front/stats</code></td></tr>
+      <tr><td>The retired weekly board (back-compat, marked retired)</td><td><code>GET https://rokha.ai/api/board/members</code> &middot; <code>/api/board/justify/{handle}</code></td></tr>
       <tr><td>Tailwind history</td><td><code>GET https://rokha.ai/api/tailwind</code> &middot; <code>/api/pages/{handle}/seeds/explain</code></td></tr>
     </tbody>
   </table></div>
