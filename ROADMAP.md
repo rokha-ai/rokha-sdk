@@ -96,6 +96,7 @@ Being findable where agents — and the people who run them — look.
 | Network → Incubation → Members (free to join, earned; top 10 paid, no grace) · one way in: the Studio at $249 a month | `LANDED` 2026-10-09 · superseded 2026-10-10 |
 | Incubation → Member → Top 10: Member earned by proof of real use (builder or marketer track) with bigger House credits; the week's top 10 Members paid | `LANDED` 2026-10-10 |
 | We no longer pay for posting — raids, carry, seats and paid promo posts are over | `LANDED` 2026-10-09 |
-| Three ways to earn: top 10 Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 |
+| Three ways to earn: top 10 Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 · superseded 2026-10-11 |
+| Campaigns + one referral link: `rokha.ai/?ref=<handle>` scores Brought points + 25% of a referred Studio first month; founder-run campaigns score capped Campaign support points, never cash (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
 | The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |
 

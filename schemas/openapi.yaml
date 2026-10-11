@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the ladder Incubation → Member → Top 10 (claim a page to incubate; Member is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid every Friday), promoters (board points from Amplify outcomes + Pin of the Week, never cash per post), selling, the affiliate program. Rokha no longer pays for posting.
+    description: The Rokha Network — join free, the ladder Incubation → Member → Top 10 (claim a page to incubate; Member is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid every Friday), promoters (board points from what their referral link brings + capped Campaign support points from founder-run campaigns, never cash per post), selling, one referral link (rokha.ai/?ref=<handle> — Brought points + 25% of a referred Studio first month). Rokha no longer pays for posting.
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -3843,13 +3843,136 @@ paths:
   /api/affiliate/me:
     get:
       tags: [network]
-      summary: "Your affiliate code and ledger (MCP affiliate_me)"
-      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Unlocked by a claimed page (Incubation); your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
+      summary: "Your referral cash ledger — 25% of a referred buyer's first Studio month (MCP affiliate_me; the link and tally are /api/referrals/me)"
+      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Your code is your handle (rokha.ai/?ref=<handle>, the one referral link); the buyer needs no Rokha page. Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
       operationId: affiliateMe
       security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: Affiliate standing and ledger, content: { application/json: { schema: { type: object, properties: { eligible: { type: boolean }, code: { type: string, nullable: true }, link: { type: string, nullable: true }, pct: { type: integer }, definition: { type: string }, unlock: { type: string, nullable: true }, credited_base: { type: integer }, vested_base: { type: integer }, paid_base: { type: integer }, credits: { type: array, items: { type: object, additionalProperties: true } } }, additionalProperties: true } } } }
         '401': { description: Sign in first }
+  /api/referrals/me:
+    get:
+      tags: [network]
+      summary: "Your one referral link and its tally (MCP referrals_me)"
+      description: "ONE referral link (2026-10-11): rokha.ai/?ref=<handle> (add &c=<campaign_id> for a campaign). A person who signs up through it and RUNS something scores you Brought points — 20 for the first run, 2 per paid run; if they subscribe to the Studio you also earn 25% of their first month in USDC (see /api/affiliate/me). The person brought needs no Rokha page — signing in is enough. Returns your link and the tally (signed up → ran → bought). The same card is on the profile as Share & earn."
+      operationId: referralsMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Your link and tally, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { link: { type: string }, handle: { type: string, nullable: true }, signed_up: { type: integer }, ran: { type: integer }, bought: { type: integer } } } } } }
+        '401': { description: Sign in first }
+  /api/ladder/ref:
+    post:
+      tags: [network]
+      summary: "Record the referral link a signed-in account arrived through"
+      description: "Credits the promoter named by ref_code (their handle, from ?ref=) and, optionally, a campaign (from &c=). Self-referral never counts."
+      operationId: ladderRef
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ref_code]
+              properties:
+                ref_code: { type: string, description: "The promoter's handle from ?ref=" }
+                campaign_id: { type: integer, nullable: true, description: "From &c=, when the link carried one" }
+      responses:
+        '200': { description: Recorded (or already recorded), content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Sign in first }
+  /api/campaigns:
+    get:
+      tags: [network]
+      summary: "Live and recent campaigns, with weights and top supporters (MCP campaigns)"
+      description: |
+        Public. Only the founder starts a campaign, by hand, around an official
+        @rokha_agent post; any length from 1 hour to 90 days. To support it:
+        quote or reply to the official post, or post your own with your campaign
+        link (rokha.ai/?ref=<handle>&c=<campaign_id>) → submit it
+        (`POST /api/campaigns/{id}/support`) → optionally pin it. Points follow
+        how the post does — likes 0.05 · reposts 0.25 · replies 0.5 · quotes 0.5,
+        capped at 30 per week of the campaign, +1 per verified pinned day (when
+        the pin check is on) — on the board's Campaign support lane. Board
+        points, never cash; nobody is paid for a post. For scale: a paid run of
+        your work by someone else = 10, a person your link brings who runs
+        something = 20. Replaces Pin of the Week.
+      operationId: campaignsList
+      responses:
+        '200': { description: Live and recent campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/campaigns/{id}/support:
+    post:
+      tags: [network]
+      summary: "Submit a post that supports a campaign (MCP campaign_support)"
+      operationId: campaignSupport
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [post_url]
+              properties:
+                post_url: { type: string, description: "Your X post: a quote of or reply to the official post, or your own post carrying your campaign link" }
+      responses:
+        '200': { description: Submitted, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Sign in first }
+        '404': { description: No such campaign, or it is not live }
+        '422': { description: The post does not qualify — the body says why }
+  /api/campaigns/me:
+    get:
+      tags: [network]
+      summary: "Your campaign links, submitted posts and points (MCP campaigns_me)"
+      operationId: campaignsMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Your campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Sign in first }
+  /api/admin/campaigns:
+    get:
+      tags: [network]
+      summary: "Every campaign (founder only)"
+      operationId: adminCampaignsList
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '403': { description: Not the founder }
+    post:
+      tags: [network]
+      summary: "Start a campaign around an official @rokha_agent post (founder only)"
+      operationId: adminCampaignCreate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [post_url, title, duration_hours]
+              properties:
+                post_url: { type: string, description: "The official @rokha_agent post" }
+                title: { type: string }
+                brief: { type: string }
+                starts_at: { type: string, format: date-time, nullable: true, description: "Default now" }
+                duration_hours: { type: integer, minimum: 1, maximum: 2160, description: "1 hour to 90 days" }
+      responses:
+        '200': { description: Created, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '403': { description: Not the founder }
+        '422': { description: Not an official post, or the duration is out of range }
+  /api/admin/campaigns/{id}/end:
+    post:
+      tags: [network]
+      summary: "End a campaign now (founder only)"
+      operationId: adminCampaignEnd
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Ended }
+        '403': { description: Not the founder }
+        '404': { description: No such campaign }
   /api/fuel/boosts:
     get:
       tags: [network]
@@ -4172,7 +4295,9 @@ paths:
         25/week · adoption 5), operated (your agent's traced work for others,
         2), brought (referrals: a sign-in that goes on to run something · paid
         runs; Amplify outcomes), scouted (confirmed audits 30), sold (50/buyer),
-        plus Pin of the Week points for promoters — distinct others only, Rule
+        plus Campaign support (posts backing a live founder campaign: likes
+        0.05 · reposts 0.25 · replies 0.5 · quotes 0.5, +1 per verified pinned
+        day, capped at 30 per campaign week) — distinct others only, Rule
         Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. ONE board:
         builders and promoters rank together. Members earn bigger House credits
         (compute and runs, never cash); the week's top 10 Members are the only rows paid
@@ -4645,12 +4770,12 @@ paths:
         not a gate). Opt in, get a tracked link, post as yourself — nothing is
         paid for the post; outcomes the link brought (a sign-in that
         goes on to run something · first run · paid run · agent connected ·
-        listing created · bounty entered) land in your Brought lane. PIN OF THE
-        WEEK: pin the week's official campaign post (#ad); ≥5 of 7 random
-        checks; 5 / 10 / 20 points per verified day by reach tier (T1 500–2,500
-        · T2 2,500–15,000 · T3 15,000+ median views per original post over 90
-        days). These are board points, never cash per post; the week's top 10
-        on the board are paid.
+        listing created · bounty entered) land in your Brought lane; the reach
+        tier (T1 500–2,500 · T2 2,500–15,000 · T3 15,000+ median views per
+        original post over 90 days) sets a roster marketer's weekly Brought cap.
+        Pin of the Week is replaced (2026-10-11) by founder-run campaigns —
+        see `GET /api/campaigns`. These are board points, never cash per post;
+        the week's top 10 on the board are paid.
       operationId: amplifyCampaigns
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }

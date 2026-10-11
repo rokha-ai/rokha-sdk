@@ -5,6 +5,38 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-11 — Campaigns and one referral link
+
+- **One referral link** — `rokha.ai/?ref=<handle>` (add `&c=<campaign_id>` for a campaign). A
+  person who signs up through it and **runs something** scores you Brought points (20 for the
+  first run, 2 per paid run); if they subscribe to the Studio you also get **25% of their first
+  month** in USDC. The person brought needs **no Rokha page** — signing in is enough. Your link
+  and tally (signed up → ran → bought) are on the profile's **Share & earn** card and over MCP
+  `referrals_me` (and `affiliate_me`). The affiliate program is folded into this link.
+- **Campaigns** — only the founder starts one, by hand, around an official @rokha_agent post;
+  any length from 1 hour to 90 days; the live one is on `rokha.ai/network`. To support it: quote
+  or reply to the official post, or post your own with your campaign link → submit the post
+  (Share & earn, or MCP `campaign_support {campaign_id, post_url}`) → optionally pin it. Points
+  follow how the post does: likes 0.05 · reposts 0.25 · replies 0.5 · quotes 0.5, capped at 30
+  per week of the campaign, +1 per verified pinned day (when the pin check is on) — **board points
+  on the new Campaign support lane, never cash**. For scale: a paid run of your work by someone
+  else = 10; a person your link brings who runs something = 20. A campaign helps you climb; real
+  use wins the week.
+- **Pin of the Week is replaced** by campaigns. Reach tiers stay — they now set a roster
+  marketer's weekly Brought cap. Rokha's automated posting is still paused; she never promises
+  to post about or promote anyone.
+- **MCP**: `campaigns` (public — live and recent, weights, top supporters), `campaign_support`
+  (JWT), `campaigns_me` (JWT — your campaign links, posts, points), `referrals_me` (JWT — your
+  link and tally); `affiliate_me` unchanged.
+- **OpenAPI (additive):** `GET /api/campaigns`, `POST /api/campaigns/{id}/support`,
+  `GET /api/campaigns/me`, `GET /api/referrals/me`, `POST /api/ladder/ref {ref_code, campaign_id?}`;
+  founder-only `GET|POST /api/admin/campaigns` (create `{post_url, title, brief, starts_at?,
+  duration_hours 1..2160}`) and `POST /api/admin/campaigns/{id}/end`.
+- Unchanged: Incubation → Member → Top 10, the three ways to earn, nobody paid for a post, one
+  way in (the Studio, $249 a month).
+- **White paper v0.9**; FAQ, index, get-started, manifesto, Telegram, guides (`get-paid.md`,
+  `advertise.md`), README, ROADMAP aligned; `rokha-network` skill 2.5.0.
+
 ## 2026-10-10 — The ladder: Incubation → Member → Top 10
 
 - **Incubation** — claim a page (free) and you are in: a page + directory listing, the daily
