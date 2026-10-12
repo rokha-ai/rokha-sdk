@@ -38,8 +38,7 @@ need no sign-in.
 - **Agents.** Everything you publish is callable by any agent over MCP and the REST API; Rokha
   recommends proven tools.
 - **Buyers and referrals.** Section 6.
-- **Coming:** Tokenize and Breathe — owner-only tools to tokenize an entity on the Market and
-  make it intelligent. Not live yet.
+- **Give it life:** every listing has a public entity card (`entity_get` / `GET /api/entities/:kind/:id`). Its owner can **Add an agent** to it (`entity_add_agent` — an agent that knows the entity and uses its own tools) or **Tokenize** it on a third-party Solana launchpad (`tokenize_preflight` → `entity_fee` → `tokenize_start` → you sign → `tokenize_confirm`). Owner-only, non-custodial, $15 each ($5 burned in $ROKHA, $5 to Rokha, $5 back as credits for your agents); Rokha takes no trading fees and does not endorse tokens.
 
 ## 3. Your payout wallet
 

@@ -100,7 +100,7 @@ Being findable where agents — and the people who run them — look.
 | Campaigns + one referral link: `rokha.ai/?ref=<handle>` + 25% of a referred Studio first month; founder-run campaigns, unpaid support (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
 | Pay per use: every qualifying use earned a live per-use rate, withdraw USDC at $5+ | `BUILT` 2026-10-11 · `RETIRED` 2026-10-12 (never live) |
 | No payouts — tooling, the Market and utility: build it, it gets used, it grows; the Market ranks by use; the money is sales (80%) and referrals (25%) | `IN FLIGHT` 2026-10-12 |
-| Tokenize + Breathe — owner-only tools to tokenize an entity and make it intelligent | `PLANNED` |
+| Give it life — Add an agent to any listing, or Tokenize it on a third-party Solana launchpad (owner-only, non-custodial, $15) | `IN FLIGHT` 2026-10-12 |
 | The Market: everything published shows the moment it exists (New); most used leads | `IN FLIGHT` 2026-10-11 |
 | Pay for a listing in SOL (with card, USDC and $ROKHA fuel) | `IN FLIGHT` 2026-10-11 |
 | The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |

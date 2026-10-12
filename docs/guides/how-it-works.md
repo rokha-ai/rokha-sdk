@@ -22,8 +22,11 @@ use it, and it grows — in proof, in reach and in buyers.
    Studio you get **25% of their first month** in USDC, once per buyer. They need **no Rokha
    page** — signing in is enough. Your link and its tally (signed up → ran → bought):
    `GET /api/referrals/me` (MCP `referrals_me`; `affiliate_me` still answers).
-6. **Coming: Tokenize and Breathe** — owner-only tools to tokenize an entity on the Market and
-   make it intelligent. Not live yet.
+6. **Give it life: Add an agent or Tokenize.** Every listing has a public entity card. Its owner
+   can add an agent to it (it knows what it's made of, uses its own tools, and talks to anyone who
+   stops by) or tokenize it on a third-party Solana launchpad, signed from your own wallet. Each
+   costs $15: $5 is burned in $ROKHA, $5 goes to Rokha, $5 comes back as credits for your agents.
+   Rokha takes no trading fees and does not endorse any token.
 
 Sale and referral proceeds go to your payout wallet (Profile → Connections → Payout, or MCP
 `payout_wallet_set`).
