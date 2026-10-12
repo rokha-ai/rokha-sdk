@@ -4331,12 +4331,19 @@ paths:
   /api/earnings/rate:
     get:
       tags: [network]
-      summary: "The live per-use rate and the rules behind it (MCP earnings_rate)"
+      summary: "The seed: its USDC value, the multipliers, the decay and the rules (MCP earnings_rate)"
       description: |
-        Public, no auth. Each qualifying use by a signed-in other pays the
-        owner `rate_usd` — set from the House budget spread over the pay
-        window, held between $0.01 and $0.25. The rate when a use happened is
-        the rate kept. When the rate cannot be read the door still answers 200
+        Public, no auth. Usage pay is priced in SEEDS. Each qualifying use by
+        a signed-in other is worth `multipliers` seeds (run 1 · paid run 3 ·
+        agent job 1 · tool call 0.25 · brought run 1 · brought first run 5 ·
+        campaign reply/quote 0.25 · repost 0.1 · like 0.02); one seed is worth
+        `seed_value_usd`, set at each treasury top-up (the balance spread over
+        `window_days`, divided by the seeds expected per day, floor 50, cap
+        $1.00) and fixed until the next. `rate_usd` = the seed value while
+        today is not paused. A card's pay decays as it takes more of the day's
+        budget (`decay`). The value when a use happened is the value kept.
+        Payouts are funded by the treasury, which is kept up from revenue, and
+        are not guaranteed. When the rate cannot be read the door still answers 200
         with `rate_usd: 0`, `paused: true` and a `note` (nothing accrues until
         it can); `budget_today_usd`, `spent_today_usd` and
         `expected_uses_per_day` are then absent.
@@ -5712,6 +5719,7 @@ components:
         proven: { type: boolean, description: "Ran end to end with no step error" }
         earned_usd: { type: number }
         earned_7d_usd: { type: number }
+        seeds_total: { type: number, description: "Seeds accrued, all time (non-void; everyone started at 0 on 2026-10-11; House cards 0)" }
         uses_total: { type: integer }
         uses_7d: { type: integer }
         users_7d: { type: integer, description: "Distinct users in the last 7 days" }
@@ -5760,7 +5768,9 @@ components:
       type: object
       required: [rate_usd, paid_out_usd, uses_24h, live_now, builders, generated_at]
       properties:
-        rate_usd: { type: [number, 'null'], description: "The live per-use rate; null when there is none" }
+        rate_usd: { type: [number, 'null'], description: "The live seed value (0 when today is paused); null when unreadable" }
+        seed_value_usd: { type: [number, 'null'], description: "One seed's USDC value set at the last treasury top-up (0 = none); null when unreadable" }
+        earned_total_usd: { type: number, description: "Every dollar earned on Rokha: paid_out_usd + usage pay owed but not yet sent (accrued + withdrawing)" }
         paid_out_usd: { type: number, description: "Usage earnings paid out, all time" }
         uses_24h: { type: integer }
         live_now: { type: integer, description: "Non-page cards used in the last 15 minutes" }
@@ -5778,12 +5788,47 @@ components:
         budget_today_usd: { type: number, description: "Absent when the rate could not be read" }
         spent_today_usd: { type: number, description: "Absent when the rate could not be read" }
         expected_uses_per_day: { type: number, description: "Absent when the rate could not be read" }
-        note: { type: string, description: "Present only when the rate could not be read" }
+        expected_seeds_per_day: { type: number }
+        note: { type: string, description: "Present only when the rate could not be read, or before the first top-up" }
+        unit: { type: string, const: seed }
+        rate_source: { type: string, enum: [seed, runway] }
+        seed_value_usd: { type: number, example: 0.314286, description: "One seed in USDC now; 0 with no top-up or an empty treasury" }
+        seed_value_base: { type: integer, example: 314286, description: "The same in USDC base units (6 decimals)" }
+        seed_value_set_usd: { type: number, description: "The value the last top-up set (before any empty-treasury zeroing)" }
+        seed_value_live_usd: { type: number }
+        daily_budget_usd: { type: number }
+        balance_left_usd: { type: number }
+        days_left: { type: number }
+        topped_up_at: { type: [string, 'null'], format: date-time }
+        window_days: { type: integer, example: 7 }
+        window_ends_at: { type: string, format: date-time }
+        past_window: { type: boolean }
+        multipliers:
+          type: object
+          description: "Seeds per event (same object as `weights`)"
+          additionalProperties: { type: number }
+        decay:
+          type: object
+          description: "The per-card day decay: a card's share of the day's budget already paid → the multiplier on its next accrual"
+          properties:
+            basis: { type: string }
+            tiers:
+              type: array
+              items:
+                type: object
+                properties:
+                  below_share: { type: [number, 'null'] }
+                  multiplier: { type: number }
+            card_day_cap_share: { type: number, example: 0.15 }
+            campaign_day_cap_share: { type: number, example: 0.1 }
+            resets: { type: string }
+            seeds_still_count: { type: boolean }
         weights:
           type: object
-          description: "Uses per event"
+          description: "Seeds per event (kept for older readers; = multipliers)"
           properties:
             run: { type: number, example: 1 }
+            paid_run: { type: number, example: 3 }
             job: { type: number, example: 1 }
             call: { type: number, example: 0.25 }
             brought_run: { type: number, example: 1 }
@@ -5808,9 +5853,10 @@ components:
       properties:
         thing_key: { type: string }
         label: { type: string, description: "User data — escape before rendering" }
-        lane: { type: string, enum: [run, job, call, brought_run, brought_first, reach] }
+        lane: { type: string, enum: [run, paid_run, job, call, brought_run, brought_first, reach] }
         lane_label: { type: string }
         uses: { type: number }
+        seeds: { type: number }
         earned_usd: { type: number }
         earned_today_usd: { type: number }
         last_at: { type: string, format: date-time }
@@ -5836,6 +5882,22 @@ components:
         paid_usd: { type: number }
         today_usd: { type: number }
         uses_today: { type: number }
+        seeds_total: { type: number, description: "Seeds accrued, all time (non-void)" }
+        seeds_today: { type: number }
+        seed_value_usd: { type: number }
+        decay_today:
+          type: array
+          description: "Your cards paying at a reduced multiplier today"
+          items:
+            type: object
+            properties:
+              card_key: { type: string }
+              thing_key: { type: string }
+              label: { type: string, description: "User data — escape before rendering" }
+              multiplier_now: { type: number }
+              share_of_budget: { type: number }
+              paid_today_usd: { type: number }
+              held_back_usd: { type: number }
         all_time_usd: { type: number }
         rate_usd: { type: number }
         paused: { type: boolean }

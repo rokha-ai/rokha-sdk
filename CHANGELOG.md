@@ -5,6 +5,29 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-12 — Seeds: one unit for pay per use
+
+Pay per use is now counted in **seeds**. Everyone starts at 0.
+
+- **What a use is worth** — a run by a signed-in person other than you is 1 seed; a *paid* run
+  (they bought your listing, or they pay for the Studio — checked on our side) is 3; your agent
+  doing a job for another account is 1; a call of your MCP tool is 0.25; a run by someone your
+  link brought is 1, and their first run is 5; campaign reach is 0.25 per person who replies or
+  quotes, 0.1 a repost, 0.02 a like. Only real use earns.
+- **What a seed is worth** — one price in USDC, set each time the Rokha treasury is topped up
+  (the balance spread over the next week, divided by the seeds we expect a day) and fixed until
+  the next top-up. `GET /api/earnings/rate` returns `seed_value_usd`, the multipliers and the
+  rules; `rate_usd` stays and equals the seed value while today's budget is open.
+- **Fair share** — one thing, one campaign post or one person's brought runs can't take the
+  whole day: its pay steps down (×1 · ×0.5 · ×0.25 · ×0.1) as it takes more of the day's budget
+  and stops at 15% until tomorrow. Its seeds still count. The tiers are in the same response
+  (`decay`).
+- **On every card** — the front board shows each card's seeds (`seeds_total`), and
+  `GET /api/front/stats` adds `seed_value_usd` and `earned_total_usd` (everything paid plus
+  everything earned and not yet withdrawn). `GET /api/earnings/me` adds your seeds today and
+  all-time, the seed value, and any of your things paying at a reduced rate today.
+- **Payouts come from the treasury**, which is kept up from revenue, and are not guaranteed.
+
 ## 2026-10-11 — Pay per use: build it, it gets used, you get paid
 
 **No weekly anything.** Every time a signed-in person other than you uses what you built, you earn
