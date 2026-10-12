@@ -9,7 +9,7 @@
     "mcp-registry": "MCP servers, getting a live listing, the registry agents search",
     "studio": "Building in the Studio: ask in a sentence, rigs, real runs",
     "creator-sales": "Selling what you build: price a rig, keep 80% of every sale",
-    "network": "The Rokha Network: promoters, measured reach, Friday payouts"
+    "network": "The Rokha Network: builders, promoters, pay per use"
   },
   "items": [
     {
@@ -258,7 +258,7 @@
         "article_header"
       ],
       "title": "The network: real accounts, measured reach.",
-      "alt": "The network: real accounts, measured reach. Link your X and you're in it. Join the Network, start creating and earn Fridays.",
+      "alt": "The network: real accounts, measured reach. Link your X and you're in it. Join the Network, start creating and get paid per use.",
       "cta": "https://rokha.ai/network",
       "caution": "Shows illustrative reach numbers (followers, impressions, posts) and a few garbled labels. Never present those numbers as live; prefer it where the copy carries the real figures."
     },

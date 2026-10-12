@@ -72,7 +72,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: The Rokha Network — join free, the ladder Incubation → Member → Top 10 (claim a page to incubate; Member is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid every Friday), promoters (board points from Amplify outcomes + Pin of the Week, never cash per post), selling, the affiliate program. Rokha no longer pays for posting.
+    description: 'The Market and your place on it — join free (claim a page); build it, it gets used, it grows: real runs, traces and the Proven stamp are the proof, and the Market ranks by use. The money is commerce: sell what you build (you keep 80%) and one referral link (rokha.ai/?ref=<handle> — 25% of a referred buyer''s first Studio month). Rokha pays no one for use or for posts (2026-10-12). The weekly top-10 board, the Incubation → Member ladder and pay per use are retired; `/api/board/*` still answers for back-compat.'
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -2090,9 +2090,11 @@ paths:
                   secret_refs: { type: array, items: { $ref: '#/components/schemas/RigSecretRef' } }
         '400': { $ref: '#/components/responses/RigDoorError' }
         '401': { $ref: '#/components/responses/RigDoorError' }
+        '402': { $ref: '#/components/responses/PublishCapRefusal' }
         '404': { $ref: '#/components/responses/RigDoorError' }
         '413': { $ref: '#/components/responses/RigDoorError' }
         '502': { $ref: '#/components/responses/RigDoorError' }
+        '503': { $ref: '#/components/responses/PublishCapRefusal' }
 
   /api/rigs/run:
     post:
@@ -3559,8 +3561,7 @@ paths:
       description: |
         Answers **410 `network_plans_retired`** with the one door (the Studio,
         $249 a month). Joining the Network costs nothing:
-        claim a page (`page_claim`) and you are in **Incubation**; proof of
-        real use makes you a **Member** (`GET /api/board/members`).
+        claim a page (`page_claim`) and what you publish shows on the Market.
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3675,7 +3676,12 @@ paths:
       summary: "Buy for yourself (MCP product_checkout)"
       description: >-
         `card` → a Stripe `checkout_url` for a person. `usdc` + `payer_wallet` → exact pay
-        instructions (the odd cents bind the deposit; it confirms on its own). `x402` → a
+        instructions (the odd cents bind the deposit; it confirms on its own). `sol` +
+        `payer_wallet` → the USD price quoted in exact lamports from a fresh SOL/USD read
+        (`amount_sol`, `lamports`, `pay_to`, `expires_at` — valid 15 minutes); send exactly that
+        from `payer_wallet` before `expires_at` and it confirms on its own (any other amount,
+        sender or a later transfer does not settle; `price_stale`/`price_unavailable` 503 =
+        no order was made). `x402` → a
         challenge; transfer, then call again with `signature` — verified on-chain, settles at
         once. `signet` (signed-in session only) → your own USDC Signet mandate pays: an
         autonomous mandate pays inside its caps at once, a guarded one answers
@@ -3693,14 +3699,24 @@ paths:
               type: object
               required: [rail]
               properties:
-                rail: { type: string, enum: [card, usdc, x402, signet, fuel] }
-                payer_wallet: { type: string, description: "usdc — the Solana address the USDC is sent FROM" }
+                rail: { type: string, enum: [card, usdc, sol, x402, signet, fuel] }
+                payer_wallet: { type: string, description: "usdc / sol — the Solana address the payment is sent FROM" }
                 signature: { type: string, description: "x402 — the landed transfer's signature" }
       responses:
-        '200': { description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card/usdc instructions)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200':
+          description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card / usdc / sol instructions — the `sol` shape is `SolCheckout`)"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SolCheckout'
+                  - { type: object, additionalProperties: true }
+        '400': { description: "`payer_wallet` — usdc / sol need the Solana public key the payment is sent FROM", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
         '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate · tank empty" }
         '403': { description: "`key_cannot_spend` — an rk_ key cannot spend a mandate or a tank" }
         '409': { description: "`sales_open_after_friday` · `yours` · `already_pending`" }
+        '429': { description: "`too_many_open` — orders already await payment; pay or let one expire first", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
+        '503': { description: "sol: `price_stale` · `price_unavailable` (no fresh SOL/USD read — no order was made) · `rail_off` (SOL rail not configured) · `unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
   /api/products/{id}/access:
     get:
       tags: [sales]
@@ -3717,7 +3733,15 @@ paths:
       operationId: purchasesMine
       security: [ { bearerAuth: [] } ]
       responses:
-        '200': { description: Purchases, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '200':
+          description: Paid purchases, newest first (up to 200)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  purchases: { type: array, items: { $ref: '#/components/schemas/Purchase' } }
   /api/keys:
     get:
       tags: [sales]
@@ -3754,7 +3778,7 @@ paths:
   /api/network/pot:
     get:
       tags: [network]
-      summary: "This week's Member payout — the top 10 paid Fridays in USDC on a fixed table (MCP network_pot)"
+      summary: "RETIRED (2026-10-11) — the old weekly Member payout table; still answers for back-compat (MCP network_pot). Rokha pays no one for use"
       operationId: networkPot
       responses:
         '200':
@@ -3835,7 +3859,7 @@ paths:
   /api/network/me/referral:
     get:
       tags: [network]
-      summary: "Your referral link and its status — a referred user who runs something scores you Brought points (MCP network_referral)"
+      summary: "Your referral link and its status — a referred user who runs something earns you uses (MCP network_referral)"
       operationId: networkReferral
       security: [ { bearerAuth: [] } ]
       responses:
@@ -3843,13 +3867,133 @@ paths:
   /api/affiliate/me:
     get:
       tags: [network]
-      summary: "Your affiliate code and ledger (MCP affiliate_me)"
-      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Unlocked by a claimed page (Incubation); your code is your page handle (rokha.ai/?ref=<handle>). Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
+      summary: "Your referral cash ledger — 25% of a referred buyer's first Studio month (MCP affiliate_me; the link and tally are /api/referrals/me)"
+      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Your code is your handle (rokha.ai/?ref=<handle>, the one referral link); the buyer needs no Rokha page. Crypto sales pay at settle, card sales after a 30-day hold; a refund reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
       operationId: affiliateMe
       security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: Affiliate standing and ledger, content: { application/json: { schema: { type: object, properties: { eligible: { type: boolean }, code: { type: string, nullable: true }, link: { type: string, nullable: true }, pct: { type: integer }, definition: { type: string }, unlock: { type: string, nullable: true }, credited_base: { type: integer }, vested_base: { type: integer }, paid_base: { type: integer }, credits: { type: array, items: { type: object, additionalProperties: true } } }, additionalProperties: true } } } }
         '401': { description: Sign in first }
+  /api/referrals/me:
+    get:
+      tags: [network]
+      summary: "Your one referral link and its tally (MCP referrals_me)"
+      description: "ONE referral link (2026-10-11): rokha.ai/?ref=<handle> (add &c=<campaign_id> for a campaign). If a person who signs up through it buys the Studio, you earn 25% of their first month in USDC (see /api/affiliate/me). Runs they make are counted in the tally, never paid. The person brought needs no Rokha page — signing in is enough. Returns your link and the tally (signed up → ran → bought). The same card is on the profile as Share & earn."
+      operationId: referralsMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Your link and tally, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { link: { type: string }, handle: { type: string, nullable: true }, signed_up: { type: integer }, ran: { type: integer }, bought: { type: integer } } } } } }
+        '401': { description: Sign in first }
+  /api/ladder/ref:
+    post:
+      tags: [network]
+      summary: "Record the referral link a signed-in account arrived through"
+      description: "Credits the promoter named by ref_code (their handle, from ?ref=) and, optionally, a campaign (from &c=). Self-referral never counts."
+      operationId: ladderRef
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ref_code]
+              properties:
+                ref_code: { type: string, description: "The promoter's handle from ?ref=" }
+                campaign_id: { type: integer, nullable: true, description: "From &c=, when the link carried one" }
+      responses:
+        '200': { description: Recorded (or already recorded), content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Sign in first }
+  /api/campaigns:
+    get:
+      tags: [network]
+      summary: "Live and recent campaigns, with weights and top supporters (MCP campaigns)"
+      description: |
+        Public. Only the founder starts a campaign, by hand, around an official
+        @rokha_agent post; any length from 1 hour to 90 days. To support it:
+        quote or reply to the official post, or post your own with your campaign
+        link (rokha.ai/?ref=<handle>&c=<campaign_id>) → submit it
+        (`POST /api/campaigns/{id}/support`). The post's organic reach is
+        counted (distinct repliers, quoters, reposts, likes; views 0; the
+        author never counts) and shown on the campaign. Supporting is unpaid —
+        nobody is paid for a post. Replaces Pin of the Week.
+      operationId: campaignsList
+      responses:
+        '200': { description: Live and recent campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/campaigns/{id}/support:
+    post:
+      tags: [network]
+      summary: "Submit a post that supports a campaign (MCP campaign_support)"
+      operationId: campaignSupport
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [post_url]
+              properties:
+                post_url: { type: string, description: "Your X post: a quote of or reply to the official post, or your own post carrying your campaign link" }
+      responses:
+        '200': { description: Submitted, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Sign in first }
+        '404': { description: No such campaign, or it is not live }
+        '422': { description: The post does not qualify — the body says why }
+  /api/campaigns/me:
+    get:
+      tags: [network]
+      summary: "Your campaign links, submitted posts and uses (MCP campaigns_me)"
+      operationId: campaignsMe
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Your campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '401': { description: Sign in first }
+  /api/admin/campaigns:
+    get:
+      tags: [network]
+      summary: "Every campaign (founder only)"
+      operationId: adminCampaignsList
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '403': { description: Not the founder }
+    post:
+      tags: [network]
+      summary: "Start a campaign around an official @rokha_agent post (founder only)"
+      operationId: adminCampaignCreate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [post_url, title, duration_hours]
+              properties:
+                post_url: { type: string, description: "The official @rokha_agent post" }
+                title: { type: string }
+                brief: { type: string }
+                starts_at: { type: string, format: date-time, nullable: true, description: "Default now" }
+                duration_hours: { type: integer, minimum: 1, maximum: 2160, description: "1 hour to 90 days" }
+      responses:
+        '200': { description: Created, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        '403': { description: Not the founder }
+        '422': { description: Not an official post, or the duration is out of range }
+  /api/admin/campaigns/{id}/end:
+    post:
+      tags: [network]
+      summary: "End a campaign now (founder only)"
+      operationId: adminCampaignEnd
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Ended }
+        '403': { description: Not the founder }
+        '404': { description: No such campaign }
   /api/fuel/boosts:
     get:
       tags: [network]
@@ -3881,7 +4025,7 @@ paths:
   /api/carry/orders:
     post:
       tags: [network]
-      summary: "RETIRED (2026-10-06) — Get carried today answers 410 carry_retired; get marketed by earning it on the board"
+      summary: "RETIRED (2026-10-06) — Get carried today answers 410 carry_retired; get found by being used on the Market"
       operationId: carryOrder
       requestBody:
         required: true
@@ -3978,6 +4122,50 @@ paths:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
         '401': { description: Not signed in }
 
+  /api/publish/allowance:
+    get:
+      tags: [meta]
+      summary: "Your publish allowance — used and cap per kind (rig · mcp · agent)"
+      description: >-
+        Free accounts publish a few of each on the market — 5 rigs, 2 MCP
+        server listings, 1 agent (per ACCOUNT, server-tunable) — and the
+        Studio lifts the caps (`cap: null`). Every publish door (POST
+        /api/rigs/publish, MCP `rig_publish` / `registry_publish`, POST
+        /api/registry/servers, POST /api/pages/me/mcp-listing, POST
+        /api/registry/agents, POST /api/agents/mine and taking an agent live)
+        asks the same allowance and refuses at the cap with
+        `PublishCapRefusal`. A republish of your own live listing never takes
+        a slot; unpublishing frees one. MCP twin: `publish_allowance`.
+      operationId: getPublishAllowance
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  studio: { type: boolean, description: "true = no caps" }
+                  kinds:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        used: { type: integer }
+                        cap: { type: [integer, 'null'] }
+                        left: { type: [integer, 'null'] }
+                  free_caps:
+                    type: object
+                    properties:
+                      rig: { type: integer }
+                      mcp: { type: integer }
+                      agent: { type: integer }
+                  upgrade: { type: string, example: /pricing }
+                  rule: { type: string }
+        '401': { $ref: '#/components/responses/PublishCapRefusal' }
+        '503': { $ref: '#/components/responses/PublishCapRefusal' }
+
   /api/docs.md:
     get:
       tags: [meta]
@@ -4050,6 +4238,35 @@ paths:
                 properties:
                   agents: {}
                   note: {}
+
+  /api/agents/rokha_agent/stats:
+    get:
+      tags: [agents]
+      summary: "Rokha's own readings — counts from her answer ledgers, no money"
+      description: |
+        Public, cached 60 s. Counts only: answers (X replies + X DMs +
+        house-paid Telegram turns), distinct X accounts answered, questions
+        asked on her public site chat (counted apart), and the time of her
+        last answer. Rokha is the house agent: she earns nothing and is
+        never paid. No ids, handles or text are returned.
+      operationId: getRokhaAgentStats
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  answers_total: { type: integer }
+                  answers_7d: { type: integer }
+                  people_helped_total: { type: integer }
+                  site_questions_total: { type: integer }
+                  site_questions_7d: { type: integer }
+                  by_surface: { type: object, additionalProperties: true }
+                  last_answer_at: { type: string, format: date-time, nullable: true }
+                  note: { type: string }
 
   /api/studio/doors:
     get:
@@ -4131,8 +4348,7 @@ paths:
         round in full on Friday 2026-10-09 at 22:00 UTC and then retired.
         Rokha no longer pays for posting: nobody is paid for a post, a like,
         a tag or a raid. `retired` and `retired_at` say so; `successor` names
-        the Incubation board (`/network/incubation`, `GET /api/board/incubation`), which pays
-        from 2026-10-16. Posts after the retirement instant score nothing.
+        the Market. Posts after the retirement instant score nothing.
       operationId: getTailwind
       responses:
         '200':
@@ -4153,33 +4369,102 @@ paths:
                   purse: {}
                   sponsors: {}
 
+  /api/front:
+    get:
+      tags: [network]
+      summary: "The market — every published thing and claimed page as a card, ranked by real use (MCP front_board)"
+      description: |
+        Public, no auth, cached 60 s per (sort, kind, limit). Every published
+        rig, skill, Forge agent, claimed page and marketer gets a card the
+        moment it exists. `top` = most used (uses all-time, then distinct
+        users, then last active); `live` = the last used; `active` = the last
+        used, then newest; `new` = the newest. A card never carries an
+        owner wallet or a runner identity. An unknown `sort`/`kind` or a
+        non-numeric `limit` answers 400; a numeric `limit` is clamped to 1–60.
+      operationId: getFrontBoard
+      parameters:
+        - { name: sort, in: query, required: false, schema: { type: string, enum: [top, live, active, new], default: top }, description: "top = most used" }
+        - { name: kind, in: query, required: false, schema: { type: string, enum: [all, rig, skill, agent, page, marketer], default: all } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 60, default: 24 }, description: "Clamped to 1–60; a non-number is a 400" }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontBoard' } } } }
+        '400': { description: "Unknown `sort` / `kind` (with `allowed`), or a non-numeric `limit` (with `max`)", content: { application/json: { schema: { $ref: '#/components/schemas/FrontBoardRefusal' } } } }
+        '503': { description: "The market could not be read — never a half market", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/market:
+    get:
+      tags: [network]
+      summary: "The Market — everything you can run on Rokha: Rokha-native rigs, skills, MCP servers, agents, builders and marketers, then the whole open registry (MCP market_search)"
+      description: |
+        Public, no auth, cached 30 s per query. Without `q`, Rokha-native items
+        come first in the front board's order (`/api/front`), then the synced
+        open registry (top = proven, then installs, then stars; live sorts the
+        registry like top; new = first seen). With `q`, everything is ranked by
+        relevance — title match > tag > description, proven first within a
+        tie, Rokha-native first within that. Paging is by an opaque, signed
+        `cursor` (the previous page's `next_cursor`) bound to the query that
+        made it; a tampered, foreign or out-of-range cursor answers 400. An
+        unknown value for any closed param answers 400 with `allowed`; `q`
+        over 80 characters answers 400 with `max`; a numeric `limit` is
+        clamped to 1–48. `total` and `facets` are null when `q` is set.
+        Draft rigs (`draft-*`, `media-update`) are never listed. An item never
+        carries an owner wallet, an email or a runner identity.
+      operationId: getMarket
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 80 }, description: "Search words, trimmed" }
+        - { name: aisle, in: query, required: false, schema: { type: string, enum: [all, rig, skill, mcp, agent, builder, marketer], default: all } }
+        - { name: dept, in: query, required: false, schema: { type: string, enum: [all, trading, social, media, research, dev, data, fun], default: all } }
+        - { name: source, in: query, required: false, schema: { type: string, enum: [all, rokha, registry], default: all } }
+        - { name: sort, in: query, required: false, schema: { type: string, enum: [top, live, new], default: top } }
+        - { name: price, in: query, required: false, schema: { type: string, enum: [any, free, paid], default: any }, description: "paid = an active creator product" }
+        - { name: proven, in: query, required: false, schema: { type: string, enum: ['1', '0', 'true', 'false'], default: '0' } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 48, default: 24 } }
+        - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 1024 }, description: "The previous page's next_cursor" }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MarketPage' } } } }
+        '400': { description: "A bad param (with `allowed` or `max`) or a refused cursor", content: { application/json: { schema: { $ref: '#/components/schemas/MarketRefusal' } } } }
+        '503': { description: "The market could not be read — never a half page", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/market/shelves:
+    get:
+      tags: [network]
+      summary: "The Market's shelves — most used, running now, proven, new this week, one per department, builders, popular in the open registry"
+      description: |
+        Public, no auth, cached 60 s. In this order, each omitted when it has
+        fewer than 3 items, each at most 12: most_used (ranked by uses) ·
+        running · proven ·
+        new_week · dept_<key> (Rokha items first, then the open registry) ·
+        builders · registry_popular. `href` is the "see all" query.
+      operationId: getMarketShelves
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MarketShelves' } } } }
+        '503': { description: "The market could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/market/art/{id}:
+    get:
+      tags: [network]
+      summary: "A seat MCP server's own logo (raster only — png, jpeg, webp, gif)"
+      operationId: getMarketArt
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: The image, content: { image/png: {}, image/jpeg: {}, image/webp: {}, image/gif: {} } }
+        '404': { description: "No such listing, or its logo is not a servable raster" }
+  /api/front/stats:
+    get:
+      tags: [network]
+      summary: "The market's headline numbers — published, uses (all time and 24 h), registered, calls, live now, builders"
+      operationId: getFrontStats
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontStats' } } } }
+        '503': { description: "The market could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/board/incubation:
     get:
       tags: [network]
-      summary: "THE INCUBATION BOARD — the not-yet-Members, ranked by Attention (MCP board_get)"
+      summary: "RETIRED (2026-10-11) — the old Incubation board; still answers for back-compat with a `retired` marker (MCP board_get)"
       description: |
-        Public. The Network's Incubation board replaces the Tailwind. It lists
-        the pages in **Incubation** — claimed, scoring, not yet Members (since
-        2026-10-10 Members are listed on `/api/board/members`). Member is
-        earned by proof of real use: **builder track** — something of theirs
-        (a published rig/skill/harness, a listed MCP server or an agent) got
-        runs, usage or sales from *distinct others*; **marketer track** — a
-        brand page, accepted to the roster, people they brought signed up and
-        ran something; both need a Solana payout wallet and a clean red-flag
-        audit. Rows are ranked by the
-        **Attention score** for the round — built (distinct others ran your
-        listings: free run 1 · paid run 10 · an agent's MCP call 1 · PROVEN
-        25/week · adoption 5), operated (your agent's traced work for others,
-        2), brought (referrals: a sign-in that goes on to run something · paid
-        runs; Amplify outcomes), scouted (confirmed audits 30), sold (50/buyer),
-        plus Pin of the Week points for promoters — distinct others only, Rule
-        Zero (3 callers / 2 accounts), pair cap 20, ceiling 2,000. ONE board:
-        builders and promoters rank together. Members earn bigger House credits
-        (compute and runs, never cash); the week's top 10 Members are the only rows paid
-        — USDC every Friday 22:00 UTC (`pays_from`: 2026-10-16) on a fixed table
-        (1st $30 · 2nd $20 · 3rd $16 · 4th–10th $12). `preview` is true until the
-        first payable round. `candidates` are pages with
-        events still missing Member checks, with what they are missing.
+        Public, back-compat only. The weekly Attention board, its
+        Incubation → Member → Top 10 ladder and its Friday table were retired
+        on 2026-10-11 before they ever paid. Rokha pays no one for use or for
+        posts (2026-10-12); the Market ranks by use. The response carries a
+        `retired` marker.
       operationId: getBoardIncubation
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date }, description: "The round's Friday (YYYY-MM-DD); omit for the current round" }
@@ -4192,16 +4477,11 @@ paths:
   /api/board/members:
     get:
       tags: [network]
-      summary: "THE MEMBERS BOARD — every Member, the week's top 10 flagged, ranked by Attention (MCP board_get section=members)"
+      summary: "RETIRED (2026-10-11) — the old Members board; still answers for back-compat with a `retired` marker (MCP board_get section=members)"
       description: |
-        Public. Member is a status you EARN by proof of real use (Incubation →
-        Member → Top 10), on the builder or marketer track. Since 2026-10-10
-        this returns ALL Members, builders and promoters together, ranked by
-        Attention; each row carries `top10`, and the paid rows carry
-        `paid_place`. The week's top 10 Members are the only people paid —
-        USDC every Friday on a fixed table (1st $30 · 2nd $20 · 3rd $16 ·
-        4th–10th $12) — plus top placement. No grace on the top 10; no
-        purchase makes anyone a Member.
+        Public, back-compat only. Member as a rank and the weekly top-10
+        payout are retired (2026-10-11); nobody is paid from this board.
+        The response carries a `retired` marker.
       operationId: getBoardMembers
       parameters:
         - { name: week, in: query, required: false, schema: { type: string, format: date } }
@@ -4210,7 +4490,7 @@ paths:
   /api/board/me:
     get:
       tags: [network]
-      summary: "Your own Attention row — state, points by lane, every event, which Member checks you are missing, and your promoter status (MCP attention_me)"
+      summary: "RETIRED (2026-10-11) — your old Attention row; still answers for back-compat (MCP attention_me)"
       operationId: getBoardMe
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -4243,7 +4523,7 @@ paths:
   /api/board:
     get:
       tags: [network]
-      summary: "The Wall's seats (legacy) — seat sales are retired; the Incubation board is /api/board/incubation"
+      summary: "The Wall's seats (legacy) — seat sales are retired"
       operationId: getBoard
       responses:
         '200':
@@ -4645,12 +4925,11 @@ paths:
         not a gate). Opt in, get a tracked link, post as yourself — nothing is
         paid for the post; outcomes the link brought (a sign-in that
         goes on to run something · first run · paid run · agent connected ·
-        listing created · bounty entered) land in your Brought lane. PIN OF THE
-        WEEK: pin the week's official campaign post (#ad); ≥5 of 7 random
-        checks; 5 / 10 / 20 points per verified day by reach tier (T1 500–2,500
-        · T2 2,500–15,000 · T3 15,000+ median views per original post over 90
-        days). These are board points, never cash per post; the week's top 10
-        on the board are paid.
+        listing created · bounty entered) land in your Brought lane; the reach
+        tier (T1 500–2,500 · T2 2,500–15,000 · T3 15,000+ median views per
+        original post over 90 days) sets a roster marketer's weekly Brought cap.
+        Pin of the Week is replaced (2026-10-11) by founder-run campaigns —
+        see `GET /api/campaigns`. Nobody is paid for a post.
       operationId: amplifyCampaigns
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -4917,6 +5196,27 @@ components:
         pattern: ^[a-z0-9]([a-z0-9]|-(?!-))*[a-z0-9]$|^[a-z0-9]$
 
   responses:
+    PublishCapRefusal:
+      description: >-
+        A publish door refused on the caller's publish allowance. 402
+        `publish_cap` (at the cap — show `used`/`cap` and the `upgrade` path),
+        401 `needs_account` (sign in, free), 503 `publish_check_unavailable`
+        (the allowance could not be read — nothing was published; retry).
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ok, error, message]
+            properties:
+              ok: { type: boolean, const: false }
+              error: { type: string, enum: [publish_cap, needs_account, publish_check_unavailable] }
+              kind: { type: string, enum: [rig, mcp, agent] }
+              used: { type: integer }
+              cap: { type: integer }
+              studio: { type: boolean }
+              upgrade: { type: string, example: /pricing }
+              message: { type: string }
+              doors: { type: object, additionalProperties: { type: string } }
     PledgeError:
       description: >-
         `{error, message}` — `organiser_not_allowed` (403) · `organiser_cannot_pledge` ·
@@ -5483,7 +5783,222 @@ components:
             input_tokens: { type: integer }
             output_tokens: { type: integer }
 
-    # --- Attention (the Incubation board) ---
+    # --- Attention (the retired weekly board; back-compat) ---
+
+    FrontCard:
+      type: object
+      description: "One card on the market. There is deliberately no owner field — never an owner wallet, a runner identity or an email."
+      required: [kind, id, title, href, official, proven, uses_total, uses_7d, users_7d, first_seen_at, live, new, cta]
+      properties:
+        kind: { type: string, enum: [rig, skill, agent, page, marketer] }
+        id: { type: string, description: "`rokha/<slug>` (rig/skill) · `agent:<handle>` · `page:<handle>` · `marketer:<handle>`", example: "rokha/x-audit" }
+        title: { type: string, maxLength: 120, description: "User data — escape before rendering" }
+        handle: { type: [string, 'null'], example: "@sage" }
+        href: { type: string, example: "/@sage/x-audit" }
+        image: { type: [string, 'null'], description: "https or a same-site path" }
+        avatar: { type: [string, 'null'] }
+        official: { type: boolean, description: "A House card (Rokha's own)" }
+        architect: { type: boolean, description: "Built by Rokha's founder (never the same as official)" }
+        proven: { type: boolean, description: "Ran end to end with no step error" }
+        uses_total: { type: integer }
+        uses_7d: { type: integer }
+        users_7d: { type: integer, description: "Distinct users in the last 7 days" }
+        reach_campaign: { type: integer, nullable: true, description: "Organic reach of their campaign posts (likes + reposts + distinct repliers + distinct quoters); null when none" }
+        users_total: { type: integer, description: "Distinct signed-in users, all-time — what a card shows (every card number is all-time)" }
+        reach: { type: ['object', 'null'], properties: { followers: { type: integer } } }
+        first_seen_at: { type: string, format: date-time }
+        last_active_at: { type: [string, 'null'], format: date-time }
+        live: { type: boolean, description: "Used in the last 15 minutes" }
+        new: { type: boolean, description: "First seen in the last 7 days" }
+        cta: { $ref: '#/components/schemas/FrontCta' }
+        cta_secondary:
+          description: "`Clone it` → the Studio, on rigs that can be adopted; else null"
+          oneOf: [ { $ref: '#/components/schemas/FrontCta' }, { type: 'null' } ]
+        tagline: { type: [string, 'null'], maxLength: 120, description: "The owner's one-liner, plain text clipped at a word: a page's editor tagline (else its bio); a rig's sub-page tagline (else the listing description); a skill's listing description; an agent's own tagline. null = none (clients show a default). User data — escape before rendering" }
+        link:
+          description: "ONE link the owner configured — the first absolute http(s) link on their page (an agent: its X account). label ≤ 40 chars (the host when unlabelled). null when none. Render with rel=\"noopener noreferrer nofollow ugc\""
+          oneOf: [ { $ref: '#/components/schemas/FrontCta' }, { type: 'null' } ]
+        pronoun: { type: [string, 'null'], enum: [her, him, them, null], description: "Agent cards only: how 'Talk to …' reads, from the agent's config (never guessed from a name); null on other kinds" }
+
+    FrontCta:
+      type: object
+      required: [label, href]
+      properties:
+        label: { type: string, example: "Run it", description: "Run it · Talk to her/him/them · Open · Clone it" }
+        href: { type: string }
+
+    FrontBoard:
+      type: object
+      required: [sort, kind, limit, total, count, cards, generated_at, sorts, kinds]
+      properties:
+        sort: { type: string, enum: [top, live, active, new] }
+        kind: { type: string, enum: [all, rig, skill, agent, page, marketer] }
+        limit: { type: integer, minimum: 1, maximum: 60 }
+        total: { type: integer, description: "Cards of this kind before the limit" }
+        count: { type: integer }
+        cards: { type: array, items: { $ref: '#/components/schemas/FrontCard' } }
+        generated_at: { type: string, format: date-time }
+        sorts: { type: array, items: { type: string } }
+        kinds: { type: array, items: { type: string } }
+        note: { type: string }
+
+    FrontBoardRefusal:
+      type: object
+      required: [error, param]
+      properties:
+        error: { type: string, example: "unknown sort 'bogus'" }
+        param: { type: string, enum: [sort, kind, limit] }
+        allowed: { type: array, items: { type: string }, description: "sort / kind — the accepted values" }
+        max: { type: integer, example: 60, description: "limit only" }
+
+    MarketItem:
+      type: object
+      required: [id, kind, source, title, href, official, architect, proven, live, new, stats, cta]
+      properties:
+        id: { type: string, example: "rokha/x-audit" }
+        kind: { type: string, enum: [rig, skill, mcp, agent, builder, marketer] }
+        source: { type: string, description: "'rokha', or the registry source: smithery · glama · clawhub · skills.sh · mcp-registry · docker · anthropic" }
+        title: { type: string }
+        subtitle: { type: [string, 'null'], description: "Series / variant, or an MCP server's tool count" }
+        handle: { type: [string, 'null'], description: "'@handle' for Rokha items; the upstream author for registry items" }
+        href: { type: string, description: "The detail page (site path)" }
+        image: { type: [string, 'null'], description: "Product art (https or a site path) — never the owner's avatar on a rig/skill/mcp/agent" }
+        avatar: { type: [string, 'null'], description: "builder / marketer tiles only" }
+        tagline: { type: [string, 'null'] }
+        link: { oneOf: [{ type: 'null' }, { type: object, properties: { label: { type: string }, href: { type: string } } }] }
+        department: { type: [string, 'null'], enum: [trading, social, media, research, dev, data, fun, null] }
+        tags: { type: array, maxItems: 5, items: { type: string } }
+        official: { type: boolean, description: "A House lane" }
+        architect: { type: boolean, description: "Built by Rokha's founder" }
+        proven: { type: boolean }
+        live: { type: boolean, description: "Used in the last 15 minutes" }
+        new: { type: boolean, description: "First seen in the last 7 days" }
+        pronoun: { type: [string, 'null'], enum: [her, him, them, null] }
+        stats:
+          type: object
+          properties:
+            uses_total: { type: [integer, 'null'] }
+            users_total: { type: [integer, 'null'] }
+            installs: { type: [integer, 'null'], description: "Registry items: upstream downloads/installs" }
+            stars: { type: [integer, 'null'] }
+            reach: { type: [integer, 'null'] }
+        price:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              properties:
+                usd: { type: number }
+                model: { type: string, enum: [one_time, monthly, per_run] }
+                product_id: { type: string, format: uuid }
+                runs_per_pack: { type: [integer, 'null'] }
+        cta: { type: object, properties: { label: { type: string }, href: { type: string } } }
+        cta_secondary: { oneOf: [{ type: 'null' }, { type: object, properties: { label: { type: string }, href: { type: string } } }] }
+
+    MarketPage:
+      type: object
+      required: [items, next_cursor, total, facets, generated_at]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/MarketItem' } }
+        next_cursor: { type: [string, 'null'] }
+        total: { type: [integer, 'null'], description: "null when q is set" }
+        facets:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              properties:
+                aisles: { type: object, additionalProperties: { type: integer }, description: "Counts per aisle under (dept, source)" }
+                depts: { type: object, additionalProperties: { type: integer }, description: "Counts per department under (aisle, source)" }
+        query: { type: object, description: "The params as understood" }
+        generated_at: { type: string, format: date-time }
+
+    MarketShelves:
+      type: object
+      properties:
+        shelves:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              title: { type: string }
+              note: { type: string }
+              href: { type: string }
+              items: { type: array, maxItems: 12, items: { $ref: '#/components/schemas/MarketItem' } }
+        generated_at: { type: string, format: date-time }
+
+    MarketRefusal:
+      type: object
+      required: [error, param]
+      properties:
+        error: { type: string, example: "unknown aisle 'pages'" }
+        param: { type: string, enum: [q, aisle, dept, source, sort, price, proven, limit, cursor] }
+        allowed: { type: array, items: { type: string } }
+        max: { type: integer }
+
+    FrontStats:
+      type: object
+      required: [published, uses_total, uses_24h, live_now, builders, generated_at]
+      properties:
+        published: { type: integer, description: "Published things on the market (rigs, skills, agents, MCP servers) — every non-page card" }
+        uses_total: { type: integer, description: "Uses of published things, all time" }
+        uses_24h: { type: integer }
+        registered_users: { type: integer, description: Active registered accounts. }
+        calls_total: { type: integer, description: Calls through every API and agent door, all-time. }
+        mcp_calls_total: { type: integer, description: Of calls_total, the calls through the MCP door, all-time. }
+        mcp_calls_7d: { type: integer, description: Of calls through the MCP door, the last 7 days. }
+        live_now: { type: integer, description: "Non-page cards used in the last 15 minutes" }
+        builders: { type: integer, description: "Distinct non-House owners with a published thing or agent" }
+        generated_at: { type: string, format: date-time }
+
+    SaleRefusal:
+      type: object
+      required: [ok, error, code, message]
+      properties:
+        ok: { type: boolean, const: false }
+        error: { type: string }
+        code: { type: string, description: "Same as `error`" }
+        message: { type: string }
+
+    SolCheckout:
+      type: object
+      description: "`rail: sol` — the USD price quoted in exact lamports from a fresh SOL/USD read, valid 15 minutes. Send exactly `lamports` from `payer_wallet` to `pay_to` before `expires_at`; any other amount, sender or a later transfer does not settle. Confirmed automatically on finality."
+      required: [mode, product, reference, amount_sol, lamports, pay_to, expires_at, quote, solana_pay, pay]
+      properties:
+        mode: { type: string, const: sol }
+        product: { $ref: '#/components/schemas/Product' }
+        reference: { type: string, example: "sol:3f1c…", description: "The order reference" }
+        amount_sol: { type: string, example: "0.084213517", description: "Exact SOL, as a decimal string" }
+        lamports: { type: integer, description: "Exact lamports — the last digits bind the payment to this order" }
+        pay_to: { type: string, description: "The House sales wallet (Solana)" }
+        expires_at: { type: string, format: date-time }
+        quote:
+          type: object
+          properties:
+            usd: { type: string, example: "$15" }
+            sol_usd: { type: number, description: "The SOL/USD price the quote used" }
+            source: { type: string, example: jupiter }
+        solana_pay: { type: string, example: "solana:<pay_to>?amount=0.084213517", description: "A Solana Pay link (`solana:` URI)" }
+        pay:
+          type: object
+          properties:
+            asset: { type: string, const: SOL }
+            chain: { type: string, const: solana }
+            address: { type: string }
+            note: { type: string }
+
+    Purchase:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: string, format: uuid }
+        product: { $ref: '#/components/schemas/Product' }
+        status: { type: string, example: paid }
+        rail: { type: string, enum: [card, usdc, sol, x402, signet, fuel] }
+        amount_cents: { type: integer }
+        amount_sol: { type: [string, 'null'], description: "sol only — the exact SOL paid, as a decimal string" }
+        runs_left: { type: [integer, 'null'] }
+        period_end: { type: [string, 'null'], format: date-time }
+        paid_at: { type: [string, 'null'], format: date-time }
 
     AttentionBoard:
       type: object
@@ -5491,7 +6006,8 @@ components:
       properties:
         section: { type: string, enum: [incubation, members] }
         week_of: { type: string, format: date }
-        pays_from: { type: string, format: date, example: "2026-10-16" }
+        retired: { type: string, example: "usage pay", description: "Set since 2026-10-11: this board no longer pays (a legacy marker string)" }
+        pays_from: { type: string, format: date, deprecated: true }
         preview: { type: boolean }
         engine: { type: string }
         pot:
@@ -5519,7 +6035,7 @@ components:
         evolution: { type: object, properties: { proven_recent: { type: boolean }, threshold_met: { type: boolean }, audit_clean: { type: boolean } } }
         member_since: { type: string, format: date-time, nullable: true }
         payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the place's fixed amount (top 10 only)" }
-        top10: { type: boolean, description: "Members board: true on the week's top 10 Members (the paid rows)" }
+        top10: { type: boolean, description: "Legacy (retired 2026-10-11): the old weekly top-10 flag; nothing is paid by rank" }
         paid_place: { type: integer, nullable: true, minimum: 1, maximum: 10, description: "Members board: the paid place 1–10 on top-10 rows; absent or null otherwise" }
         justify_url: { type: string }
         lane: { type: string, enum: [builder, promoter], description: "Information only — one board, one ranking" }
