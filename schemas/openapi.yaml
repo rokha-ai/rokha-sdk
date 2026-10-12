@@ -81,6 +81,8 @@ tags:
       can only burn or release each stake as its published result names it, never send it.
   - name: signals
     description: Windsock — scored token signals (read-only market data, never advice, never trades)
+  - name: entities
+    description: Entity cards for any object (page, rig, skill, harness record, sub-rig, agent, MCP server, product); "Add an agent" gives one its own agent, Tokenize launches its token on a third-party launchpad (Rokha is software, not the launchpad).
 
 security: []  # default: no auth. Routes that need it set their own.
 
@@ -5171,6 +5173,283 @@ paths:
       responses:
         '200': { description: Entered }
         '422': { description: needs_run · needs_fuel · needs_attempt · run_predates_bounty }
+
+  /api/entities:
+    get:
+      tags: [entities]
+      summary: "Every public entity a page handle owns (MCP entity_list)"
+      operationId: listEntities
+      parameters:
+        - { name: owner, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /api/entities/kinds:
+    get:
+      tags: [entities]
+      summary: "Every kind of object that can carry an entity card, an added agent and a token (MCP entity_kinds)"
+      operationId: listEntityKinds
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}:
+    get:
+      tags: [entities]
+      summary: "The public entity card, schema rokha.entity/1 (MCP entity_get)"
+      operationId: getEntityCard
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/card.md:
+    get:
+      tags: [entities]
+      summary: "The entity card as Markdown"
+      operationId: getEntityCardMarkdown
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/mine:
+    get:
+      tags: [entities]
+      summary: "Your own entities with token + Add an agent state (MCP entity_mine)"
+      operationId: listMyEntities
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/manage:
+    get:
+      tags: [entities]
+      summary: "The owner view of a card"
+      operationId: getEntityOwnerCard
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/meta:
+    post:
+      tags: [entities]
+      summary: "Edit card metadata: name, ticker, description, links, tags, custom, images (MCP entity_update)"
+      operationId: updateEntityMeta
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/sources:
+    post:
+      tags: [entities]
+      summary: "Attach a source (docs, OpenAPI, MCP, llms.txt, URL, repo, data) — fetched as DATA (MCP entity_source_add)"
+      operationId: addEntitySource
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/tokenize/preflight:
+    get:
+      tags: [entities]
+      summary: "Everything Tokenize needs, as a checklist (MCP tokenize_preflight)"
+      operationId: tokenizePreflight
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/tokenize/start:
+    post:
+      tags: [entities]
+      summary: "Start a launch on a third-party launchpad; returns transactions for your proven wallet to sign (MCP tokenize_start)"
+      operationId: tokenizeStart
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/tokenize/confirm:
+    post:
+      tags: [entities]
+      summary: "Record a finalized launch (MCP tokenize_confirm)"
+      operationId: tokenizeConfirm
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/agent/preflight:
+    get:
+      tags: [entities]
+      summary: "Everything Add an agent needs, as a checklist (MCP agent_preflight)"
+      operationId: entityAgentPreflight
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/agent:
+    post:
+      tags: [entities]
+      summary: "Give the entity its own agent (MCP add an agent)"
+      operationId: addEntityAgent
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entities/{kind}/{id}/fee:
+    post:
+      tags: [entities]
+      summary: "Open the $15 fee: $5 burned, $5 House, $5 House credits (MCP entity_fee)"
+      operationId: openEntityFee
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entity-fees/{fee_id}/verify:
+    post:
+      tags: [entities]
+      summary: "Verify the wallet transaction that paid a fee (MCP entity_fee_verify)"
+      operationId: verifyEntityFee
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: fee_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
 
 components:
   securitySchemes:
