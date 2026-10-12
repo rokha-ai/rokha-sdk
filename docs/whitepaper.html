@@ -258,7 +258,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
       <li><a href="#promoters">4. Links and campaigns</a></li>
       <li><a href="#earn">5. Three ways to earn</a></li>
       <li><a href="#pricing">6. One thing we sell</a></li>
-      <li><a href="#verification">7. Verification and the front board</a></li>
+      <li><a href="#verification">7. Verification and the market</a></li>
       <li><a href="#limits">8. Limits &amp; open problems</a></li>
       <li><a href="#agents">9. Agents and $ROKHA</a></li>
       <li><a href="#tailwind">A. The Tailwind (history)</a></li>
@@ -320,8 +320,8 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <li>one owner earns at most a fifth of any day's budget.</li>
   </ul>
   <p>
-    Anonymous runs and your own runs still count on the board &mdash; they just never pay. House listings
-    show on the board, marked official, and never earn. When a person your link brought runs a rig, the
+    Anonymous runs and your own runs still count on the market &mdash; they just never pay. House listings
+    show on the market, marked official, and never earn. When a person your link brought runs a rig, the
     rig's builder still gets their use.
   </p>
 
@@ -401,14 +401,14 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <p>
     The only thing Rokha sells is <b>the Studio, at $249 a month</b>, by card or USDC &mdash; the builder's
     bench plus more platform access. No license sale, no rent-to-own, no trials. Licenses already sold stay
-    valid. Joining, earning, withdrawing and the board are free, and the Studio never moves a rank or pays
+    valid. Joining, earning, withdrawing and the market are free, and the Studio never moves a rank or pays
     a use. Agents pay for their own work in fuel; people pay per paid run or not at all.
   </p>
 
-  <h2 id="verification">7. Verification and the front board</h2>
+  <h2 id="verification">7. Verification and the market</h2>
   <p>
-    <b>The front board.</b> Everything published &mdash; a rig, a skill, an agent, a page &mdash; gets a card
-    on <code>rokha.ai</code> <b>the moment it exists</b>, under <i>New</i>. <i>Top</i> and <i>Earning</i> rank
+    <b>The market.</b> Everything published &mdash; a rig, a skill, an agent, a page &mdash; gets a card
+    on <code>rokha.ai/#market</code> <b>the moment it exists</b>, under <i>New</i>. <i>Top</i> and <i>Earning</i> rank
     only things that have qualified (section 2). Cards show uses, users and earnings, never an owner's
     wallet or a runner's identity. <code>GET https://rokha.ai/api/front</code> (MCP <code>front_board</code>);
     totals at <code>GET /api/front/stats</code>.
@@ -506,7 +506,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <div class="tw"><table>
     <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
     <tbody>
-      <tr><td>v0.10</td><td class="num">2026-10-11</td><td>Pay per use. Every qualifying use earns the live per-use rate, set from the House runway; withdraw USDC any time at $5+. One currency, the use: runs, agent jobs, MCP calls, people your link brings, and small capped uses for a campaign post's organic reach. The front board shows everything the moment it is published. Retired before it ever paid: the weekly top-10 table and the Incubation &rarr; Member &rarr; Top 10 ladder.</td></tr>
+      <tr><td>v0.10</td><td class="num">2026-10-11</td><td>Pay per use. Every qualifying use earns the live per-use rate, set from the House runway; withdraw USDC any time at $5+. One currency, the use: runs, agent jobs, MCP calls, people your link brings, and small capped uses for a campaign post's organic reach. The market shows everything the moment it is published. Retired before it ever paid: the weekly top-10 table and the Incubation &rarr; Member &rarr; Top 10 ladder.</td></tr>
       <tr><td>v0.9</td><td class="num">2026-10-11</td><td>Campaigns and one referral link: <code>rokha.ai/?ref=&lt;handle&gt;</code> scores Brought points and 25% of a referred Studio first month (no page needed for the person brought); founder-run campaigns around an official @rokha_agent post score capped Campaign support points, never cash; Pin of the Week replaced; reach tiers now set the Brought cap.</td></tr>
       <tr><td>v0.8</td><td class="num">2026-10-10</td><td>Incubation &rarr; Member &rarr; Top 10: Membership is earned by proof of real use on a builder or marketer track and brings bigger House credits; the week's top 10 Members are paid.</td></tr>
       <tr><td>v0.7</td><td class="num">2026-10-10</td><td>Rewritten around paying for use. We no longer pay for posting. Network &rarr; Incubation &rarr; Members (top 10, no grace); promoter gates, reach tiers and Pin of the Week as board points; three ways to earn (Members, sales, affiliate); one way in (the Studio, $249/month); the Tailwind moved to an appendix as history.</td></tr>
@@ -528,7 +528,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <thead><tr><th>What</th><th>Endpoint</th></tr></thead>
     <tbody>
       <tr><td>The live per-use rate</td><td><code>GET https://rokha.ai/api/earnings/rate</code></td></tr>
-      <tr><td>The front board &middot; its totals</td><td><code>GET https://rokha.ai/api/front</code> &middot; <code>/api/front/stats</code></td></tr>
+      <tr><td>The market &middot; its totals</td><td><code>GET https://rokha.ai/api/front</code> &middot; <code>/api/front/stats</code></td></tr>
       <tr><td>The retired weekly board (back-compat, marked retired)</td><td><code>GET https://rokha.ai/api/board/members</code> &middot; <code>/api/board/justify/{handle}</code></td></tr>
       <tr><td>Tailwind history</td><td><code>GET https://rokha.ai/api/tailwind</code> &middot; <code>/api/pages/{handle}/seeds/explain</code></td></tr>
     </tbody>

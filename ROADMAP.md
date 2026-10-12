@@ -99,7 +99,7 @@ Being findable where agents — and the people who run them — look.
 | Three ways to earn: top 10 Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 · superseded 2026-10-11 |
 | Campaigns + one referral link: `rokha.ai/?ref=<handle>` + 25% of a referred Studio first month; founder-run campaigns (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
 | Pay per use: every qualifying use earns the live per-use rate (set from the House runway), withdraw USDC any time at $5+ — no weekly anything · campaign reach earns small capped uses | `IN FLIGHT` 2026-10-11 |
-| The front board: everything published shows the moment it exists (New); ranking and pay once really used by distinct people | `IN FLIGHT` 2026-10-11 |
+| The market: everything published shows the moment it exists (New); ranking and pay once really used by distinct people | `IN FLIGHT` 2026-10-11 |
 | Pay for a listing in SOL (with card, USDC and $ROKHA fuel) | `IN FLIGHT` 2026-10-11 |
 | The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |
 

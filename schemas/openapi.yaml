@@ -4026,7 +4026,7 @@ paths:
   /api/carry/orders:
     post:
       tags: [network]
-      summary: "RETIRED (2026-10-06) — Get carried today answers 410 carry_retired; get marketed by earning it on the board"
+      summary: "RETIRED (2026-10-06) — Get carried today answers 410 carry_retired; get marketed by earning it on the market"
       operationId: carryOrder
       requestBody:
         required: true
@@ -4300,7 +4300,7 @@ paths:
   /api/front:
     get:
       tags: [network]
-      summary: "The front board — every published thing and claimed page as a card, ranked by real use (MCP front_board)"
+      summary: "The market — every published thing and claimed page as a card, ranked by real use (MCP front_board)"
       description: |
         Public, no auth, cached 60 s per (sort, kind, limit). Every published
         rig, skill, Forge agent, claimed page and marketer gets a card the
@@ -4319,15 +4319,15 @@ paths:
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontBoard' } } } }
         '400': { description: "Unknown `sort` / `kind` (with `allowed`), or a non-numeric `limit` (with `max`)", content: { application/json: { schema: { $ref: '#/components/schemas/FrontBoardRefusal' } } } }
-        '503': { description: "The board could not be read — never a half board", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "The market could not be read — never a half market", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/front/stats:
     get:
       tags: [network]
-      summary: "The front board's headline numbers — live rate, paid out, uses in 24 h, live now, builders"
+      summary: "The market's headline numbers — live rate, paid out, uses in 24 h, live now, builders"
       operationId: getFrontStats
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontStats' } } } }
-        '503': { description: "The board could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "The market could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/earnings/rate:
     get:
       tags: [network]
@@ -5704,7 +5704,7 @@ components:
 
     FrontCard:
       type: object
-      description: "One card on the front board. There is deliberately no owner field — never an owner wallet, a runner identity or an email."
+      description: "One card on the market. There is deliberately no owner field — never an owner wallet, a runner identity or an email."
       required: [kind, id, title, href, official, qualified, proven, earned_usd, earned_7d_usd, uses_total, uses_7d, users_7d, first_seen_at, live, new, cta]
       properties:
         kind: { type: string, enum: [rig, skill, agent, page, marketer] }

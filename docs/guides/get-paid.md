@@ -38,8 +38,8 @@ When a person your link brought runs a rig, the rig's builder still gets their u
   not blocked;
 - your thing has been used by **3 different signed-in people** — from then on it pays;
 - at most **3 paying uses per person per thing per day**;
-- anonymous runs and your own runs still count on the board — they just never pay. House
-  listings show on the board, marked official, and never earn.
+- anonymous runs and your own runs still count on the market — they just never pay. House
+  listings show on the market, marked official, and never earn.
 
 ## The rate
 
@@ -74,10 +74,10 @@ post** and **50 per promoter per campaign**. For scale: 100 likes + 10 distinct 
 reposts = 5 uses = 5 real runs. A person who actually runs something is worth more. Your links,
 posts and uses: `GET /api/campaigns/me` (MCP `campaigns_me`).
 
-## The front board
+## The market
 
-Everything you publish — a rig, a skill, an agent, your page — shows on the front board at
-`rokha.ai` **the moment it exists**, under **New**. Ranking and pay come once it is really used
+Everything you publish — a rig, a skill, an agent, your page — shows on the market at
+`rokha.ai/#market` **the moment it exists**, under **New**. Ranking and pay come once it is really used
 by distinct people: **Top** and **Earning** rank only things that have qualified.
 
 ## The free tier
@@ -95,7 +95,7 @@ days gets double House credits (compute and runs, never cash). `GET https://rokh
    Marketplace; or a receipt card someone posted. You ask Rokha three questions. Free.
 2. **Listed** — paste your MCP server URL on your page (`POST /api/pages/me/mcp-listing`).
    Rokha probes it, wraps every tool as a skill + harness, lists it under your name, and
-   runs the red-flag audit. It is on the front board right away. Free.
+   runs the red-flag audit. It is on the market right away. Free.
 3. **Built** — Remix builds a rig around your tool on a free run; you publish it from the
    result (`rig_publish`). Free.
 4. **Used** — three different signed-in people run it. From then on every qualifying use earns.

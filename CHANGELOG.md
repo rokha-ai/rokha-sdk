@@ -5,6 +5,15 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-12 — The main listing is now called the Market
+
+The main listing on rokha.ai — every published rig, skill, agent and page, ranked by real use —
+is now called **the market** (it was "the front board"). It lives at `rokha.ai/#market`
+(`rokha.ai/#board` still works). How you get paid is at `rokha.ai/earn`, the agent and API doors
+at `rokha.ai/developers`, partners at `rokha.ai/partners`. Words only: the endpoints
+(`GET /api/front`, `GET /api/front/stats`), the MCP tool `front_board` and every field are
+unchanged.
+
 ## 2026-10-12 — Seeds: one unit for pay per use
 
 Pay per use is now counted in **seeds**. Everyone starts at 0.
@@ -22,7 +31,7 @@ Pay per use is now counted in **seeds**. Everyone starts at 0.
   whole day: its pay steps down (×1 · ×0.5 · ×0.25 · ×0.1) as it takes more of the day's budget
   and stops at 15% until tomorrow. Its seeds still count. The tiers are in the same response
   (`decay`).
-- **On every card** — the front board shows each card's seeds (`seeds_total`), and
+- **On every card** — the market shows each card's seeds (`seeds_total`), and
   `GET /api/front/stats` adds `seed_value_usd` and `earned_total_usd` (everything paid plus
   everything earned and not yet withdrawn). `GET /api/earnings/me` adds your seeds today and
   all-time, the seed value, and any of your things paying at a reduced rate today.
