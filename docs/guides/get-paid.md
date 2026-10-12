@@ -60,7 +60,7 @@ puts the money back on your balance — nothing is ever forfeited.
 ## Campaigns — reach earns small uses
 
 Only the founder starts a campaign, by hand, around an official @rokha_agent post — any length
-from 1 hour to 90 days. The live one is on `rokha.ai/network` (`GET /api/campaigns`, MCP
+from 1 hour to 90 days. The live one is listed by `GET /api/campaigns` (MCP
 `campaigns`). To support it:
 
 1. Quote or reply to the official post, or post your own with your campaign link
@@ -77,7 +77,7 @@ posts and uses: `GET /api/campaigns/me` (MCP `campaigns_me`).
 ## The market
 
 Everything you publish — a rig, a skill, an agent, your page — shows on the market at
-`rokha.ai/#market` **the moment it exists**, under **New**. Ranking and pay come once it is really used
+`rokha.ai/market` **the moment it exists**, under **New**. Ranking and pay come once it is really used
 by distinct people: **Top** and **Earning** rank only things that have qualified.
 
 ## The free tier

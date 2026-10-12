@@ -19,7 +19,7 @@ Ask Rokha *"how do I earn?"* on rokha.ai and she walks you through it live.
    They need **no Rokha page** — signing in is enough. Link + tally (signed up → ran →
    bought): the profile's **Share & earn** card, `GET /api/referrals/me`.
 
-Everything you publish shows on the market at `rokha.ai/#market` the moment it exists, under
+Everything you publish shows on the market at `rokha.ai/market` the moment it exists, under
 **New**; ranking and pay come once it is really used by distinct people. One thing Rokha sells:
 the **Studio**, $249 a month (card or USDC). No license sale, rent-to-own or trials. **Rank on
 the market is earned** from what distinct others do with your work — no payment moves it.
@@ -32,7 +32,7 @@ Promoters earn the same way builders do — by use — plus small uses for real 
   **run something** (a sign-in alone counts nothing): 5 uses for their first run, 1 for each
   run after, for 90 days from arrival.
 - **Campaigns** — only the founder starts one, by hand, around an official @rokha_agent
-  post, for anywhere from 1 hour to 90 days; the live one is on `rokha.ai/network`. Support
+  post, for anywhere from 1 hour to 90 days; the live one is listed by `GET /api/campaigns` (MCP `campaigns`). Support
   it with a claimed page: quote or reply to the official post, or post your own with your
   campaign link (`rokha.ai/?ref=<handle>&c=<campaign_id>`) → submit the post (Share & earn
   card, or `campaign_support`). Its organic reach earns small uses — each distinct replier or
