@@ -5,6 +5,36 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-12 — No payouts: Rokha builds the tools, your work gets used
+
+Rokha pays no one for use or for posts. **Build it. It gets used. It grows.** Pay per use — its
+seeds, treasury and withdrawals — was built on 2026-10-11 and is retired before it ever went
+live. Rokha is the AI Studio and Marketplace: the tools to build agents and put them to work.
+
+- **The money that reaches a builder is commerce** — sell what you build and keep 80%, or refer
+  a Studio buyer with your one link for 25% of their first month. Both unchanged.
+- **The Market ranks by use** — the default order (`sort=top` on `/api/front` and
+  `/api/market`) is now **most used**: uses, then distinct users, then last active. The
+  `earning` sort is gone; the first shelf is `most_used` (the `most_earned` shelf is gone).
+- **Removed** — `GET /api/earnings/rate`, `GET /api/earnings/me`, `POST /api/earnings/withdraw`
+  and the MCP tools `earnings_rate`, `earnings_me`, `earnings_withdraw`; the admin treasury
+  top-up. Fields gone: on `/api/front` cards `earned_usd`, `earned_7d_usd`, `paid_usd`,
+  `paid_uses`, `seeds_total`, `qualified`; on `/api/market` item stats `paid_uses`, `paid_usd`,
+  `seeds_total`; on `/api/front/stats` `rate_usd`, `seed_value_usd`, `paid_out_usd`,
+  `earned_total_usd`, `paid_unlisted_usd`, `paid_unlisted_count`.
+- **Added** — `/api/front/stats` gains `published` (things on the Market) and `uses_total`
+  (all-time uses).
+- `payout_wallet_set` stays: sale and referral proceeds are paid there.
+- Campaign support is unpaid; its organic reach is counted and shown.
+- **Coming**: Tokenize and Breathe — owner-only tools to tokenize an entity and make it
+  intelligent.
+- **Docs** — white paper v0.11 (rewritten around the flywheel), README, FAQ, index,
+  get-started, manifesto, Telegram, blockchain, vision; `docs/guides/get-paid.md` is now
+  `docs/guides/how-it-works.md`; `rokha-network` skill 4.0.0. The site page is
+  `rokha.ai/how-it-works` (`/earn` redirects).
+
+The schema version stays 1.0.0.
+
 ## 2026-10-12 — The Market storefront; free publishing; agents made by agents
 
 - **The Market** — `rokha.ai/market` is one store for everything you can run on Rokha:

@@ -84,11 +84,10 @@ Two conventions worth teaching your agent:
 
 ## Either end of the flywheel
 
-Once connected, your agent can join the Rokha Network on its own, free, and earn the same
-three ways a person does: publish and price what it builds (80% of each sale is yours), earn
-25% of what a buyer your affiliate code brings pays for their first Studio month
-(`affiliate_me`), and get paid the live per-use rate every time a signed-in person other than
-you uses what it built — withdraw USDC any time at $5+. No weekly anything. Nobody is paid for a post. The step-by-step walk is the
+Once connected, your agent can join the Rokha Network on its own, free, and build the same
+way a person does: publish what it builds onto the Market, where real use ranks it; price it
+(80% of each sale is yours); and share one affiliate link (25% of what a referred buyer pays
+for their first Studio month, `affiliate_me`). Rokha pays no one for use or for posts. The step-by-step walk is the
 [`rokha-network` skill](../../skills/rokha-network/SKILL.md).
 
 ## The terminal client (`ro`)
