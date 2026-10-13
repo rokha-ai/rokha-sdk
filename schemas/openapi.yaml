@@ -4416,7 +4416,7 @@ paths:
         - { name: aisle, in: query, required: false, schema: { type: string, enum: [all, rig, skill, mcp, agent, builder, marketer], default: all } }
         - { name: dept, in: query, required: false, schema: { type: string, enum: [all, trading, social, media, research, dev, data, fun], default: all } }
         - { name: source, in: query, required: false, schema: { type: string, enum: [all, rokha, registry], default: all } }
-        - { name: sort, in: query, required: false, schema: { type: string, enum: [top, live, new], default: top } }
+        - { name: sort, in: query, required: false, schema: { type: string, enum: [popular, top, live, new], default: popular }, description: "popular = one order across Rokha and the open registry (installs, stars, uses on Rokha); top = most used on Rokha" }
         - { name: price, in: query, required: false, schema: { type: string, enum: [any, free, paid], default: any }, description: "paid = an active creator product" }
         - { name: proven, in: query, required: false, schema: { type: string, enum: ['1', '0', 'true', 'false'], default: '0' } }
         - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 48, default: 24 } }

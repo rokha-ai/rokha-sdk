@@ -47,7 +47,7 @@ Solana wallet your creator-sale and referral proceeds are paid to (`""` clears i
 
 ## 4. The Market
 
-`market_search {q?, aisle?: all|rig|skill|mcp|agent|builder|marketer, dept?: all|trading|social|media|research|dev|data|fun, source?: all|rokha|registry, sort?: top|live|new, price?: any|free|paid, proven?, limit?: 1–48, cursor?}`
+`market_search {q?, aisle?: all|rig|skill|mcp|agent|builder|marketer, dept?: all|trading|social|media|research|dev|data|fun, source?: all|rokha|registry, sort?: popular|top|live|new, price?: any|free|paid, proven?, limit?: 1–48, cursor?}`
 (public; `rokha.ai/market`; `GET /api/market`, shelves at `GET /api/market/shelves`) — one store
 for everything you can run on Rokha: Rokha-native rigs, skills, MCP servers, agents, builders and
 marketers first, then the whole open registry. Page with the previous page's `next_cursor`.

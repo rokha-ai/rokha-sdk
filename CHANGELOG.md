@@ -5,6 +5,17 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-13 — The Market is one grid, popular first
+
+- **`GET /api/market` and `market_search` gain `sort=popular`, the new default** — one order
+  across Rokha and the open registry: a listing by its installs then stars, a Rokha thing by its
+  uses here (installs where it carries them); a tie goes to Rokha; proven is a filter, never a
+  rank. `sort=top` is unchanged and still means **most used on Rokha** (uses, distinct users,
+  last active); `live` and `new` are unchanged. A `popular` page has its own cursor shape —
+  start a page without a cursor from another sort.
+- rokha.ai/market shows one grid with every filter (what it is · what it's for · source ·
+  price · proven · sort) instead of lanes; every state is still a URL.
+
 ## 2026-10-12 — No payouts: Rokha builds the tools, your work gets used
 
 Rokha pays no one for use or for posts. **Build it. It gets used. It grows.** Pay per use — its
