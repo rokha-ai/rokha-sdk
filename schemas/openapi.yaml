@@ -6218,7 +6218,8 @@ components:
       type: object
       required: [published, uses_total, uses_24h, live_now, builders, generated_at]
       properties:
-        published: { type: integer, description: "Published things on the market (rigs, skills, agents, MCP servers) — every non-page card" }
+        published: { type: integer, description: "Rokha-native published things (rigs, skills, agents) — every non-page card" }
+        on_market: { type: integer, nullable: true, description: "The whole Market — published things plus every open-registry listing; the same total GET /api/market answers unfiltered. Null while the registry is unread, never 0." }
         uses_total: { type: integer, description: "Uses of published things, all time" }
         uses_24h: { type: integer }
         registered_users: { type: integer, description: Active registered accounts. }

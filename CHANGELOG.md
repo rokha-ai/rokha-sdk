@@ -13,6 +13,9 @@ face of Rokha; the wire contract it depends on is
   rank. `sort=top` is unchanged and still means **most used on Rokha** (uses, distinct users,
   last active); `live` and `new` are unchanged. A `popular` page has its own cursor shape —
   start a page without a cursor from another sort.
+- **`GET /api/front/stats` gains `on_market`** — the whole Market (Rokha's published things plus
+  every open-registry listing, the same total `/api/market` answers unfiltered); `published` stays
+  the Rokha-native count. The landing's Published reading shows `on_market`.
 - rokha.ai/market shows one grid with every filter (what it is · what it's for · source ·
   price · proven · sort) instead of lanes; every state is still a URL.
 
