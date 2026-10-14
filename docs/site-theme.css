@@ -1,0 +1,185 @@
+/* ─────────────────────────────────────────────────────────────
+   THE MANUAL WORLD — two renditions, one sheet.
+   Tokens mirror svc/hecate/src/assets/styles/_manual.scss ($themes)
+   so docs.rokha.ai and rokha.ai are one surface: daylight on :root,
+   night when the visitor's OS is dark (unless they pinned light) or
+   they chose dark. site-theme.js owns the data-manual-theme attribute
+   and draws the System / Light / Dark switch into [data-site-theme].
+   Daylight values are the frozen ones — never retune them here.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --paper:       #fafbfd;
+  --panel:       #ffffff;
+  --ink:         #10161f;
+  --ink-soft:    #46515f;
+  --ink-faint:   #6a7684;
+  --ink-muted:   #5c6775;
+  --rule:        #d9dfe8;
+  --rule-strong: #b7c1cd;
+  --rule-ui:     #7d8896;
+
+  /* Colour only ever MEANS something. */
+  --live:        #0b7fa8;   /* live / active / a working door */
+  --live-ink:    #086a8d;   /* live as text on its own wash */
+  --live-fill:   #82def8;   /* the app's own ice-cyan */
+  --live-wash:   #eaf7fd;
+  --live-deep:   #0a6f93;   /* a solid live control, pressed */
+  --live-rgb:    11,127,168;
+  --pass:        #1e7a52;   /* passed / verified */
+  --pass-fill:   #96d4b8;
+  --fail:        #b23a3a;   /* errors only */
+  --warn:        #8a5a12;
+  --warn-fill:   #f4dfae;
+  --warn-wash:   #fdf6e7;
+  --ember:       #b4541e;
+  --ember-rgb:   180,84,30;
+  --raised:      #e8eef6;   /* a surface above the panel */
+  --code-bg:     #eef1f6;
+  --on-fill:     #10161f;   /* ink on a bright fill */
+  --on-live:     #ffffff;   /* ink on a solid --live control */
+  --cockpit:     #0a0a14;   /* a window into the app — the app's own ground */
+  --cockpit-ink: #c9d4e2;
+  --mast-bg:     rgba(250,251,253,.92);
+  --shadow-rgb:  16,22,31;
+
+  --face:  'B612', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:  'B612 Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --wrap: 1120px;
+  --measure: 68ch;
+  --ease: cubic-bezier(.16,1,.3,1);
+
+  color-scheme: light;
+  accent-color: var(--live);
+}
+
+/* ── night: the OS says so and nobody pinned daylight ─────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-manual-theme="light"]) {
+    --paper:       #0b0f14;
+    --panel:       #111820;
+    --ink:         #e8edf3;
+    --ink-soft:    #b3bfcc;
+    --ink-faint:   #8e9bab;
+    --ink-muted:   #9ba7b5;
+    --rule:        #1f2832;
+    --rule-strong: #2e3a47;
+    --rule-ui:     #677689;
+    --live:        #4cc3ec;
+    --live-ink:    #82def8;
+    --live-fill:   #82def8;
+    --live-wash:   rgba(130,222,248,.09);
+    --live-deep:   #6fd3f2;
+    --live-rgb:    76,195,236;
+    --pass:        #5ed39b;
+    --pass-fill:   #1f5a41;
+    --fail:        #ff8a8a;
+    --warn:        #f1b75e;
+    --warn-fill:   #4a3714;
+    --warn-wash:   #241d10;
+    --ember:       #e8915c;
+    --ember-rgb:   232,145,92;
+    --raised:      #16202b;
+    --code-bg:     #16202b;
+    --on-fill:     #0b0f14;
+    --on-live:     #0b0f14;
+    --cockpit:     #05060c;
+    --cockpit-ink: #c9d4e2;
+    --mast-bg:     rgba(11,15,20,.88);
+    --shadow-rgb:  0,0,0;
+    color-scheme: dark;
+  }
+}
+
+/* ── night: chosen with the switch ─────────────────────────── */
+:root[data-manual-theme="dark"] {
+  --paper:       #0b0f14;
+  --panel:       #111820;
+  --ink:         #e8edf3;
+  --ink-soft:    #b3bfcc;
+  --ink-faint:   #8e9bab;
+  --ink-muted:   #9ba7b5;
+  --rule:        #1f2832;
+  --rule-strong: #2e3a47;
+  --rule-ui:     #677689;
+  --live:        #4cc3ec;
+  --live-ink:    #82def8;
+  --live-fill:   #82def8;
+  --live-wash:   rgba(130,222,248,.09);
+  --live-deep:   #6fd3f2;
+  --live-rgb:    76,195,236;
+  --pass:        #5ed39b;
+  --pass-fill:   #1f5a41;
+  --fail:        #ff8a8a;
+  --warn:        #f1b75e;
+  --warn-fill:   #4a3714;
+  --warn-wash:   #241d10;
+  --ember:       #e8915c;
+  --ember-rgb:   232,145,92;
+  --raised:      #16202b;
+  --code-bg:     #16202b;
+  --on-fill:     #0b0f14;
+  --on-live:     #0b0f14;
+  --cockpit:     #05060c;
+  --cockpit-ink: #c9d4e2;
+  --mast-bg:     rgba(11,15,20,.88);
+  --shadow-rgb:  0,0,0;
+  color-scheme: dark;
+}
+
+/* ── the older pages' vocabulary, spoken in the manual's tokens ──
+   get-started · install · identity · your-page · leaderboard ·
+   telegram-bot · blockchain · manifesto · vision · faq · terms kept
+   their own token names; they now resolve to the same two renditions. */
+:root {
+  --void:        var(--paper);
+  --panel-2:     var(--raised);
+  --line:        var(--rule);
+  --ice:         var(--live);
+  --ice-deep:    var(--live-ink);
+  --ice-dim:     var(--rule-ui);
+  --silver:      var(--ink);
+  --muted:       var(--ink-soft);
+  --faint:       var(--ink-faint);
+  --xblack:      var(--ink);
+  --deny:        var(--fail);
+  --warm:        var(--ember);
+  --warm-deep:   var(--ember);
+  --warm-dim:    var(--rule-ui);
+  --warm-soft:   rgba(var(--ember-rgb), .08);
+  --glow:        0 0 0 1px rgba(var(--live-rgb), .14), 0 6px 24px -12px rgba(var(--live-rgb), .4);
+  --sans:        var(--face);
+
+  --bg:          var(--paper);
+  --bg-elev:     var(--panel);
+  --fg:          var(--ink);
+  --fg-muted:    var(--ink-soft);
+  --primary:     var(--live);
+  --secondary:   var(--live-ink);
+  --accent:      var(--pass);
+  --border:      var(--rule-strong);
+  --border-soft: var(--rule);
+}
+
+/* ── the switch: three glyphs in one hairline capsule (site-nav parity) ── */
+.site-theme {
+  display: inline-flex; align-items: center; gap: 2px; padding: 2px;
+  border: 1px solid var(--rule-strong); border-radius: 999px; flex: none;
+}
+.site-theme button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; padding: 0; margin: 0;
+  background: transparent; border: 0; border-radius: 999px;
+  color: var(--ink-faint); cursor: pointer; font: inherit;
+  transition: color 140ms ease-out, background 140ms ease-out;
+}
+.site-theme button svg { width: 15px; height: 15px; display: block; }
+.site-theme button:hover { color: var(--ink); }
+.site-theme button:focus-visible { outline: 2px solid var(--live); outline-offset: 1px; }
+.site-theme button[aria-checked="true"] { background: rgba(130,222,248,.22); color: var(--live-ink); }
+
+/* ── the older pages' bar on a phone: the brand stays one line, the rest wraps ── */
+@media (max-width: 620px) {
+  html .bar .wrap { height: auto; min-height: 56px; flex-wrap: wrap; padding-block: 10px; row-gap: 8px; }
+  html .bar .brand { white-space: nowrap; }
+}

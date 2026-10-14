@@ -5,6 +5,15 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-14 — docs.rokha.ai in two renditions
+
+The developer site now wears the same daylight and night renditions as rokha.ai: one shared
+`docs/site-theme.css` carries the manual tokens (`_manual.scss`), every page follows the
+visitor's OS setting, and the masthead's System / Light / Dark switch (`docs/site-theme.js`,
+saved in the browser as `rokha_site_theme`) pins a choice. The older pages (get started,
+install, identity, your page, leaderboard, Telegram, blockchain, manifesto, vision, FAQ, terms)
+now speak the manual's palette and faces too. No API change.
+
 ## 2026-10-12 — No payouts: Rokha builds the tools, your work gets used
 
 Rokha pays no one for use or for posts. **Build it. It gets used. It grows.** Pay per use — its
