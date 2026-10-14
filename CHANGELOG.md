@@ -52,6 +52,29 @@ a deployment (`EDGE_ENABLED`): while it is off, every `/api/edge/*` door answers
   title?, headers?}` and `edge_feed_save {spec, enable?}`. Documented in
   `skills/rokha-network/SKILL.md` § 10.
 
+Also on 2026-10-14 — the founder's calls, every public doc aligned:
+
+- **Studio or Free — no named plans.** An account has Studio access or it does not. The one thing
+  sold is the Studio at $249 a month (card or USDC). Docs no longer name retired tiers, licenses
+  or trials, and no longer explain what happened to them.
+- **Caps as the server enforces them.** Free: ~15 questions a day with Rokha (a streak grows it
+  to 2×), 3 free runs a day (with or without an account), 5 rigs · 2 MCP listings · 1 agent per
+  account, no schedules. Studio: no publish caps, 100 schedules, 300 runs a day, own keys
+  unmetered. (Older docs said two free runs and 50 rigs / 10 agents / 10 MCP / 20 schedules.)
+- **The Object Page.** Every Market listing has a full page at
+  `rokha.ai/market/:kind/:provider/<external_id>` (kind `rig` | `skill` | `mcp`; read door
+  `GET /api/market/object/:kind/:provider/*external_id`). The old `/registry/<uuid>` view is
+  retired (old links still resolve); docs point at the object page or `rokha.ai/market?q=`.
+  **Connect** / **Run it** on a card open the Studio (`/studio?connect=` / `?run=`), where
+  Rokha builds a base rig on that listing. `/api/marketplace/registry*` doors are unchanged.
+- **Awaken.** "Give it life" reads as **Awaken** — give any Market thing an agent (an agentic
+  interface that knows what it is made of, runs its own tools, talks to whoever stops by).
+  **Tokenize** is a separate owner tool, not part of the awaken story.
+- A credit-spending action rides a click, never an arrival: `/studio?remix=1` does nothing;
+  Remix, Run it and Connect are buttons.
+- `skills/rokha-network` 4.1.1 and `skills/rokha-audit` 0.1.1 carry the same lines; the white
+  paper is v0.12 (2026-10-14).
+
 The schema version stays 1.0.0.
 
 ## 2026-10-13 — The Market is one grid, popular first
