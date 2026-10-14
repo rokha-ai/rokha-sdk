@@ -27,11 +27,17 @@ and in buyers.
    page** — signing in is enough. Your link and its tally (signed up → ran → bought):
    `GET /api/referrals/me` (MCP `referrals_me`; `affiliate_me` still answers).
 6. **Awaken it.** Anything on the Market can be awakened — given an agent: an agentic interface
-   that knows what the thing is made of, runs its own tools, and talks to whoever stops by. The
-   owner does it from the listing's entity card ($15: $5 burned in $ROKHA, $5 to Rokha, $5 back
-   as credits for your agents). **Tokenize** is a separate owner tool on the same card — a token
-   on a third-party Solana launchpad, signed from your own wallet, same $15; Rokha takes no
-   trading fees and does not endorse any token.
+   that knows what the thing is made of, runs its own tools, and talks to whoever stops by. It is
+   the same pipeline as **Create an agent** — a Forge agent created from the thing and bound to it
+   (the Forge at `rokha.ai/agents/new?awaken=<kind>/<id>`; over the API `POST /api/agents/mine`
+   with `awakens: {kind, id}`, pre-filled by `GET /api/entities/<kind>/<id>/agent/plan`). **$10
+   one time**, card, USDC or $ROKHA: half of a USDC or $ROKHA payment burns $ROKHA and half goes to
+   the House; a card pays the House. **No credits** — your agent answers on its own free allowance
+   every day (about 15 short answers on the house model), then on your keys; visitors chat on their
+   own free tier, never your meter. A plain Create an agent (no Market thing behind it) is free: 1 on
+   a Free account, the Studio lifts it. **Tokenize** is a separate owner tool on the same card — a
+   token on a third-party Solana launchpad, signed from your own wallet, $15 on the same half-burn
+   split, no credits; Rokha takes no trading fees and does not endorse any token.
 
 Sale and referral proceeds go to your payout wallet (Profile → Connections → Payout, or MCP
 `payout_wallet_set`).

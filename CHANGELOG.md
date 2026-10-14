@@ -5,6 +5,44 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Unreleased — 2026-10-14 — Awaken = create an agent: one pipeline, $10, no credits
+
+Awakening a Market thing is creating a Forge agent **from** it, **bound** to it — the same
+create door, the same body, the same guards as a plain agent. There is no second agent shape.
+
+- **`POST /api/agents/mine`** (`AgentCreate`, MCP `agent_create`) gains ONE optional field,
+  **`awakens: {kind, id} | null`**. Plain (absent/null) = today's free agent (1 on a Free account,
+  the Studio lifts it). With `awakens` the server re-checks the caller owns the thing (House-owned
+  and adopted copies refused), needs a `ready` fee for `(purpose: agent, kind, id)` — else
+  **402 `fee_not_paid`** with `doors.pay` + `doors.page` — then creates the agent, writes the
+  binding and consumes the fee in one transaction. The answer adds `awakens`, `agent {id, handle,
+  url, chat}`, `tools` and `who_pays`. `POST /api/entities/{kind}/{id}/agent` and MCP
+  `entity_add_agent` stay as thin twins that fill `awakens` from the path.
+- **`GET /api/entities/{kind}/{id}/agent/plan`** (`AwakenPlan`, public, optional bearer) — the Forge
+  args pre-filled from the thing (handle, the persona with its fenced `⟦entity-data⟧` block, the
+  rigs/skills it is made of) plus `awakens`, `fee`, `quote`, `can_awaken`, `reason`, `who_pays`,
+  `agent`, `doors`. The Forge loads it at `/agents/new?awaken=<kind>/<id>`; `GET …/agent/preflight`
+  and MCP `entity_agent_preflight` answer the same shape for the owner.
+- **The fee** (`POST /api/entities/{kind}/{id}/fee {purpose, rail}`, `EntityFeeOpen` →
+  `EntityFeeOpened`): **awaken is $10 one time** (`purpose: agent`); Tokenize stays $15
+  (`purpose: tokenize`). Rails `card` (new — a hosted Stripe Checkout; answers `{fee_id, rail,
+  checkout_url, status, fee, pay}`, turns `ready` when the processor confirms it, `{mode: "mock"}`
+  with no processor configured), `usdc_wallet`, `rokha_wallet`, `rokha_tank`. **On the three crypto
+  rails half burns as $ROKHA and half goes to the House; a card pays the House in full.**
+  **No credits** on either purpose or any rail: the fee json's `credits` is `null` and `split` is
+  `{burn_usd, house_usd}` only. New reads `GET /api/entity-fees/{fee_id}` (poll a card checkout
+  here) and `GET /api/entity-fees/mine`; `EntityFee` carries `stripe_session_id` on a card.
+  (Replaces the 2026-10-12 "$15 — $5 burned, $5 House, $5 credits" shape for the agent half.)
+- **Every Forge agent has its own free tier** (awakened or plain): a daily allowance on the house
+  model (`ROKHA_AGENT_FREE_DAILY_UNITS`, 10,000 units ≈ 15 short answers a day), then the owner's
+  keys for the turn's model, then the visitor's own meter or keys — never the owner's meter — then
+  one honest line ("This agent has used its free allowance for today and its owner has not added
+  keys yet — try again tomorrow or ask the owner.").
+- Copy: **Awaken**, never "Add an agent"; the `entities` tag, the agent/fee doors, `how-it-works.md`,
+  the FAQ, the index, the white paper (v0.13) and `skills/rokha-network` 4.1.2 say the same thing.
+
+The schema version stays 1.0.0.
+
 ## Unreleased — 2026-10-14 — The Object Page: every Market thing has a full page
 
 - **`GET /api/market/object/{kind}/{provider}/{external_id}`** (`MarketObject`) — one read for any
@@ -132,6 +170,8 @@ live. Rokha is the AI Studio and Marketplace: the tools to build agents and put 
 - **Give it life**: every listing gets a public entity card. Owners can **Add an agent** to
   anything they build, or **Tokenize** it on a third-party Solana launchpad from their own wallet.
   $15 each — $5 burned, $5 to Rokha, $5 back as credits for your agents. No trading fees.
+  *(Superseded 2026-10-14: Add an agent is **Awaken**, $10, half burns on a crypto rail, no credits —
+  see the Awaken block above; Tokenize keeps $15 on the same half-burn split.)*
 - **Docs** — white paper v0.11 (rewritten around the flywheel), README, FAQ, index,
   get-started, manifesto, Telegram, blockchain, vision; `docs/guides/get-paid.md` is now
   `docs/guides/how-it-works.md`; `rokha-network` skill 4.0.0. The site page is

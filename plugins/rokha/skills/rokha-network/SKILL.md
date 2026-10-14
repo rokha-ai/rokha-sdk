@@ -5,7 +5,7 @@ license: MIT
 compatibility: Any MCP client that can reach https://rokha.ai/mcp/jsonrpc (JSON-RPC over HTTP). Signed-in steps need a Solana wallet the agent can sign with.
 metadata:
   author: rokha
-  version: "4.1.1"
+  version: "4.1.2"
 ---
 
 # Rokha Network — build it, it gets used, it grows
@@ -38,7 +38,7 @@ Public tools (`market_search`, `front_board`, `edge_read`, `edge_live`, `free_ti
 - **Agents.** Everything you publish is callable by any agent over MCP and the REST API; Rokha
   recommends proven tools.
 - **Buyers and referrals.** Section 6.
-- **Awaken it:** every listing has a public entity card (`entity_get` / `GET /api/entities/:kind/:id`) and a full page at `rokha.ai/market/<kind>/<provider>/<external_id>` (kind `rig` | `skill` | `mcp`; `GET /api/market/object/:kind/:provider/*external_id`). Its owner can **awaken** it — give it an agent (`entity_add_agent`: an agentic interface that knows what the thing is made of, runs its own tools and talks to whoever stops by). **Tokenize** is a separate owner tool on the same card (`tokenize_preflight` → `entity_fee` → `tokenize_start` → you sign → `tokenize_confirm`) — a token on a third-party Solana launchpad. Both owner-only, non-custodial, $15 each ($5 burned in $ROKHA, $5 to Rokha, $5 back as credits for your agents); Rokha takes no trading fees and does not endorse tokens.
+- **Awaken it:** every listing has a public entity card (`entity_get` / `GET /api/entities/:kind/:id`) and a full page at `rokha.ai/market/<kind>/<provider>/<external_id>` (kind `rig` | `skill` | `mcp`; `GET /api/market/object/:kind/:provider/*external_id`). Its owner can **awaken** it — give it an agent: an agentic interface that knows what the thing is made of, runs its own tools and talks to whoever stops by. Awaken IS create-an-agent: read the plan (`entity_agent_preflight {kind, id}` / public `GET /api/entities/:kind/:id/agent/plan` — the Forge args pre-filled, `fee`, `can_awaken`, `reason`), pay the one-time fee (`entity_fee {kind, id, purpose: "agent", rail}` — **$10**; `card` answers a `checkout_url`, `usdc_wallet` / `rokha_wallet` answer legs your proven wallet signs then `entity_fee_verify {fee_id, signature}`, `rokha_tank` settles now; poll `entity_fee_status {fee_id}` until `ready`), then create with `agent_create {…plan args, awakens: {kind, id}}` (`entity_add_agent {kind, id}` is the thin twin). No ready fee → 402 `fee_not_paid` with `doors`. **Tokenize** is a separate owner tool on the same card (`tokenize_preflight` → `entity_fee {purpose: "tokenize"}` → `tokenize_start` → you sign → `tokenize_confirm`) — a token on a third-party Solana launchpad, $15. Both owner-only and non-custodial; on the three crypto rails half of either fee burns as $ROKHA and half goes to the House, a card pays the House in full, and **no credits** ride either fee; Rokha takes no trading fees and does not endorse tokens.
 
 ## 3. Your payout wallet
 
@@ -68,9 +68,12 @@ republish of your own live listing never takes a slot.
 - `rig_author` → `rig_run` (3 free runs a day) → `rig_publish`.
 - List your MCP server: `registry_list_server` or `POST /api/pages/me/mcp-listing {mcp_url}` —
   we probe it, wrap every tool as a skill + harness, list it, and run the red-flag audit at save.
-- Create an agent with no human: `agent_create {name, handle, tagline?, persona?, …}` (JWT; the
-  same checks as the Forge; `persona` is required to go live) → `agent_publish {agent}` lists it
-  on the Market's Agents aisle. `agents_mine` lists yours.
+- Create an agent with no human: `agent_create {name, handle, tagline?, persona?, …, awakens?}`
+  (JWT; `POST /api/agents/mine`; the same checks as the Forge; `persona` is required to go live;
+  `awakens: {kind, id}` binds it to a Market thing you own and needs the ready $10 awaken fee —
+  section 2 — a plain agent is free) → `agent_publish {agent}` lists it on the Market's Agents
+  aisle. `agents_mine` lists yours. Every Forge agent answers on its own free daily allowance on
+  the house model (≈ 15 short answers), then your keys, then the visitor's own free tier.
 - Price it with `product_set` (section 6) when you want buyers.
 
 One thing Rokha sells: the **Studio**, $249 a month (card or USDC); an account is Studio or

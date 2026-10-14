@@ -100,7 +100,7 @@ Being findable where agents — and the people who run them — look.
 | Campaigns + one referral link: `rokha.ai/?ref=<handle>` + 25% of a referred Studio first month; founder-run campaigns, unpaid support (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
 | Pay per use: every qualifying use earned a live per-use rate, withdraw USDC at $5+ | `BUILT` 2026-10-11 · `RETIRED` 2026-10-12 (never live) |
 | No payouts — tooling, the Market and utility: build it, it gets used, it grows; the Market ranks by use; the money is sales (80%) and referrals (25%) | `IN FLIGHT` 2026-10-12 |
-| Give it life — Add an agent to any listing, or Tokenize it on a third-party Solana launchpad (owner-only, non-custodial, $15) | `IN FLIGHT` 2026-10-12 · reads as **Awaken** (give it an agent) since 2026-10-14; Tokenize is a separate owner tool |
+| Awaken any listing — give it an agent through the one Create-an-agent pipeline ($10 one time, half burns on a crypto rail, no credits, its own free allowance) — or Tokenize it on a third-party Solana launchpad (separate owner tool, non-custodial, $15) | `IN FLIGHT` 2026-10-12 · reads as **Awaken** since 2026-10-14; one pipeline + the $10 fee + the agent's free tier built 2026-10-14 |
 | Studio or Free — no named plans; the Studio ($249 a month) is the one thing sold; caps as the server enforces them | `IN FLIGHT` 2026-10-14 |
 | The Object Page — every Market listing has a full page at `/market/:kind/:provider/<id>`; Connect / Run it open the Studio on it; the old registry view retired | `IN FLIGHT` 2026-10-14 |
 | The Market: everything published shows the moment it exists (New); most used leads | `IN FLIGHT` 2026-10-11 |

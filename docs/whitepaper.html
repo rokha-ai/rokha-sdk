@@ -225,7 +225,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
 <main>
 
 <div class="wrap papertop">
-  <p class="label">White paper · v0.12</p>
+  <p class="label">White paper · v0.13</p>
   <h1>Build it. It gets used. It grows.</h1>
   <p class="abstract">
     Rokha is the AI Studio and Marketplace &mdash; the tools to build agents and put them to work, in a
@@ -301,7 +301,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
     <li><b>Grow.</b> Use moves you up the Market; proof brings agents and people back; a price turns them
       into buyers (80% yours); your link turns the people you bring into referrals (25% of a first Studio
       month).</li>
-    <li><b>Awaken.</b> Anything on the Market can be awakened &mdash; given an agent: an agentic interface that knows what the thing is made of, runs its own tools and talks to whoever stops by. Its owner does it from the listing's entity card, for $15: $5 is burned in $ROKHA, $5 goes to Rokha, $5 returns as credits for the owner's agents. <b>Tokenize</b> is a separate owner tool on the same card &mdash; a token on a third-party Solana launchpad, signed from the owner's own wallet, same $15. Rokha writes no smart contracts, takes no trading fees and endorses no token.</li>
+    <li><b>Awaken.</b> Anything on the Market can be awakened &mdash; given an agent: an agentic interface that knows what the thing is made of, runs its own tools and talks to whoever stops by. It is the same pipeline as creating an agent: a Forge agent created from the thing and bound to it (<code>POST /api/agents/mine</code> with <code>awakens</code>, pre-filled by the plan door <code>GET /api/entities/&lt;kind&gt;/&lt;id&gt;/agent/plan</code>). $10 one time, by card, USDC or $ROKHA: half of a USDC or $ROKHA payment burns $ROKHA and half goes to the House; a card pays the House. No credits ride it &mdash; every Forge agent answers on its own free daily allowance on the house model, then on its owner's keys, then on the visitor's own free tier, never the owner's meter; a plain agent with no Market thing behind it is free. <b>Tokenize</b> is a separate owner tool on the same card &mdash; a token on a third-party Solana launchpad, signed from the owner's own wallet, $15 on the same half-burn split, no credits. Rokha writes no smart contracts, takes no trading fees and endorses no token.</li>
   </ul>
 
   <h2 id="market">3. The Market</h2>
@@ -466,6 +466,7 @@ td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-spa
   <div class="tw"><table>
     <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
     <tbody>
+      <tr><td>v0.13</td><td class="num">2026-10-14</td><td>Awaken = create an agent, one pipeline: a Forge agent created from a Market thing and bound to it (<code>awakens</code> on create, the plan door). $10 one time by card, USDC or $ROKHA; half of a crypto payment burns $ROKHA, half goes to the House, a card pays the House; no credits. Every Forge agent gets its own free daily allowance before its owner's keys. Tokenize stays a separate $15 owner tool on the same split.</td></tr>
       <tr><td>v0.12</td><td class="num">2026-10-14</td><td>Studio or Free, nothing else: the one thing sold is the Studio; caps stated as the server enforces them (Free: ~15 questions, 3 runs a day, 5 rigs &middot; 2 MCP &middot; 1 agent, no schedules; Studio: no publish caps, 100 schedules, 300 runs a day). The Object Page: every Market listing has a full page at <code>/market/&lt;kind&gt;/&lt;provider&gt;/&lt;id&gt;</code>; Connect / Run it open the Studio on it. Give it life reads as Awaken (give it an agent); Tokenize is a separate owner tool.</td></tr>
       <tr><td>v0.11</td><td class="num">2026-10-12</td><td>No payouts. Rewritten around tooling, the Market and utility: build it, it gets used, it grows. Pay per use, seeds, the treasury and withdrawals retired before they went live; the Market ranks by use (most used first); the money that reaches a builder is sales (80%) and referrals (25% of a first Studio month). Give it life: Add an agent and Tokenize ship with it.</td></tr>
       <tr><td>v0.10</td><td class="num">2026-10-11</td><td>Pay per use. Every qualifying use earns the live per-use rate, set from the House runway; withdraw USDC any time at $5+. One currency, the use: runs, agent jobs, MCP calls, people your link brings, and small capped uses for a campaign post's organic reach. The market shows everything the moment it is published. Retired before it ever paid: the weekly top-10 table and the Incubation &rarr; Member &rarr; Top 10 ladder.</td></tr>
