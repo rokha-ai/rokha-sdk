@@ -5,6 +5,55 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Unreleased — 2026-10-14 — Edge: the agent world, live
+
+Edge (`rokha.ai/edge`) is the explorer of the agent world — anyone can start there and read
+what the registries list, what ships, what people are saying, and what is running on Rokha,
+every figure a count over a real ledger or a real fetch with its own `as_of`. The doors below
+are documented in `schemas/openapi.yaml` under the new `edge` tag. Edge is a posture flag on
+a deployment (`EDGE_ENABLED`): while it is off, every `/api/edge/*` door answers 404
+`not_found` and `edge_read`/`edge_live` are hidden from `tools/list` (a call answers
+`edge_closed`); `/api/live` is not gated.
+
+- **`GET /api/live`** — the live desk: `manifest`, `totals`, a per-minute + per-hour `pulse`,
+  `spokes` (one per public thing or agent with its dots), `events` (newest first; a public
+  rig's run carries a `trace_id` readable at `GET /api/traces/{id}`), `lanes` (one per
+  nameable agent, Rokha first), `sources` and `note`. Public things only; times rounded to
+  the minute, things under 3 distinct users to the hour (`coarse`); `null` = unreadable,
+  never 0. No parameters, no identity — one cached body (15 s).
+- **`GET /api/edge/world`** — the world snapshot (`generated_at`, `cache_seconds` 120,
+  `sections` = `registries` · `network_stats` · `new` · `clients` · `funnel` · `metrics` ·
+  `protocol`, each `{as_of, source, source_door, data}` or null); `?section=` for one;
+  `?format=digest` (or `section=overview|world|feeds|feed`) for the compact `{path, as_of,
+  data}` answer `edge_read` serves, `full=1` for the whole section. `registries.data` carries
+  `total_active`, `daily_window_days` (14), `daily_as_of` and per provider `new_7d` + `daily`
+  (14 UTC days, today partial; null, never 0, when the trend read failed), `stale`,
+  `attribution`. 404 `unknown_section` / `unknown_feed`; 503 `edge_unavailable`.
+- **`GET /api/edge/feeds[?id=]`** — the feed rail: every external source (npm + PyPI
+  downloads, ecosystem repos, Hacker News, X via Sorsa, …) as a served snapshot, each its
+  public spec + `as_of`, `stale`, `error`, `history_from` and `data` by type (counter ·
+  series · ranked · events · table). A caller never names a URL; 404 `unknown_feed`.
+- **`GET /api/edge/live?section=&limit=`** — the live-on-Rokha digest over `/api/live`:
+  `totals` (default) · `lanes` · `events` · `pulse` · `spokes` · `signet` · `field` (every
+  source on the wire with its 24 h total, busiest first); `limit` 1–60 (default 10). The same
+  answer as MCP `edge_live`.
+- **`GET /api/edge/field`** — `/api/live`'s shape with the world merged in front of Rokha:
+  the event kinds `listed` (new registry listings at the registry's own minute), `posted`
+  (the talk feeds) and `pushed` (repo pushes), `totals.field_24h/world_24h/<kind>_24h`, and
+  `unreadable[]` naming any source that could not be read (its sector is absent, never 0).
+- **`POST /api/admin/edge/feeds/draft {url, title?, headers?}`** (superadmin) — plug any
+  JSON API into Edge: one fetch through the pinned fetcher on the 30/day preview budget, the
+  response's SHAPE (never a value) drafts a feed spec (events · ranked · series · counter ·
+  table), answered as `{spec, type, preview, paths, notes, warnings}`; nothing is saved until
+  `POST /api/admin/edge/feeds {spec}` (saved disabled) or MCP `edge_feed_save`.
+- **MCP** — public `edge_read {section?: overview|world|registries|new|network_stats|protocol|funnel|clients|metrics|feeds|feed, id?, full?}`
+  and `edge_live {section?: totals|lanes|events|pulse|spokes|signet|field, limit?: 1–60}` on both
+  gateways (the public door and Rokha's own kit); superadmin-only `edge_feed_draft {url,
+  title?, headers?}` and `edge_feed_save {spec, enable?}`. Documented in
+  `skills/rokha-network/SKILL.md` § 10.
+
+The schema version stays 1.0.0.
+
 ## 2026-10-13 — The Market is one grid, popular first
 
 - **`GET /api/market` and `market_search` gain `sort=popular`, the new default** — one order
