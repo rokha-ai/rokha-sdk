@@ -4425,6 +4425,7 @@ paths:
         - { name: sort, in: query, required: false, schema: { type: string, enum: [popular, top, live, new], default: popular }, description: "popular = one order across Rokha and the open registry (installs, stars, uses on Rokha); top = most used on Rokha" }
         - { name: price, in: query, required: false, schema: { type: string, enum: [any, free, paid], default: any }, description: "paid = an active creator product" }
         - { name: proven, in: query, required: false, schema: { type: string, enum: ['1', '0', 'true', 'false'], default: '0' } }
+        - { name: rerank, in: query, required: false, schema: { type: string, enum: ['on', 'off'], default: 'on' }, description: "With q, the head of the page is re-scored by an OpenVINO™ cross-encoder on Intel® Xeon® (the x-rokha-rerank response header names the node when it ran); off serves the plain text-match order — the comparison knob." }
         - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 48, default: 24 } }
         - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 1024 }, description: "The previous page's next_cursor" }
       responses:

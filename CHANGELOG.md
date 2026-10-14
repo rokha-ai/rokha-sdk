@@ -5,6 +5,15 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Unreleased — 2026-10-14 — Intel inside every Market search
+
+- **`GET /api/market?q=…`** (and MCP `market_search`): the head of a text search is re-scored by an
+  OpenVINO™ cross-encoder on Intel® Xeon® — relevance first, the text-match order breaks ties.
+  Fail-open: any node trouble serves the plain order. The proof is a response header,
+  **`x-rokha-rerank: openvino; <cpu>`**, never a body field. New optional query param
+  **`rerank`** (`on` default · `off` = the plain text-match order, a comparison knob).
+  The body shape is unchanged.
+
 ## Unreleased — 2026-10-14 — Awaken = create an agent: one pipeline, $10, no credits
 
 Awakening a Market thing is creating a Forge agent **from** it, **bound** to it — the same
