@@ -170,6 +170,12 @@ live. Rokha is the AI Studio and Marketplace: the tools to build agents and put 
 - **Give it life**: every listing gets a public entity card. Owners can **Add an agent** to
   anything they build, or **Tokenize** it on a third-party Solana launchpad from their own wallet.
   $15 each — $5 burned, $5 to Rokha, $5 back as credits for your agents. No trading fees.
+  In the schema: public `GET /api/entities?owner=@handle`, `GET /api/entities/kinds`,
+  `GET /api/entities/{kind}/{id}` (schema `rokha.entity/1`) + its Markdown twin `/card.md`
+  (MCP `entity_list` / `entity_kinds` / `entity_get`), and the signed-in owner doors —
+  `entity_mine`, `entity_update`, sources, the fee (`entity_fee`, `entity_fee_status`,
+  `entity_fee_verify`), `entity_agent_preflight` / `entity_add_agent` / `entity_agent_refresh`,
+  `tokenize_preflight` / `tokenize_start` / `tokenize_confirm`.
   *(Superseded 2026-10-14: Add an agent is **Awaken**, $10, half burns on a crypto rail, no credits —
   see the Awaken block above; Tokenize keeps $15 on the same half-burn split.)*
 - **Docs** — white paper v0.11 (rewritten around the flywheel), README, FAQ, index,
