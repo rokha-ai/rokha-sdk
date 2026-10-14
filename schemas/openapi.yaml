@@ -1201,7 +1201,7 @@ paths:
         `weekly` cadence; pass the rig's UUID as
         `rig_id`; every fire is owner-scoped and draws on the owner's daily
         run budget — a spent budget skips the fire, recorded as
-        `skipped_budget`; cap 20 schedules per account), `schedule_list`
+        `skipped_budget`; free accounts hold no schedules, the Studio 100), `schedule_list`
         (cadence, enabled, next/last run, run count, last status —
         `ok` | `partial` (some steps failed) | `error` | `skipped_budget`),
         `schedule_delete`, and `schedule_pause` (`paused: true|false`) —
