@@ -5,6 +5,23 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Unreleased — 2026-10-14 — The Object Page: every Market thing has a full page
+
+- **`GET /api/market/object/{kind}/{provider}/{external_id}`** (`MarketObject`) — one read for any
+  listing on the Market: the row (full description, tags, stars/downloads, `endpoint` /
+  `protocol` / `install`, `tools` from the probe), the SAME tile `item` the grid draws, the
+  owner's builder page (`owner`), the Give-it-life card (`entity`, with `editable` for the
+  verified caller) and the `doors`: `connect` (MCP servers → `/studio?connect=<provider>%2F<id>`),
+  `run` (rigs + skills → `/studio?run=…`), `adopt` (Rokha rigs), `skill_md`, `agent_door` (the MCP
+  endpoint to paste), `homepage`, `owner_page`. `kind` ∈ rig | skill | mcp is derived server-side;
+  a page asked under the wrong kind still answers 200 with the right `canonical`. Public; an
+  optional bearer only decides `entity.editable` and lets an owner read their own private row.
+  Unknown, private, blocked or malformed → 404 `not_found`.
+- **`/api/market` tiles**: `href` is now the object page `/market/<kind>/<provider>/<external_id>`
+  (a Rokha rig with a sub-page keeps `/@handle/<slug>`; a seat or page MCP server with a page
+  keeps `/@handle`); `cta` Connect / Run it open the Studio's `?connect=` / `?run=` doors instead
+  of the retired registry view (`/registry/<uuid>` links resolve client-side to the object page).
+
 ## Unreleased — 2026-10-14 — Edge: the agent world, live
 
 Edge (`rokha.ai/edge`) is the explorer of the agent world — anyone can start there and read

@@ -4455,6 +4455,37 @@ paths:
       responses:
         '200': { description: The image, content: { image/png: {}, image/jpeg: {}, image/webp: {}, image/gif: {} } }
         '404': { description: "No such listing, or its logo is not a servable raster" }
+  /api/market/object/{kind}/{provider}/{external_id}:
+    get:
+      tags: [network]
+      summary: "The Object Page — everything the Market knows about one listing: the row, the same tile item, its tools, the owner's page, the Give-it-life card and the doors (Connect / Run it / Clone it / SKILL.md)"
+      description: |
+        Public, no auth, never cached. `kind` is derived server-side
+        (`server`, a seat or page MCP tool, or a self-listing with
+        `metadata.harness.endpoint` → mcp; a rig → rig; else skill): a
+        page asked for under the wrong kind still answers 200 — read
+        `canonical` and replace the URL. `external_id` may hold `/`
+        (encode each segment). An optional bearer is the viewer: it decides
+        `entity.editable` and lets an owner read their own private row;
+        nothing else is trusted from the request. A private row, a blocked
+        owner's row, an unknown row or a malformed id is a 404
+        (`not_found`) — never a 500. `doors.connect` / `doors.run` are the
+        Studio's `?connect=<provider>%2F<external_id>` /
+        `?run=` doors; `doors.agent_door` is the MCP endpoint an agent
+        pastes. The same `href` / `cta` shape rides every `/api/market`
+        tile: the title opens `/market/<kind>/<provider>/<external_id>`
+        (a Rokha rig with a sub-page keeps `/@handle/<slug>`, a seat or
+        page MCP server keeps `/@handle`), Connect opens the Studio connect
+        door, Run it the Studio run door, Clone it `/studio?adopt=`.
+      operationId: getMarketObject
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string, enum: [rig, skill, mcp] } }
+        - { name: provider, in: path, required: true, schema: { type: string, maxLength: 64 }, description: "registry_listings.provider_id — rokha, glama, docker_mcp, mcp_official, smithery, skills_sh, …" }
+        - { name: external_id, in: path, required: true, schema: { type: string, maxLength: 512 }, description: "The row's external_id, each segment URL-encoded" }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MarketObject' } } } }
+        '404': { description: "not_found — unknown, private, blocked or malformed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "The market could not be read — never a half object", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/front/stats:
     get:
       tags: [network]
@@ -6415,7 +6446,7 @@ components:
         title: { type: string }
         subtitle: { type: [string, 'null'], description: "Series / variant, or an MCP server's tool count" }
         handle: { type: [string, 'null'], description: "'@handle' for Rokha items; the upstream author for registry items" }
-        href: { type: string, description: "The detail page (site path)" }
+        href: { type: string, description: "The object page (site path): /market/<kind>/<provider>/<external_id>; a Rokha rig with a sub-page keeps /@handle/<slug>; an agent, builder, marketer, seat or page MCP server keeps /@handle" }
         image: { type: [string, 'null'], description: "Product art (https or a site path) — never the owner's avatar on a rig/skill/mcp/agent" }
         avatar: { type: [string, 'null'], description: "builder / marketer tiles only" }
         tagline: { type: [string, 'null'] }
@@ -6445,8 +6476,103 @@ components:
                 model: { type: string, enum: [one_time, monthly, per_run] }
                 product_id: { type: string, format: uuid }
                 runs_per_pack: { type: [integer, 'null'] }
-        cta: { type: object, properties: { label: { type: string }, href: { type: string } } }
-        cta_secondary: { oneOf: [{ type: 'null' }, { type: object, properties: { label: { type: string }, href: { type: string } } }] }
+        cta: { type: object, description: "Connect → /studio?connect=<provider>%2F<external_id> (MCP servers) · Run it → /studio?run=<provider>%2F<external_id> (rigs + skills) · agents / builders / marketers keep their own", properties: { label: { type: string }, href: { type: string } } }
+        cta_secondary: { oneOf: [{ type: 'null' }, { type: object, description: "Clone it → /studio?adopt=<external_id> (Rokha rigs) · Buy / Hire → /buy/<product_id> (priced items)", properties: { label: { type: string }, href: { type: string } } }] }
+
+    MarketObject:
+      type: object
+      description: "The Object Page's read model (GET /api/market/object/…). Never carries an owner wallet, an email or a runner identity."
+      required: [kind, provider_id, external_id, uuid, canonical, title, source, listing_type, tags, official, architect, proven, live, stats, tools, skill_md, item, doors]
+      properties:
+        kind: { type: string, enum: [rig, skill, mcp] }
+        provider_id: { type: string }
+        external_id: { type: string }
+        uuid: { type: string, format: uuid, description: "registry_listings.id" }
+        canonical: { type: string, description: "/market/<kind>/<provider>/<external_id> — replace the URL when it differs from the one asked" }
+        title: { type: string }
+        description: { type: [string, 'null'], description: "The listing's full description (≤ 8,000 chars)" }
+        author: { type: [string, 'null'], description: "The listing author (registry rows) or the owner's display name" }
+        source: { type: string, description: "'rokha', or the registry source label" }
+        listing_type: { type: string }
+        tags: { type: array, maxItems: 5, items: { type: string } }
+        image: { type: [string, 'null'], description: "The same art as the tile" }
+        homepage: { type: [string, 'null'] }
+        department: { type: [string, 'null'], enum: [trading, social, media, research, dev, data, fun, null] }
+        stars: { type: [integer, 'null'], description: "Registry rows only" }
+        downloads: { type: [integer, 'null'], description: "Registry rows only" }
+        official: { type: boolean }
+        architect: { type: boolean }
+        proven: { type: boolean }
+        live: { type: boolean }
+        stats:
+          type: object
+          properties:
+            uses_total: { type: integer }
+            users_total: { type: integer }
+            runs: { type: integer, description: "Successful runs on Rokha" }
+        price:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              properties:
+                usd: { type: number }
+                model: { type: string, enum: [one_time, monthly, per_run] }
+                product_id: { type: string, format: uuid }
+        endpoint: { type: [string, 'null'], description: "An MCP server's public https door (metadata.harness.endpoint · remote_url · remotes[0].url)" }
+        protocol: { type: [string, 'null'], enum: [mcp, a2a, http, null] }
+        install: { type: [string, 'null'], description: "The registry's install line, if any (metadata.install · the first package · the provider's installer)" }
+        tools:
+          type: array
+          maxItems: 40
+          description: "metadata.probed_tools (or a seat server's sibling tool listings)"
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              description: { type: [string, 'null'] }
+        skill_md: { type: boolean, description: "Whether /api/marketplace/registry/skill-md answers for it (skill · harness · rig rows); a priced listing's body is still withheld there" }
+        item: { $ref: '#/components/schemas/MarketItem' }
+        owner:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              description: "The owner's claimed builder page (Rokha rows)"
+              properties:
+                handle: { type: string }
+                display_name: { type: [string, 'null'] }
+                avatar_url: { type: [string, 'null'], example: "/api/pages/sage/avatar" }
+                bio: { type: [string, 'null'] }
+                links: { type: array, maxItems: 8, items: { type: object, properties: { label: { type: string }, url: { type: string } } } }
+                accent: { type: [string, 'null'], description: "A #hex colour" }
+                banner_url: { type: [string, 'null'] }
+                badge: { type: [string, 'null'], description: "The owner's chosen active badge, when set" }
+        entity:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              description: "The Give-it-life card (Rokha rows the entities resolver knows; GET /api/entities/<kind>/<id> has the whole card)"
+              properties:
+                kind: { type: string }
+                id: { type: string }
+                editable: { type: boolean, description: "The verified caller owns it" }
+                name: { type: [string, 'null'] }
+                description: { type: [string, 'null'] }
+                images: { type: array, items: { type: string } }
+                links: { type: object, additionalProperties: { type: string } }
+                tags: { type: array, items: { type: string } }
+                token: { type: [object, 'null'], description: "The confirmed token block, when tokenized" }
+                agent: { oneOf: [{ type: 'null' }, { type: object, properties: { handle: { type: string } } }] }
+        doors:
+          type: object
+          required: [agent_door]
+          properties:
+            connect: { type: [string, 'null'], description: "MCP servers: /studio?connect=<provider>%2F<external_id>" }
+            run: { type: [string, 'null'], description: "Rigs + skills: /studio?run=<provider>%2F<external_id>" }
+            adopt: { type: [string, 'null'], description: "Rokha rigs: /studio?adopt=<external_id>" }
+            skill_md: { type: [string, 'null'], description: "/api/marketplace/registry/skill-md?provider=…&slug=…" }
+            agent_door: { type: string, example: "https://rokha.ai/mcp/jsonrpc", description: "The MCP endpoint agents paste" }
+            homepage: { type: [string, 'null'] }
+            owner_page: { type: [string, 'null'], example: "/@sage" }
 
     MarketPage:
       type: object
