@@ -40,6 +40,9 @@ create door, the same body, the same guards as a plain agent. There is no second
   keys yet — try again tomorrow or ask the owner.").
 - Copy: **Awaken**, never "Add an agent"; the `entities` tag, the agent/fee doors, `how-it-works.md`,
   the FAQ, the index, the white paper (v0.13) and `skills/rokha-network` 4.1.2 say the same thing.
+- The site page `rokha.ai/how-it-works` is retired (it and `/earn` redirect to `rokha.ai`); no doc
+  links it any more — `docs/leaderboard.html` points at `rokha.ai/market`. The SDK guide
+  `docs/guides/how-it-works.md` stays.
 
 The schema version stays 1.0.0.
 
