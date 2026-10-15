@@ -11,30 +11,18 @@
 <meta property="og:url" content="https://docs.rokha.ai/get-started.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@Rokha_ai">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400&family=B612+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="./site-theme.css">
+<script src="./site-theme.js"></script>
+
 <style>
-  :root{
-    --void:#06080b; --panel:#0c1015; --panel-2:#10161d; --line:#1b2530;
-    --ice:#7fe8ff; --ice-deep:#37c6e6; --ice-dim:#3a5563;
-    --silver:#cdd8e2; --muted:#6d7f8d; --faint:#465562;
-    --live:#57e0a0; --warn:#ffcf6b; --xblack:#e9eef2;
-    --glow: 0 0 0 1px rgba(127,232,255,.12), 0 0 30px -8px rgba(55,198,230,.35);
-    --mono: ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
-    --sans: "Inter var",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  }
-  :root[data-theme="light"]{
-    --void:#eef2f5; --panel:#ffffff; --panel-2:#f4f7fa; --line:#d9e2ea;
-    --ice:#0f8fb0; --ice-deep:#0b7f9e; --ice-dim:#8bb3c1;
-    --silver:#182530; --muted:#54687a; --faint:#8698a6; --xblack:#0b0f14;
-    --glow: 0 0 0 1px rgba(15,143,176,.14), 0 6px 24px -12px rgba(11,127,158,.4);
-  }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
     margin:0; background:var(--void); color:var(--silver);
     font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased;
-    background-image:
-      radial-gradient(1100px 520px at 78% -8%, rgba(55,198,230,.10), transparent 60%),
-      radial-gradient(760px 480px at 8% 4%, rgba(127,232,255,.05), transparent 55%);
   }
   .wrap{max-width:940px; margin:0 auto; padding:0 22px}
   .mono{font-family:var(--mono)}
@@ -47,12 +35,10 @@
   .bar .wrap{display:flex; align-items:center; gap:14px; height:56px}
   .brand{font-family:var(--mono); font-weight:600; letter-spacing:.06em; color:var(--silver)}
   .brand b{color:var(--ice)}
-  .navcta{margin-left:auto; font-family:var(--mono); font-size:12px; letter-spacing:.06em;
+  .navcta{font-family:var(--mono); font-size:12px; letter-spacing:.06em;
     text-decoration:none; color:var(--void); background:linear-gradient(150deg,var(--ice),var(--ice-deep));
     padding:8px 14px; border-radius:8px; font-weight:600}
-  .theme{background:none;border:1px solid var(--line);color:var(--muted);
-    font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:7px;cursor:pointer}
-  .theme:hover{color:var(--ice);border-color:var(--ice-dim)}
+  .bar-theme{margin-left:auto}
 
   .hero{padding:78px 0 30px}
   .hero .glyphrow{display:flex;align-items:center;gap:16px;margin-bottom:26px}
@@ -152,7 +138,7 @@
 
 <div class="bar"><div class="wrap">
   <span class="brand"><b>ROKHA</b> · get started</span>
-  <button class="theme" id="tg">☾ theme</button>
+  <div class="bar-theme" data-site-theme></div>
   <a class="navcta" href="https://rokha.ai" target="_blank" rel="noopener">Create account →</a>
 </div></div>
 
@@ -330,11 +316,6 @@
 </div></footer>
 
 <script>
-  const root=document.documentElement, tg=document.getElementById('tg');
-  tg.addEventListener('click',()=>{
-    const cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
-    root.setAttribute('data-theme', cur==='dark'?'light':'dark');
-  });
   document.querySelectorAll('.minicopy').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const code=btn.parentElement.querySelector('code').textContent;

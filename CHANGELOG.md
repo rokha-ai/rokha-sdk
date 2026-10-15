@@ -209,6 +209,14 @@ The schema version stays 1.0.0.
   the Rokha-native count. The landing's Published reading shows `on_market`.
 - rokha.ai/market shows one grid with every filter (what it is · what it's for · source ·
   price · proven · sort) instead of lanes; every state is still a URL.
+## 2026-10-14 — docs.rokha.ai in two renditions
+
+The developer site now wears the same daylight and night renditions as rokha.ai: one shared
+`docs/site-theme.css` carries the manual tokens (`_manual.scss`), every page follows the
+visitor's OS setting, and the masthead's System / Light / Dark switch (`docs/site-theme.js`,
+saved in the browser as `rokha_site_theme`) pins a choice. The older pages (get started,
+install, identity, your page, leaderboard, Telegram, blockchain, manifesto, vision, FAQ, terms)
+now speak the manual's palette and faces too. No API change.
 
 ## 2026-10-12 — No payouts: Rokha builds the tools, your work gets used
 
