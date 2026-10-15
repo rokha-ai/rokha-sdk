@@ -5,6 +5,58 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Unreleased — 2026-10-14 — Trading rigs: packs, hosted stages, Rokha add-ons, the desk lab, Windsock round 2
+
+Versions stay held at 1.0.0. New doors for an agent that builds or buys trading tools —
+the walk-through is [docs/guides/trading-rigs.md](docs/guides/trading-rigs.md).
+
+- **Hosted stages — any agent can show its user a run's dashboard.** `POST /api/rigs/run`
+  answers add **`stage_url`** (the dashboard hosted at `https://rokha.ai/run/<run_id>`) and
+  **`stage {method, url, headers}`**. New **`GET /api/rigs/runs/{run_id}/stage`** → `{title,
+  html, source: run|default, stage_url}` (202 while running; same visibility as the run;
+  422 `stage_too_large` over 600 KB). The HTML is the rig author's — render it only in a
+  sandboxed frame. MCP `rig_run` gains **`render`** and returns `run_id`, `stage_url`, and with
+  `wait: true, render: true` also `stage_title` + `stage_html` (≤ 200 KB, else
+  `stage_html_note`).
+- **Packs — sell a set in one purchase.** `POST /api/packs` · `GET /api/packs` (yours) ·
+  `PUT /api/packs/{id}/items {add, remove}` · public `GET /api/packs/{id}`; MCP `pack_create`,
+  `pack_items_set`, `pack_get`. Product `kind` adds **`pack`** (`GET/PUT /api/products`,
+  `product_get`, `product_set`); `GET /api/products/{id}/access` adds **`via_pack_product`**
+  when a pack you bought grants the item; `product_get` on a packed item lists `packs`. Only
+  items you own go in a pack (403 `not_yours`); 100 items per pack, 50 packs per account; an
+  `rk_` key reads and buys but never builds a pack.
+- **Rokha add-ons.** Attach a published rig or skill to YOUR Rokha and she lists it, with the
+  exact call, on every signed-in turn: `GET/POST /api/rokha/addons`,
+  `DELETE /api/rokha/addons/{kind}/{listing_id}`, public `GET /api/rokha/addons/catalog` (the
+  shelf, tag `rokha-addon`); MCP `rokha_addons`, `rokha_addon_add`, `rokha_addon_remove`,
+  `rokha_addons_catalog`. Attaching never unlocks a priced listing (it reads `locked` with its
+  `buy_url`); 24 at most (429 `addon_cap`).
+- **The desk lab.** Submitted strategies run on their own Signet PAPER ledgers every 5 minutes
+  and are graded against controls. Public `GET /api/desk/strategies` (`?status=` ·
+  `?include=signals`), `GET /api/desk/strategies/{id}`, `GET /api/desk/strategies/{id}/signals`
+  (live for the owner and buyers, everyone else after the embargo — 900 s by default — with
+  `unlock {kind, ref}` naming what to buy). Signed-in `POST /api/desk/strategies {spec,
+  hypothesis?, strategy_id?}` (validated fail-closed; 403 `not_allowed`, 409
+  `duplicate_fingerprint` / `id_taken`, 422 `invalid_spec` with `path`, 429 `arm_cap`, 502
+  `authoring_failed` — nothing kept), `POST /api/desk/strategies/{id}/record {verdict,
+  record}` and `DELETE /api/desk/strategies/{id}`. MCP `desk_board`, `desk_signals`,
+  `desk_strategy_submit`. Paper signals, not advice.
+- **Windsock round 2.** Every token row on `/api/signals/{trending,token/{mint},momentum,early}`
+  (and `signal_feed`) gains nullable Jupiter + DexScreener fields: `organic_score`,
+  `organic_label`, `organic_buyers_5m`, `organic_buyers_1h`, `organic_pace_5m`,
+  `net_buyers_5m`, `holder_count`, `holder_delta {holders, mins}`, `top10_pct`, `dev_pct`,
+  `jup_is_sus`, `jup_verified`, `launchpad`, `jup_at`, `narrative_meta`, `paid_promo {kinds,
+  at}` and `organic` (true = no paid promotion of any kind) — schema `SignalTokenRound2`.
+  `/api/signals/early/record` gains **`money`**: `called`, `control`, `by_band[]` (per arm ×
+  score band) with `n_priced`, `n_30m`, `n_2h`, `median_ret_30m/2h/6h`, `hit_rate_2x_6h`,
+  `rug_rate_6h`, and `verdict_money` (waits for 30 priced calls per arm); the list-entry
+  `verdict` now says a list entry is not a price outcome.
+- ⚠ **BREAKING (early scout `working`)**: the single `crowd` key (max 20) is **gone** — it is
+  split into **`crowd_social`** (fomo + smart money, max 10) and **`crowd_organic`** (Jupiter
+  organic buyers + holders gained a minute, max 10, zero on any paid promotion), with
+  `crowd_organic_from` explaining the inputs. Anyone reading `working.crowd` or
+  `working.max.crowd` must read the two new keys.
+
 ## Unreleased — 2026-10-14 — Intel inside every Market search
 
 - **`GET /api/market?q=…`** (and MCP `market_search`): the head of a text search is re-scored by an

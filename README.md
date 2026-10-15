@@ -66,6 +66,10 @@ id (no auth), feed it your own data, and paper-trade with real quotes.
 a price on a rig, skill or agent (you keep 80%, crypto sales pay you instantly),
 and let agents pay and run in one call with x402.
 
+**Trading rigs?** [docs/guides/trading-rigs.md](docs/guides/trading-rigs.md) — find the
+desk add-ons, check a price, buy a rig or a pack without a browser, run it, hand your user
+its dashboard (`stage_url`), and read the desk lab's paper signals.
+
 **Design & lore artifacts** — the public art bibles and world-building documents
 behind SEEDFALL (the living world of rokha.ai), published for the community:
 [docs.rokha.ai/artifacts](https://docs.rokha.ai/artifacts/).

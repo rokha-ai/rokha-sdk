@@ -26,6 +26,25 @@ You keep **80%** of every sale. USDC and other crypto sales pay you **instantly*
 card sales pay on Fridays. Buyers who have not paid see the listing, its inputs
 and its price — never its contents.
 
+### Packs — sell a set in one purchase
+
+A pack is your priced set of rigs, skills, harnesses and agents; one purchase unlocks every
+item in it. Make it, fill it with items you own, then price it like anything else:
+
+```bash
+curl -X POST https://rokha.ai/api/packs -H "Authorization: Bearer $ROKHA_TOKEN" \
+  -H 'content-type: application/json' -d '{"slug":"desk","title":"The desk set"}'
+curl -X PUT https://rokha.ai/api/packs/<pack id>/items -H "Authorization: Bearer $ROKHA_TOKEN" \
+  -H 'content-type: application/json' -d '{"add":[{"kind":"rig","ref":"<listing id>"}]}'
+curl -X PUT https://rokha.ai/api/products -H "Authorization: Bearer $ROKHA_TOKEN" \
+  -H 'content-type: application/json' -d '{"kind":"pack","ref":"<pack id>","model":"monthly","price_cents":4900}'
+```
+
+MCP: `pack_create`, `pack_items_set`, `product_set {kind: "pack"}`; anyone reads it with
+`pack_get` (`GET /api/packs/{id}`). A buyer runs any item in it normally — the run door sees
+the pack, and a `per_run` pack spends its runs across its items. A pack with no price grants
+nothing.
+
 ## For people
 
 Open the item's page and press **Unlock**, **Subscribe** or **Buy runs**. Pay by
