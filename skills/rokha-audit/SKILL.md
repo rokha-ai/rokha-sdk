@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Rokha's `rokha_audit` MCP tool (served by rokha-protocols on port 8001 in dev, or Rokha's public MCP endpoint in prod). Stage 2 probe is optional and benefits from a sandboxed Node environment (Rokha's cloud runtime sandbox, Claude Code's bash, or any local Node).
 metadata:
   author: rokha
-  version: "0.1.0"
+  version: "0.1.1"
   homepage: https://rokha.ai
   source_repo: https://github.com/rokha-ai/rokha-sdk
 ---
@@ -90,8 +90,8 @@ nb audit --config
 Save a structured harness so the user (or another agent in their workspace)
 can recall it later:
 
-- Free / authenticated tier → single slot at key `tool.audit.latest`
-- Casual / pro tier → per-tool at key `tool.audit.{normalized_name}`
+- Free account → single slot at key `tool.audit.latest`
+- Studio access → per-tool at key `tool.audit.{normalized_name}`
 - Tags: `["tool", "audit", "nb-audit"]`
 - Body: see `references/audit-harness-schema.md`
 

@@ -7,7 +7,7 @@ Rokha ([rokha.ai](https://rokha.ai)) is an execution platform for AI agents. It 
 
 **Statuses:** `ON RADAR` → `IN FLIGHT` → `LANDED`
 
-_Last updated: 2026-10-10_
+_Last updated: 2026-10-14_
 
 ---
 
@@ -64,7 +64,7 @@ Being findable where agents — and the people who run them — look.
 |---|---|---|
 | [Official MCP Registry](https://registry.modelcontextprotocol.io/) | Listed as `ai.rokha/rokha`, pointing at `https://rokha.ai/mcp/jsonrpc` | `LANDED` |
 | [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) | Listed as `ai.rokha/rokha` — reviewed and approved by GitHub (2026-10-05); install Rokha from GitHub, Copilot and VS Code | `LANDED` |
-| [GitHub awesome-copilot plugin](https://github.com/github/awesome-copilot) | The Rokha agent plugin — through intake, waiting on maintainer review | `IN FLIGHT` |
+| [GitHub awesome-copilot plugin](https://github.com/github/awesome-copilot) | Submitted 2026-09-25; turned down 2026-10-07 as too promotional for the list — next round: a focused, search-only plugin | `ON RADAR` |
 | [AI Agents Listing](https://aiagentslisting.com/) | Platform + MCP server + agent, three records | `ON RADAR` |
 | [AI Agents Directory](https://aiagentsdirectory.com/landscape) | Agent-landscape placement | `ON RADAR` |
 | [ClawSites AI Agent Directory](https://www.clawsites.com/ai-agent-directory) | Agent directory listing | `ON RADAR` |
@@ -100,7 +100,9 @@ Being findable where agents — and the people who run them — look.
 | Campaigns + one referral link: `rokha.ai/?ref=<handle>` + 25% of a referred Studio first month; founder-run campaigns, unpaid support (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
 | Pay per use: every qualifying use earned a live per-use rate, withdraw USDC at $5+ | `BUILT` 2026-10-11 · `RETIRED` 2026-10-12 (never live) |
 | No payouts — tooling, the Market and utility: build it, it gets used, it grows; the Market ranks by use; the money is sales (80%) and referrals (25%) | `IN FLIGHT` 2026-10-12 |
-| Give it life — Add an agent to any listing, or Tokenize it on a third-party Solana launchpad (owner-only, non-custodial, $15) | `IN FLIGHT` 2026-10-12 |
+| Awaken any listing — give it an agent through the one Create-an-agent pipeline ($10 one time, half burns on a crypto rail, no credits, its own free allowance) — or Tokenize it on a third-party Solana launchpad (separate owner tool, non-custodial, $15) | `IN FLIGHT` 2026-10-12 · reads as **Awaken** since 2026-10-14; one pipeline + the $10 fee + the agent's free tier built 2026-10-14 |
+| Studio or Free — no named plans; the Studio ($249 a month) is the one thing sold; caps as the server enforces them | `IN FLIGHT` 2026-10-14 |
+| The Object Page — every Market listing has a full page at `/market/:kind/:provider/<id>`; Connect / Run it open the Studio on it; the old registry view retired | `IN FLIGHT` 2026-10-14 |
 | The Market: everything published shows the moment it exists (New); most used leads | `IN FLIGHT` 2026-10-11 |
 | Pay for a listing in SOL (with card, USDC and $ROKHA fuel) | `IN FLIGHT` 2026-10-11 |
 | The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |

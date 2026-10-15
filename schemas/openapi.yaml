@@ -82,7 +82,9 @@ tags:
   - name: signals
     description: Windsock — scored token signals (read-only market data, never advice, never trades)
   - name: entities
-    description: Entity cards for any object (page, rig, skill, harness record, sub-rig, agent, MCP server, product); "Add an agent" gives one its own agent, Tokenize launches its token on a third-party launchpad (Rokha is software, not the launchpad).
+    description: "Entity cards for any object (page, rig, skill, harness record, sub-rig, agent, MCP server, product). Awaken gives one its own agent — the SAME pipeline as Create an agent (`POST /api/agents/mine` with `awakens`), a Forge agent bound to the thing; $10 one time, card / USDC / $ROKHA, half of a crypto payment burns $ROKHA and half goes to the House, a card pays the House, NO credits. Tokenize is a separate owner tool ($15, same split) that launches its token on a third-party launchpad (Rokha is software, not the launchpad)."
+  - name: edge
+    description: "Edge — the explorer of the agent world (rokha.ai/edge): the live desk (`/api/live`), the world digest, the feed rail and the field. Public, cached, counts over real ledgers and real fetches; null means unreadable, never zero. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` answer 404 while a deployment keeps the Edge switched off."
 
 security: []  # default: no auth. Routes that need it set their own.
 
@@ -1172,8 +1174,12 @@ paths:
         `network_plans`, `network_pot`, `network_members`, `product_get`,
         `network_briefs`, `fuel_boost_menu`, `campaigns`, `board_get`
         (the Network's boards), `bounty_list`, `amplify_campaigns`,
+        `edge_read` and `edge_live` (the Edge explorer — listed and
+        answered only while a deployment has the Edge switched on; off,
+        `tools/call` answers `edge_closed`),
         and every sponsor tool
-        (`<brand>__<tool>`). `justify_seeds`, `seeds_explain`,
+        (`<brand>__<tool>`). `edge_feed_draft` and `edge_feed_save`
+        (plug a JSON API into Edge as a feed) are superadmin-only. `justify_seeds`, `seeds_explain`,
         `seeds_recent_posts`, `carry_brief`, `boosts_explain`, `network_briefs`,
         `fuel_boost_menu` and `adnet_*` are read-only history — Rokha no longer
         pays for posting. An MCP 2026-07-28 `server/discover` probe answers
@@ -1195,7 +1201,7 @@ paths:
         `weekly` cadence; pass the rig's UUID as
         `rig_id`; every fire is owner-scoped and draws on the owner's daily
         run budget — a spent budget skips the fire, recorded as
-        `skipped_budget`; cap 20 schedules per account), `schedule_list`
+        `skipped_budget`; free accounts hold no schedules, the Studio 100), `schedule_list`
         (cadence, enabled, next/last run, run count, last status —
         `ok` | `partial` (some steps failed) | `error` | `skipped_budget`),
         `schedule_delete`, and `schedule_pause` (`paused: true|false`) —
@@ -4416,9 +4422,10 @@ paths:
         - { name: aisle, in: query, required: false, schema: { type: string, enum: [all, rig, skill, mcp, agent, builder, marketer], default: all } }
         - { name: dept, in: query, required: false, schema: { type: string, enum: [all, trading, social, media, research, dev, data, fun], default: all } }
         - { name: source, in: query, required: false, schema: { type: string, enum: [all, rokha, registry], default: all } }
-        - { name: sort, in: query, required: false, schema: { type: string, enum: [top, live, new], default: top } }
+        - { name: sort, in: query, required: false, schema: { type: string, enum: [popular, top, live, new], default: popular }, description: "popular = one order across Rokha and the open registry (installs, stars, uses on Rokha); top = most used on Rokha" }
         - { name: price, in: query, required: false, schema: { type: string, enum: [any, free, paid], default: any }, description: "paid = an active creator product" }
         - { name: proven, in: query, required: false, schema: { type: string, enum: ['1', '0', 'true', 'false'], default: '0' } }
+        - { name: rerank, in: query, required: false, schema: { type: string, enum: ['on', 'off'], default: 'on' }, description: "With q, the head of the page is re-scored by an OpenVINO™ cross-encoder on Intel® Xeon® (the x-rokha-rerank response header names the node when it ran); off serves the plain text-match order — the comparison knob." }
         - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 48, default: 24 } }
         - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 1024 }, description: "The previous page's next_cursor" }
       responses:
@@ -4449,6 +4456,37 @@ paths:
       responses:
         '200': { description: The image, content: { image/png: {}, image/jpeg: {}, image/webp: {}, image/gif: {} } }
         '404': { description: "No such listing, or its logo is not a servable raster" }
+  /api/market/object/{kind}/{provider}/{external_id}:
+    get:
+      tags: [network]
+      summary: "The Object Page — everything the Market knows about one listing: the row, the same tile item, its tools, the owner's page, the Give-it-life card and the doors (Connect / Run it / Clone it / SKILL.md)"
+      description: |
+        Public, no auth, never cached. `kind` is derived server-side
+        (`server`, a seat or page MCP tool, or a self-listing with
+        `metadata.harness.endpoint` → mcp; a rig → rig; else skill): a
+        page asked for under the wrong kind still answers 200 — read
+        `canonical` and replace the URL. `external_id` may hold `/`
+        (encode each segment). An optional bearer is the viewer: it decides
+        `entity.editable` and lets an owner read their own private row;
+        nothing else is trusted from the request. A private row, a blocked
+        owner's row, an unknown row or a malformed id is a 404
+        (`not_found`) — never a 500. `doors.connect` / `doors.run` are the
+        Studio's `?connect=<provider>%2F<external_id>` /
+        `?run=` doors; `doors.agent_door` is the MCP endpoint an agent
+        pastes. The same `href` / `cta` shape rides every `/api/market`
+        tile: the title opens `/market/<kind>/<provider>/<external_id>`
+        (a Rokha rig with a sub-page keeps `/@handle/<slug>`, a seat or
+        page MCP server keeps `/@handle`), Connect opens the Studio connect
+        door, Run it the Studio run door, Clone it `/studio?adopt=`.
+      operationId: getMarketObject
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string, enum: [rig, skill, mcp] } }
+        - { name: provider, in: path, required: true, schema: { type: string, maxLength: 64 }, description: "registry_listings.provider_id — rokha, glama, docker_mcp, mcp_official, smithery, skills_sh, …" }
+        - { name: external_id, in: path, required: true, schema: { type: string, maxLength: 512 }, description: "The row's external_id, each segment URL-encoded" }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MarketObject' } } } }
+        '404': { description: "not_found — unknown, private, blocked or malformed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "The market could not be read — never a half object", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/front/stats:
     get:
       tags: [network]
@@ -4457,6 +4495,275 @@ paths:
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontStats' } } } }
         '503': { description: "The market could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  # ============================================================
+  # Edge — the agent world, live (rokha.ai/edge)
+  # ============================================================
+
+  /api/live:
+    get:
+      tags: [edge]
+      summary: "The live desk — what is running on Rokha right now, as counts over its own ledgers (MCP edge_live reads a digest of it)"
+      description: |
+        Public, no auth, no parameters: every caller gets the same cached
+        body (`Cache-Control: public, max-age=15`, one refill at a time; a
+        busy refill serves the last good body). Every figure is a COUNT over
+        a ledger Rokha already writes — the uses and cards come from the same
+        snapshot `/api/front/stats` serves, so the desk and the landing never
+        disagree. Public things only (the market's own filter); times are
+        rounded to the minute, and a thing used by fewer than 3 distinct
+        users is bucketed to the hour (`coarse: true`). An unreadable count
+        is `null`, never 0. No owner, wallet, run or mandate id ever rides
+        the body; the one id that may is `events[].trace_id`, and only for a
+        run of a PUBLIC rig started after it went public (it reads
+        anonymously at `GET /api/traces/{id}`). Per-IP governed (429 above
+        the burst). Not gated by the Edge switch.
+      operationId: getLiveDesk
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
+          content: { application/json: { schema: { $ref: '#/components/schemas/LiveDesk' } } }
+        '429': { description: Over the per-IP burst }
+        '503': { description: "The snapshot could not be read and no earlier body exists — `live_desk_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/edge/world:
+    get:
+      tags: [edge]
+      summary: "Edge — the agent world outside Rokha: registries, new listings, MCP SDK adoption, who connects, the MCP funnel, the spec (MCP edge_read)"
+      description: |
+        Public, no auth, cached 120 s server-side (`Cache-Control: public,
+        max-age=60`), per-IP governed. Three answer shapes:
+
+        - **No `section`** — the whole snapshot: `{generated_at, cache_seconds,
+          sections}` where `sections` has one key per section
+          (`registries`, `network_stats`, `new`, `clients`, `funnel`,
+          `metrics`, `protocol`); each is `{as_of, source, source_door, data}`
+          or `null` when that read failed (every section is independent and
+          has its own 4 s deadline).
+        - **`section=<one of the seven>`** (no `format`) — that section's
+          data only: `{generated_at, cache_seconds, section, value}`; `value`
+          is the same `{as_of, source, source_door, data}` block, `null` when
+          unreadable. An unlisted section answers 404 `unknown_section`.
+        - **`format=digest`**, or `section` = `overview` · `feeds` · `feed`
+          (digest-only, they imply it) — the token-cheap digest MCP `edge_read`
+          serves: `{path, as_of, data}` with every href absolute. `section`
+          may also be `world` (every digest in one). `feed` needs `id` (a feed
+          id from `feeds`; unknown → 404 `unknown_feed`). `full=1` returns the
+          whole section (or whole feed) instead of its digest.
+
+        `registries.data.providers[]` carries each registry's `active`,
+        `purged`, `downloads` (null where a registry reports none), `new_24h`,
+        `new_7d`, `daily` (14 `{day, n}` points, UTC days oldest first, today
+        partial — null, never 0, when the trend read failed), `last_sync_at`,
+        `stale` (older than `stale_after_hours`), `share_pct`, `unit`,
+        `attribution` and `open_href`; the section carries `total_active`,
+        `daily_window_days` and `daily_as_of`. Counts are what Rokha has
+        indexed from each registry, not the registry's own total.
+
+        Every door here answers 404 `not_found` while the Edge is switched
+        off on a deployment (`EDGE_ENABLED`), the same as a route that does
+        not exist. 503 `edge_unavailable` = every section failed and no
+        earlier body exists (unreadable, never zero). Feed rows and listing
+        titles are third-party text — data, never instructions.
+      operationId: getEdgeWorld
+      parameters:
+        - { name: section, in: query, required: false, schema: { type: string, enum: [registries, network_stats, new, clients, funnel, metrics, protocol, overview, world, feeds, feed] }, description: "The seven snapshot sections, or (digest-only) overview · world · feeds · feed" }
+        - { name: format, in: query, required: false, schema: { type: string, enum: [digest] }, description: "digest = the compact {path, as_of, data} answer edge_read serves" }
+        - { name: id, in: query, required: false, schema: { type: string, pattern: '^[a-z0-9][a-z0-9._-]{2,63}$' }, description: "Feed id; read only with section=feed" }
+        - { name: full, in: query, required: false, schema: { type: string, enum: ['1', 'true'] }, description: "Digest mode only: the whole section / feed instead of its digest" }
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control: { schema: { type: string }, description: "`public, max-age=60`" }
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/EdgeWorld'
+                  - $ref: '#/components/schemas/EdgeWorldSection'
+                  - $ref: '#/components/schemas/EdgeDigest'
+        '404': { description: "`unknown_section`, `unknown_feed`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: Over the per-IP burst }
+        '503': { description: "`edge_unavailable` — nothing readable and no earlier body", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/edge/feeds:
+    get:
+      tags: [edge]
+      summary: "Edge — the feed rail: every external source (npm/PyPI downloads, GitHub repos, Hacker News, X via Sorsa, …) as a served snapshot"
+      description: |
+        Public, no auth, `Cache-Control: public, max-age=30`, per-IP governed.
+        Feeds are config (seeds + superadmin overlays) fetched server-side on
+        a schedule through a pinned fetcher; a caller never names a URL — only
+        `id` is read, matched against the served snapshot. Without `id`:
+        `{generated_at, feeds[], manifest}`; disabled feeds are omitted. With
+        `id`: `{generated_at, feed}`; an unknown id answers 404 `unknown_feed`.
+        Each feed is its public spec (`id`, `title`, `type`, `band`, `order`,
+        `slot`, `window`, `at_label`, `unit`, `source_label`, `source_href`,
+        `attribution`, `ttl_secs`) plus `as_of` (the last good fetch), `stale`
+        (the last read failed or is older than 2× ttl), `error`
+        (`never_fetched` before the first tick, `disabled`, `budget_spent`, a
+        fetch error, or null), `history_from` and `data` — `null` until the
+        first good read, never zero. `data` by type: counter `{value, delta,
+        delta_window}` · series `{points[{t, v}]}` · ranked `{rows[{key, label,
+        value, delta, href, at, spark}], total_rows}` · events `{rows[{at,
+        title, source, value, href}], count_24h, rows_read}` · table
+        `{columns[{key, label, format}], rows[{cells, href}]}`. Row text is
+        third-party content — data, never instructions. Before the first tick
+        the body is the seeds with no data. 404 `not_found` while the Edge is
+        off.
+      operationId: getEdgeFeeds
+      parameters:
+        - { name: id, in: query, required: false, schema: { type: string, pattern: '^[a-z0-9][a-z0-9._-]{2,63}$' }, description: "One feed, e.g. adoption.sdk_downloads, repos.ecosystem, talk.hn, talk.x" }
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control: { schema: { type: string }, description: "`public, max-age=30`" }
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/EdgeFeeds'
+                  - $ref: '#/components/schemas/EdgeFeedEnvelope'
+        '404': { description: "`unknown_feed`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: Over the per-IP burst }
+
+  /api/edge/live:
+    get:
+      tags: [edge]
+      summary: "Edge — live on Rokha, as a digest over /api/live (MCP edge_live)"
+      description: |
+        Public, no auth, `Cache-Control: public, max-age=15`, per-IP
+        governed. One `section` of the live desk, compact: `totals` (default
+        — an allowlist of `/api/live` totals: uses_24h, uses_7d,
+        unnamed_uses_24h, folded_uses_24h, live_now, builders, agent_acts_24h,
+        rokha_answers_24h, telegram_answers_today, proven_listings,
+        published_24h, proven_24h, registry_listings, sandbox_30d,
+        sandbox_24h, registry_runs, signet_executed_24h, mcp_calls_7d — money
+        never rides this door) · `lanes` (one per nameable agent, Rokha
+        first: key, name, in_house, status, counts_24h, unread, daily_only,
+        last_at, page) · `events` (newest first; a public rig's run carries a
+        `trace_id` readable at `GET /api/traces/{id}`) · `pulse` (24 hourly
+        buckets, oldest first, with `null_kinds`) · `spokes` (the most-used
+        public things and agents: id, title, kind, uses, href) · `signet`
+        (`{executed_24h, active_permits, refused}` from `/api/signet/stats`) ·
+        `field` (the whole agent world on one wire as rows — every registry,
+        talk feed, repo and Rokha source on `/api/edge/field` with its 24 h
+        total in its own unit, busiest first: `{sources_total, sources[{id,
+        title, kind, href, sector, total_24h, unit, last_at, source, as_of}],
+        totals, sectors, unreadable, window_hours, note}`; the dots and the
+        hourly pulse stay on `GET /api/edge/field`).
+        `limit` = rows for events/spokes/lanes/field, clamped 1–60 (a
+        non-number is the default 10). Never the per-minute pulse or spoke dots. Answers
+        `{path, as_of, data}` with absolute hrefs. An unlisted section is 404
+        `unknown_section`; 503 `edge_unavailable` when the live desk cannot be
+        read; 404 `not_found` while the Edge is off.
+      operationId: getEdgeLive
+      parameters:
+        - { name: section, in: query, required: false, schema: { type: string, enum: [totals, lanes, events, pulse, spokes, signet, field], default: totals } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 60, default: 10 }, description: "Rows for events/spokes/lanes/field; clamped" }
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdgeDigest' } } }
+        '404': { description: "`unknown_section`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: Over the per-IP burst }
+        '503': { description: "`edge_unavailable` — the live desk could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/edge/field:
+    get:
+      tags: [edge]
+      summary: "Edge — the field: /api/live's shape with the world (new registry listings, posts, repo pushes) merged in front of Rokha's own activity"
+      description: |
+        Public, no auth, no parameters, `Cache-Control: public, max-age=15`
+        (30 s server cache), per-IP governed. Exactly `/api/live`'s shape —
+        `manifest`, `totals`, `pulse`, `spokes`, `events`, `lanes` — so a
+        reader of the live desk reads this unchanged, with the world merged
+        in: three more event kinds (`listed` = a public, active listing first
+        seen by Rokha's sync in the last 24 h, at the registry's own creation
+        minute when it falls in the window; `posted` = a post from the talk
+        feeds on `/api/edge/feeds`; `pushed` = an ecosystem repo's last push)
+        each a real timestamped thing from a source Edge already reads —
+        nothing spread, interpolated or invented. World spokes carry `unit`,
+        `source_label` and `as_of`; world events carry a `detail` line and
+        never a `trace_id`. `totals` adds `field_24h`, `world_24h`,
+        `listed_24h`, `posted_24h`, `pushed_24h` (null when that source was
+        unreadable). `unreadable[]` names every source that could not be read
+        this fill (`registries`, `talk`, `repos`, `rokha`) — its sector is
+        absent, never zero. Rokha's own part follows `/api/live`'s rules
+        verbatim (`lanes` is `/api/live`'s, null when it was unreadable).
+        Per-day aggregates (SDK downloads) have no minute and stay off the
+        field. 404 `not_found` while the Edge is off; 503 `edge_unavailable`
+        when nothing was readable and no earlier body exists.
+      operationId: getEdgeField
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdgeField' } } }
+        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: Over the per-IP burst }
+        '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/admin/edge/feeds/draft:
+    post:
+      tags: [edge]
+      summary: "Plug any JSON API into Edge — one fetch, an inferred feed spec, its preview (superadmin only; MCP edge_feed_draft)"
+      description: |
+        Superadmin only: JWT + the admin allowlist, and the handler re-checks
+        the superadmin role from the verified claims (never a header). Body
+        `{url, title?, headers?}` — unknown keys are refused. `url` (≤ 512
+        chars) must pass the feed URL policy (https, a public dotted host on
+        port 443, no user:pass, no #fragment, never an IP literal or an
+        internal name); `title` ≤ 80 chars (default the host); `headers` is
+        header name → a literal (`Accept`, `X-GitHub-Api-Version`) or
+        `{secret_ref, optional?}` (`Authorization`, `X-Api-Key`) — a
+        credential VALUE in a header is refused. The door fetches the URL
+        ONCE through the pinned fetcher on the shared admin preview budget
+        (30 a day, with `/api/admin/edge/feeds/test`), reads only the
+        response's SHAPE (key names, types, sizes — no sample value reaches
+        the spec), infers `events` (a time + a title per item), `ranked` (a
+        label + a number), `series` (time/number pairs), `counter` (one
+        number) or `table` (up to 6 columns), validates the draft, and runs
+        it over the same sample for a preview (rows/points capped at 20).
+        Nothing is saved: hand `spec` (edited or not) to `POST
+        /api/admin/edge/feeds {spec}` — saved with `enabled: false` until
+        flipped — or MCP `edge_feed_save`. Audit-logged (feed id + type,
+        never the URL or a secret). Not gated by the Edge switch.
+      operationId: adminEdgeFeedDraft
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              additionalProperties: false
+              properties:
+                url: { type: string, maxLength: 512, description: "The JSON door to read, https only" }
+                title: { type: string, maxLength: 80, nullable: true, description: "The feed's title; default the host" }
+                headers:
+                  type: object
+                  nullable: true
+                  description: "Header name → literal (Accept, X-GitHub-Api-Version) or {secret_ref, optional?} (Authorization, X-Api-Key). Never a credential value."
+                  additionalProperties:
+                    oneOf:
+                      - { type: string }
+                      - { type: object, required: [secret_ref], additionalProperties: false, properties: { secret_ref: { type: string }, optional: { type: boolean, default: false } } }
+      responses:
+        '200': { description: The draft, content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedDraft' } } } }
+        '400': { description: "`invalid_spec` (with `field`) — a bad url, title or header; or `nothing_fits` — the response has no shape a grid can be drawn from", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
+        '401': { description: No JWT }
+        '403': { description: "`superadmin_only`", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
+        '422': { description: "The fetch was refused or failed (the fetcher's error code), or the drafted spec mapped nothing from the sample (with `paths`)", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
+        '429': { description: "`budget_spent` — today's 30 preview fetches are spent", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
+
   /api/board/incubation:
     get:
       tags: [network]
@@ -5236,7 +5543,7 @@ paths:
   /api/entities/mine:
     get:
       tags: [entities]
-      summary: "Your own entities with token + Add an agent state (MCP entity_mine)"
+      summary: "Your own entities with token + agent state (MCP entity_mine)"
       operationId: listMyEntities
       security: [{ bearerAuth: [] }]
       responses:
@@ -5369,10 +5676,95 @@ paths:
               schema: { type: object, additionalProperties: true }
         '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
 
+  /api/agents/mine:
+    get:
+      tags: [agents]
+      summary: "Your Forge agents (MCP agents_mine)"
+      operationId: listMyAgents
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    post:
+      tags: [agents, entities]
+      summary: "Create a Forge agent — plain, or awakening a Market thing (MCP agent_create)"
+      operationId: createAgent
+      description: |
+        The ONE agent door. The Forge save, MCP `agent_create`, `POST /api/entities/{kind}/{id}/agent`
+        and MCP `entity_add_agent` all land here with the same body (`AgentCreate`).
+
+        **Plain** (`awakens` absent or null): free — 1 agent on a Free account, the Studio lifts the
+        cap (`GET /api/publish/allowance`; 402 `publish_cap` at the cap). Every Forge guard applies:
+        reserved names, a model the owner can pay for, `persona` required to go live.
+
+        **Awaken** (`awakens: {kind, id}`): the same row, created FROM the Market thing and BOUND to
+        it (one agent per entity). The server re-checks, in order: the caller owns the entity
+        (House-owned and adopted copies refused), a `ready` fee exists for `(purpose: agent, kind, id)`
+        — else **402 `fee_not_paid`** with `doors.pay` (`/api/entities/{kind}/{id}/fee`) and
+        `doors.page` (`/agents/new?awaken=<kind>%2F<id>`) — then creates the agent, writes the binding
+        and consumes the fee in one transaction (a failure after the row releases the fee). Pre-fill the
+        body from `GET /api/entities/{kind}/{id}/agent/plan`. Never a connected app.
+
+        **Who pays for its turns** (every Forge agent, awakened or plain): the agent's own daily
+        allowance on the house model (`ROKHA_AGENT_FREE_DAILY_UNITS`, 10,000 units ≈ 15 short answers a
+        day), then the owner's keys for the turn's model, then the visitor's own meter or keys —
+        never the owner's meter; when all of that is spent the turn answers one honest line
+        ("This agent has used its free allowance for today and its owner has not added keys yet —
+        try again tomorrow or ask the owner."). No credits ride the awaken fee.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AgentCreate' }
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentCreated' }
+        '402':
+          description: "fee_not_paid (awaken with no ready fee) or publish_cap (plain, at the free cap)"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeeNotPaid' }
+        '403': { description: "not the entity's owner, a House-owned or adopted thing, or a connected app" }
+        '409': { description: "already_awake — the thing already has an agent (the fee is kept)" }
+
+  /api/entities/{kind}/{id}/agent/plan:
+    get:
+      tags: [entities]
+      summary: "The awaken plan: the Forge args pre-filled from the thing + fee, can_awaken, reason (MCP entity_agent_preflight)"
+      operationId: entityAgentPlan
+      description: |
+        Public read, optional bearer. Answers the Forge create args pre-filled from the entity — the
+        `handle` it would get, a `persona` carrying the card's data in a fenced `⟦entity-data⟧` block,
+        the `rigs` / `skills` it is made of, `visibility: public`, `status: live` — plus `awakens`
+        `{kind, id}`, `fee` (the owner's fee item: `label` "Awaken fee ($10)", `ok`, `fix_hint`, a
+        `ready` fee id when one is paid), `quote` (price, the per-rail split, `credits: null`),
+        `can_awaken`, `reason` (`null` when it can; else `flag_off` · `sign_in` · `not_owner` ·
+        `not_eligible` · `blocked` · `already_awake` · `fee_not_paid`), `who_pays`, `agent` (the live
+        agent's `{handle, url}` once awake) and `doors` (`pay`, `page`). A non-owner reads the public
+        card only: no sources, no fee id, `can_awaken: false`. The Forge page loads it when opened as
+        `/agents/new?awaken=<kind>/<id>`; `POST /api/agents/mine` takes the args back with `awakens`.
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AwakenPlan' }
+        '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
   /api/entities/{kind}/{id}/agent/preflight:
     get:
       tags: [entities]
-      summary: "Everything Add an agent needs, as a checklist (MCP agent_preflight)"
+      summary: "Everything Awaken needs, as the owner's checklist — the same answer as the plan door (MCP entity_agent_preflight)"
       operationId: entityAgentPreflight
       security: [{ bearerAuth: [] }]
       parameters:
@@ -5383,14 +5775,15 @@ paths:
           description: OK
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
+              schema: { $ref: '#/components/schemas/AwakenPlan' }
         '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
 
   /api/entities/{kind}/{id}/agent:
     post:
       tags: [entities]
-      summary: "Give the entity its own agent (MCP add an agent)"
+      summary: "Awaken the entity — a thin twin of POST /api/agents/mine with awakens filled from the path (MCP entity_add_agent)"
       operationId: addEntityAgent
+      description: "Kept for agents already using it. The body is `AgentCreate` minus `awakens` (an empty body takes the plan's pre-fill); the server fills `awakens` from the path and runs the one create pipeline — same guards, same 402 `fee_not_paid`, same answer."
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: kind, in: path, required: true, schema: { type: string } }
@@ -5399,20 +5792,41 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object, additionalProperties: true }
+            schema: { $ref: '#/components/schemas/AgentCreate' }
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
+              schema: { $ref: '#/components/schemas/AgentCreated' }
+        '402':
+          description: fee_not_paid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeeNotPaid' }
         '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
 
   /api/entities/{kind}/{id}/fee:
     post:
       tags: [entities]
-      summary: "Open the $15 fee: $5 burned, $5 House, $5 House credits (MCP entity_fee)"
+      summary: "Open the one-time fee — awaken $10 or tokenize $15; half burns $ROKHA on a crypto rail, a card pays the House, no credits (MCP entity_fee)"
       operationId: openEntityFee
+      description: |
+        Owner only (never a connected app); one open fee per `(purpose, kind, id)` — calling again
+        answers the open one (`already_paid: true` with the ready fee, or the same legs / checkout).
+
+        Rails: **`card`** — a hosted Stripe Checkout (`mode=payment`); answers `{fee_id, rail,
+        checkout_url, status, fee, pay}`; the fee turns `ready` when the processor's webhook confirms
+        the amount and currency, so poll `GET /api/entity-fees/{fee_id}`; on a deployment with no
+        processor key the answer is `{mode: "mock"}`. **`usdc_wallet`** / **`rokha_wallet`** — the
+        legs + memo your proven Solana wallet signs (one transaction: half to the burn wallet, half to
+        the House, quoted for 15 minutes), then `POST /api/entity-fees/{fee_id}/verify {signature}`;
+        a USDC burn half is swapped to $ROKHA and burned at once. **`rokha_tank`** — one draw from your
+        own fuel tank at the live price, settled now (half burned, half House).
+
+        Split: on the three crypto rails `split.burn_usd` = `split.house_usd` = half the price; on a
+        card `burn_usd` is 0 and the House takes the whole price. `credits` is always `null` — no
+        credits ride either fee. A `ready` fee is usable for 30 days; the burned part is final.
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: kind, in: path, required: true, schema: { type: string } }
@@ -5421,19 +5835,59 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object, additionalProperties: true }
+            schema: { $ref: '#/components/schemas/EntityFeeOpen' }
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
+              schema: { $ref: '#/components/schemas/EntityFeeOpened' }
+        '400': { description: bad_purpose / bad_rail / no proven wallet for a wallet rail }
         '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
+
+  /api/entity-fees/mine:
+    get:
+      tags: [entities]
+      summary: "Every fee of yours (MCP entity_fee_status without a fee_id)"
+      operationId: listMyEntityFees
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fees:
+                    type: array
+                    items: { $ref: '#/components/schemas/EntityFee' }
+                additionalProperties: true
+
+  /api/entity-fees/{fee_id}:
+    get:
+      tags: [entities]
+      summary: "One fee of yours — poll a card checkout here; retries a pending burn (MCP entity_fee_status)"
+      operationId: getEntityFee
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: fee_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fee: { $ref: '#/components/schemas/EntityFee' }
+                additionalProperties: true
+        '404': { description: not_found (missing or not yours) }
 
   /api/entity-fees/{fee_id}/verify:
     post:
       tags: [entities]
-      summary: "Verify the wallet transaction that paid a fee (MCP entity_fee_verify)"
+      summary: "Verify the wallet transaction that paid a wallet-rail fee (MCP entity_fee_verify)"
       operationId: verifyEntityFee
       security: [{ bearerAuth: [] }]
       parameters:
@@ -5442,13 +5896,21 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object, additionalProperties: true }
+            schema:
+              type: object
+              required: [signature]
+              properties:
+                signature: { type: string, description: "The finalized Solana transaction signature that carried the memo and every leg" }
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
+              schema:
+                type: object
+                properties:
+                  fee: { $ref: '#/components/schemas/EntityFee' }
+                additionalProperties: true
         '404': { description: not_found (missing, foreign, private, or the feature flag is off) }
 
 components:
@@ -5586,6 +6048,186 @@ components:
         burn_signature: { type: string, nullable: true }
         withdrawn: { type: boolean }
         created_at: { type: string, format: date-time }
+    Awakens:
+      type: object
+      description: "The Market thing an agent is created from and bound to — `kind` as `GET /api/entities/kinds` spells it, `id` as `/api/entities/{kind}/{id}` names it. Absent or null = a plain agent."
+      required: [kind, id]
+      additionalProperties: false
+      properties:
+        kind: { type: string, example: rig }
+        id: { type: string, example: x-audit }
+    AgentCreate:
+      type: object
+      description: "The Forge create args (the same body the Forge saves). Unknown keys are dropped."
+      additionalProperties: true
+      properties:
+        handle: { type: string }
+        name: { type: string }
+        tagline: { type: string }
+        persona: { type: string, description: "Required to go live; an awakened agent's carries the card's data in a fenced ⟦entity-data⟧ block (the plan door writes it)" }
+        greeting: { type: string }
+        glyph: { type: string }
+        avatar_url: { type: string }
+        accent: { type: string }
+        model: { type: string, description: "A model the owner can pay for; a locked non-house model is capped to the house default on the agent's own allowance" }
+        toolkit: { type: array, items: { type: string } }
+        rigs: { type: array, items: { type: string } }
+        skills: { type: array, items: { type: string } }
+        visibility: { type: string, enum: [public, private] }
+        status: { type: string, enum: [live, draft] }
+        awakens:
+          oneOf:
+            - { $ref: '#/components/schemas/Awakens' }
+            - { type: 'null' }
+    AgentCreated:
+      type: object
+      additionalProperties: true
+      required: [ok, id, handle, status]
+      properties:
+        ok: { type: boolean }
+        id: { type: string, format: uuid }
+        handle: { type: string }
+        status: { type: string }
+        awakens: { $ref: '#/components/schemas/Awakens', description: "Present only when the agent awakened a thing" }
+        agent:
+          type: object
+          description: "Present only when awakened"
+          properties:
+            id: { type: string, format: uuid }
+            handle: { type: string }
+            url: { type: string, example: "https://rokha.ai/@x-audit" }
+            chat: { type: string, example: "/api/agents/x-audit/chat" }
+        tools: { type: array, items: { type: string }, description: "The thing's own tools the agent may run (awakened only)" }
+        who_pays: { type: string, example: "Your agent answers on its own free allowance every day, then on your keys. Visitors chat on their own free tier or keys — never yours." }
+    FeeNotPaid:
+      type: object
+      properties:
+        error: { type: string, const: fee_not_paid }
+        message: { type: string }
+        doors:
+          type: object
+          properties:
+            pay: { type: string, example: "/api/entities/rig/x-audit/fee" }
+            page: { type: string, example: "/agents/new?awaken=rig%2Fx-audit" }
+        fee: { type: object, additionalProperties: true, description: "The fee checklist item (label, ok, fix_hint, …)" }
+      additionalProperties: true
+    AwakenPlan:
+      type: object
+      description: "The Forge args pre-filled from the thing, plus the awaken verdict."
+      additionalProperties: true
+      properties:
+        handle: { type: string }
+        name: { type: string }
+        persona: { type: string }
+        rigs: { type: array, items: { type: string } }
+        skills: { type: array, items: { type: string } }
+        visibility: { type: string, example: public }
+        status: { type: string, example: live }
+        awakens: { $ref: '#/components/schemas/Awakens' }
+        fee: { type: object, nullable: true, additionalProperties: true, description: "The owner's fee item — label \"Awaken fee ($10)\", ok, fix_hint, the ready fee id when paid; null for a non-owner" }
+        quote: { $ref: '#/components/schemas/EntityFeeQuote' }
+        ok: { type: boolean, nullable: true, description: "The whole checklist passes (owner only)" }
+        items: { type: array, nullable: true, items: { type: object, additionalProperties: true }, description: "The checklist (owner only)" }
+        who_pays: { type: string }
+        can_awaken: { type: boolean }
+        reason:
+          type: string
+          nullable: true
+          enum: [flag_off, sign_in, not_owner, not_eligible, blocked, already_awake, fee_not_paid, null]
+        agent:
+          type: object
+          nullable: true
+          description: "The live agent once the thing is awake"
+          properties:
+            handle: { type: string }
+            url: { type: string }
+        doors:
+          type: object
+          properties:
+            pay: { type: string }
+            page: { type: string }
+    EntityFeeQuote:
+      type: object
+      description: "What a fee costs on each rail, before any is opened. `credits` is always null."
+      additionalProperties: true
+      properties:
+        purpose: { type: string, enum: [agent, tokenize] }
+        price_usd: { type: number, example: 10 }
+        split:
+          type: object
+          description: "The three crypto rails (usdc_wallet, rokha_wallet, rokha_tank)"
+          properties:
+            burned_usd: { type: number, example: 5 }
+            house_usd: { type: number, example: 5 }
+        card:
+          type: object
+          description: "A card pays the House in full — nothing to burn on a card rail"
+          properties:
+            burned_usd: { type: number, example: 0 }
+            house_usd: { type: number, example: 10 }
+        credits: { type: 'null' }
+        burn_is_final: { type: boolean, const: true }
+        note: { type: string, example: "One-time. Half of a USDC or $ROKHA payment burns $ROKHA; a card pays House. No credits." }
+    EntityFeeOpen:
+      type: object
+      required: [purpose, rail]
+      additionalProperties: false
+      properties:
+        purpose: { type: string, enum: [agent, tokenize], description: "agent = Awaken ($10), tokenize = Tokenize ($15)" }
+        rail: { type: string, enum: [card, usdc_wallet, rokha_wallet, rokha_tank] }
+    EntityFeeOpened:
+      type: object
+      description: "`card`: `{ok, open, fee_id, rail, status, checkout_url, fee, pay}` (or `{mode: \"mock\"}` with no processor configured). Wallet rails: `{ok, open, fee, pay}` where `pay` carries the legs + memo to sign. `rokha_tank`: settled at once. An already-ready fee answers `{ok, already_paid: true, fee}`."
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        open: { type: boolean }
+        already_paid: { type: boolean }
+        mode: { type: string, enum: [mock] }
+        fee_id: { type: string, format: uuid }
+        rail: { type: string, enum: [card, usdc_wallet, rokha_wallet, rokha_tank] }
+        status: { type: string }
+        checkout_url: { type: string, description: "card only — the hosted checkout to open" }
+        fee: { $ref: '#/components/schemas/EntityFee' }
+        pay:
+          type: object
+          additionalProperties: true
+          description: "card: {rail, checkout_url, note}; wallet rails: the legs (to, mint, base amount), the memo and the quote expiry"
+    EntityFee:
+      type: object
+      additionalProperties: true
+      properties:
+        fee_id: { type: string, format: uuid }
+        entity:
+          type: object
+          properties:
+            kind: { type: string }
+            id: { type: string }
+        purpose: { type: string, enum: [agent, tokenize] }
+        rail: { type: string, enum: [card, usdc_wallet, rokha_wallet, rokha_tank] }
+        status: { type: string, description: "awaiting_payment → paid → ready (usable 30 days) → consumed; a crypto rail also passes the burn states; expired / failed carry `error`" }
+        usd: { type: number, example: 10 }
+        price_usd: { type: number, example: 10 }
+        split:
+          type: object
+          properties:
+            burn_usd: { type: number, description: "Half the price on a crypto rail; 0 on a card" }
+            house_usd: { type: number, description: "Half the price on a crypto rail; the whole price on a card" }
+        credits: { type: 'null', description: "No credits ride the fee, on any purpose or rail" }
+        burn_base: { type: [string, 'null'] }
+        house_base: { type: [string, 'null'] }
+        pay_signature: { type: [string, 'null'] }
+        swap_signature: { type: [string, 'null'] }
+        burn_signature: { type: [string, 'null'] }
+        burned_base: { type: [string, 'null'] }
+        stripe_session_id: { type: [string, 'null'], description: "card only" }
+        consumed_at: { type: [string, 'null'], format: date-time }
+        consumed_by: { type: [string, 'null'], example: "agent:rig:x-audit" }
+        quote_expires_at: { type: [string, 'null'], format: date-time }
+        expires_at: { type: [string, 'null'], format: date-time }
+        error: { type: [string, 'null'] }
+        created_at: { type: [string, 'null'], format: date-time }
+        burn_is_final: { type: boolean, const: true }
     Product:
       type: object
       properties:
@@ -6140,7 +6782,7 @@ components:
         title: { type: string }
         subtitle: { type: [string, 'null'], description: "Series / variant, or an MCP server's tool count" }
         handle: { type: [string, 'null'], description: "'@handle' for Rokha items; the upstream author for registry items" }
-        href: { type: string, description: "The detail page (site path)" }
+        href: { type: string, description: "The object page (site path): /market/<kind>/<provider>/<external_id>; a Rokha rig with a sub-page keeps /@handle/<slug>; an agent, builder, marketer, seat or page MCP server keeps /@handle" }
         image: { type: [string, 'null'], description: "Product art (https or a site path) — never the owner's avatar on a rig/skill/mcp/agent" }
         avatar: { type: [string, 'null'], description: "builder / marketer tiles only" }
         tagline: { type: [string, 'null'] }
@@ -6170,8 +6812,103 @@ components:
                 model: { type: string, enum: [one_time, monthly, per_run] }
                 product_id: { type: string, format: uuid }
                 runs_per_pack: { type: [integer, 'null'] }
-        cta: { type: object, properties: { label: { type: string }, href: { type: string } } }
-        cta_secondary: { oneOf: [{ type: 'null' }, { type: object, properties: { label: { type: string }, href: { type: string } } }] }
+        cta: { type: object, description: "Connect → /studio?connect=<provider>%2F<external_id> (MCP servers) · Run it → /studio?run=<provider>%2F<external_id> (rigs + skills) · agents / builders / marketers keep their own", properties: { label: { type: string }, href: { type: string } } }
+        cta_secondary: { oneOf: [{ type: 'null' }, { type: object, description: "Clone it → /studio?adopt=<external_id> (Rokha rigs) · Buy / Hire → /buy/<product_id> (priced items)", properties: { label: { type: string }, href: { type: string } } }] }
+
+    MarketObject:
+      type: object
+      description: "The Object Page's read model (GET /api/market/object/…). Never carries an owner wallet, an email or a runner identity."
+      required: [kind, provider_id, external_id, uuid, canonical, title, source, listing_type, tags, official, architect, proven, live, stats, tools, skill_md, item, doors]
+      properties:
+        kind: { type: string, enum: [rig, skill, mcp] }
+        provider_id: { type: string }
+        external_id: { type: string }
+        uuid: { type: string, format: uuid, description: "registry_listings.id" }
+        canonical: { type: string, description: "/market/<kind>/<provider>/<external_id> — replace the URL when it differs from the one asked" }
+        title: { type: string }
+        description: { type: [string, 'null'], description: "The listing's full description (≤ 8,000 chars)" }
+        author: { type: [string, 'null'], description: "The listing author (registry rows) or the owner's display name" }
+        source: { type: string, description: "'rokha', or the registry source label" }
+        listing_type: { type: string }
+        tags: { type: array, maxItems: 5, items: { type: string } }
+        image: { type: [string, 'null'], description: "The same art as the tile" }
+        homepage: { type: [string, 'null'] }
+        department: { type: [string, 'null'], enum: [trading, social, media, research, dev, data, fun, null] }
+        stars: { type: [integer, 'null'], description: "Registry rows only" }
+        downloads: { type: [integer, 'null'], description: "Registry rows only" }
+        official: { type: boolean }
+        architect: { type: boolean }
+        proven: { type: boolean }
+        live: { type: boolean }
+        stats:
+          type: object
+          properties:
+            uses_total: { type: integer }
+            users_total: { type: integer }
+            runs: { type: integer, description: "Successful runs on Rokha" }
+        price:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              properties:
+                usd: { type: number }
+                model: { type: string, enum: [one_time, monthly, per_run] }
+                product_id: { type: string, format: uuid }
+        endpoint: { type: [string, 'null'], description: "An MCP server's public https door (metadata.harness.endpoint · remote_url · remotes[0].url)" }
+        protocol: { type: [string, 'null'], enum: [mcp, a2a, http, null] }
+        install: { type: [string, 'null'], description: "The registry's install line, if any (metadata.install · the first package · the provider's installer)" }
+        tools:
+          type: array
+          maxItems: 40
+          description: "metadata.probed_tools (or a seat server's sibling tool listings)"
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              description: { type: [string, 'null'] }
+        skill_md: { type: boolean, description: "Whether /api/marketplace/registry/skill-md answers for it (skill · harness · rig rows); a priced listing's body is still withheld there" }
+        item: { $ref: '#/components/schemas/MarketItem' }
+        owner:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              description: "The owner's claimed builder page (Rokha rows)"
+              properties:
+                handle: { type: string }
+                display_name: { type: [string, 'null'] }
+                avatar_url: { type: [string, 'null'], example: "/api/pages/sage/avatar" }
+                bio: { type: [string, 'null'] }
+                links: { type: array, maxItems: 8, items: { type: object, properties: { label: { type: string }, url: { type: string } } } }
+                accent: { type: [string, 'null'], description: "A #hex colour" }
+                banner_url: { type: [string, 'null'] }
+                badge: { type: [string, 'null'], description: "The owner's chosen active badge, when set" }
+        entity:
+          oneOf:
+            - { type: 'null' }
+            - type: object
+              description: "The Give-it-life card (Rokha rows the entities resolver knows; GET /api/entities/<kind>/<id> has the whole card)"
+              properties:
+                kind: { type: string }
+                id: { type: string }
+                editable: { type: boolean, description: "The verified caller owns it" }
+                name: { type: [string, 'null'] }
+                description: { type: [string, 'null'] }
+                images: { type: array, items: { type: string } }
+                links: { type: object, additionalProperties: { type: string } }
+                tags: { type: array, items: { type: string } }
+                token: { type: [object, 'null'], description: "The confirmed token block, when tokenized" }
+                agent: { oneOf: [{ type: 'null' }, { type: object, properties: { handle: { type: string } } }] }
+        doors:
+          type: object
+          required: [agent_door]
+          properties:
+            connect: { type: [string, 'null'], description: "MCP servers: /studio?connect=<provider>%2F<external_id>" }
+            run: { type: [string, 'null'], description: "Rigs + skills: /studio?run=<provider>%2F<external_id>" }
+            adopt: { type: [string, 'null'], description: "Rokha rigs: /studio?adopt=<external_id>" }
+            skill_md: { type: [string, 'null'], description: "/api/marketplace/registry/skill-md?provider=…&slug=…" }
+            agent_door: { type: string, example: "https://rokha.ai/mcp/jsonrpc", description: "The MCP endpoint agents paste" }
+            homepage: { type: [string, 'null'] }
+            owner_page: { type: [string, 'null'], example: "/@sage" }
 
     MarketPage:
       type: object
@@ -6218,7 +6955,8 @@ components:
       type: object
       required: [published, uses_total, uses_24h, live_now, builders, generated_at]
       properties:
-        published: { type: integer, description: "Published things on the market (rigs, skills, agents, MCP servers) — every non-page card" }
+        published: { type: integer, description: "Rokha-native published things (rigs, skills, agents) — every non-page card" }
+        on_market: { type: integer, nullable: true, description: "The whole Market — published things plus every open-registry listing; the same total GET /api/market answers unfiltered. Null while the registry is unread, never 0." }
         uses_total: { type: integer, description: "Uses of published things, all time" }
         uses_24h: { type: integer }
         registered_users: { type: integer, description: Active registered accounts. }
@@ -6228,6 +6966,329 @@ components:
         live_now: { type: integer, description: "Non-page cards used in the last 15 minutes" }
         builders: { type: integer, description: "Distinct non-House owners with a published thing or agent" }
         generated_at: { type: string, format: date-time }
+
+    # --- Edge (rokha.ai/edge) + the live desk ---
+    LiveThing:
+      type: object
+      description: "A public thing on the Market as the live desk names it. Never an owner or a runner."
+      properties:
+        kind: { type: string, description: "rig · skill · agent · mcp · … (the Market's own kinds)" }
+        id: { type: string }
+        title: { type: string, maxLength: 80 }
+        href: { type: string, description: "A site path (e.g. /@handle/slug)" }
+        image: { type: [string, 'null'] }
+        proven: { type: boolean }
+        official: { type: boolean }
+        architect: { type: boolean }
+        live: { type: boolean, description: "Used in the last 15 minutes" }
+
+    LiveAgent:
+      type: object
+      description: "An agent the desk may name — in the public directory and (unless a house agent) on the front board."
+      properties:
+        key: { type: string, description: "The agent's handle, e.g. rokha_agent" }
+        name: { type: string }
+        glyph: { type: string }
+        accent: { type: [string, 'null'] }
+        avatar_url: { type: [string, 'null'] }
+        page: { type: [string, 'null'], description: "Its /@handle path" }
+        in_house: { type: boolean }
+
+    LiveDot:
+      type: object
+      description: "One minute on a spoke: `m` = minutes since the 24 h window opened, `n` = count; `kind` only on agent spokes."
+      properties:
+        m: { type: integer }
+        n: { type: integer }
+        kind: { type: string }
+
+    LiveSpoke:
+      type: object
+      description: "One public thing (or agent) and its activity dots over the window. A thing used by fewer than 3 distinct users is `coarse` (hour buckets)."
+      properties:
+        sector: { type: string, description: "`agents`, or a thing kind" }
+        thing: { oneOf: [ { $ref: '#/components/schemas/LiveThing' }, { type: 'null' } ] }
+        agent: { oneOf: [ { $ref: '#/components/schemas/LiveAgent' }, { type: 'null' } ] }
+        first_seen_at: { type: [string, 'null'], format: date-time }
+        uses_24h: { type: integer, description: "Agent spokes: jobs for others; thing spokes: every use" }
+        acts_24h: { type: integer, description: "Agent spokes only: every dot, jobs included" }
+        coarse: { type: boolean }
+        last_at: { type: [string, 'null'], format: date-time }
+        dots: { type: array, items: { $ref: '#/components/schemas/LiveDot' } }
+        daily_only: { type: [object, 'null'], description: "Rokha's lane only: `{telegram_answers}` — counted per day, never per minute" }
+        unit: { type: string, description: "World spokes on /api/edge/field only" }
+        source_label: { type: string, description: "World spokes on /api/edge/field only" }
+        as_of: { type: [string, 'null'], format: date-time, description: "World spokes on /api/edge/field only" }
+
+    LiveEvent:
+      type: object
+      description: "One event, newest first, rounded to the minute (to the hour when `coarse`). `trace_id` is set only for a `use` of a PUBLIC rig above the 3-user floor, started after the rig went public — it reads anonymously at GET /api/traces/{id}."
+      properties:
+        at: { type: string, format: date-time }
+        kind: { type: string, description: "use · agent_job · answer · thought · reply · signet_action · published · proven, plus listed · posted · pushed on /api/edge/field" }
+        sector: { type: [string, 'null'], description: "null = an unnamed (below-floor) bucket" }
+        n: { type: integer }
+        coarse: { type: boolean }
+        thing: { oneOf: [ { $ref: '#/components/schemas/LiveThing' }, { type: 'null' } ] }
+        agent: { oneOf: [ { $ref: '#/components/schemas/LiveAgent' }, { type: 'null' } ] }
+        trace_id: { type: [string, 'null'], format: uuid }
+        detail: { type: [string, 'null'], description: "/api/edge/field world events only" }
+
+    LiveLane:
+      type: object
+      description: "One lane per nameable agent, Rokha first, then house agents, then the rest by last activity."
+      properties:
+        key: { type: string }
+        name: { type: string }
+        glyph: { type: string }
+        accent: { type: [string, 'null'] }
+        avatar_url: { type: [string, 'null'] }
+        page: { type: [string, 'null'] }
+        in_house: { type: boolean }
+        status: { type: string }
+        has_desk: { type: boolean, description: "A live Forge agent with a desk at /@handle/desk" }
+        counts_24h: { type: object, additionalProperties: { type: integer }, description: "Count by event kind" }
+        unread: { type: array, items: { type: string }, description: "Kinds whose ledger was unreadable this fill" }
+        daily_only: { type: [object, 'null'], description: "Rokha only: `{telegram_answers}`" }
+        hours: { type: array, items: { type: integer }, minItems: 24, maxItems: 24, description: "24 hourly counts, oldest first" }
+        last_at: { type: [string, 'null'], format: date-time }
+
+    LivePulseBucket:
+      type: object
+      description: "One bucket: `t` plus one integer per event kind that happened in it (a kind absent counted 0); `null_kinds` lists kinds whose ledger was unreadable."
+      required: [t]
+      properties:
+        t: { type: string, format: date-time }
+        null_kinds: { type: array, items: { type: string } }
+      additionalProperties: { type: integer }
+
+    LiveTotals:
+      type: object
+      description: "Every value is a count over a live ledger, or null when that read failed — never 0 for unreadable."
+      properties:
+        uses_24h: { type: [integer, 'null'] }
+        uses_7d: { type: [integer, 'null'] }
+        unnamed_uses_24h: { type: [integer, 'null'], description: "Uses of things below the 3-user floor (inside uses_24h)" }
+        folded_spokes: { type: integer, description: "Spokes folded past the 120 cap" }
+        folded_uses_24h: { type: [integer, 'null'] }
+        live_now: { type: [integer, 'null'] }
+        builders: { type: [integer, 'null'] }
+        agent_acts_24h: { type: [integer, 'null'], description: "The sum of every agent spoke's acts_24h (jobs count here and in uses_24h)" }
+        rokha_answers_24h: { type: [integer, 'null'] }
+        telegram_answers_today: { type: [integer, 'null'] }
+        proven_listings: { type: [integer, 'null'] }
+        published_24h: { type: [integer, 'null'] }
+        proven_24h: { type: [integer, 'null'] }
+        registry_listings: { type: [integer, 'null'] }
+        sandbox_30d: { description: "GET /api/network/metrics `sandbox` block (its own cache)" }
+        sandbox_24h: { type: [object, 'null'], properties: { runs: { type: integer }, ok: { type: integer } } }
+        registry_runs: { description: "GET /api/network/metrics `registry_runs` (all time)" }
+        signet_executed_24h: { type: [integer, 'null'] }
+        mcp_calls_7d: { type: [integer, 'null'] }
+        field_24h: { type: integer, description: "/api/edge/field only: world + Rokha dots" }
+        world_24h: { type: integer, description: "/api/edge/field only" }
+        listed_24h: { type: [integer, 'null'], description: "/api/edge/field only; null when registries were unreadable" }
+        posted_24h: { type: [integer, 'null'], description: "/api/edge/field only; null when the talk feeds were unreadable" }
+        pushed_24h: { type: [integer, 'null'], description: "/api/edge/field only; null when the repo feed was unreadable" }
+
+    LiveDesk:
+      type: object
+      description: "GET /api/live. Served from a 15 s cache; `uses_cache_seconds` is the front board's own refresh."
+      required: [generated_at, cache_seconds, window, manifest, totals, pulse, spokes, events, lanes, sources, note]
+      properties:
+        generated_at: { type: string, format: date-time }
+        cache_seconds: { type: integer, example: 15 }
+        uses_cache_seconds: { type: [integer, 'null'] }
+        window:
+          type: object
+          properties:
+            hours: { type: integer, example: 24 }
+            minutes: { type: integer, example: 60, description: "The per-minute pulse's span" }
+        manifest:
+          type: object
+          properties:
+            thing_kinds: { type: array, items: { type: string }, description: "Thing kinds present in the window" }
+            event_kinds: { type: array, items: { type: string }, description: "Of use · agent_job · answer · thought · reply · signet_action · published · proven, those that happened" }
+            sectors: { type: array, items: { type: object, properties: { key: { type: string }, label: { type: string } } } }
+        totals: { $ref: '#/components/schemas/LiveTotals' }
+        pulse:
+          type: object
+          properties:
+            minutes: { type: array, items: { $ref: '#/components/schemas/LivePulseBucket' }, description: "The last 60 minutes, oldest first" }
+            hours: { type: array, items: { $ref: '#/components/schemas/LivePulseBucket' }, description: "The last 24 hours, oldest first" }
+        spokes: { type: array, items: { $ref: '#/components/schemas/LiveSpoke' }, maxItems: 120, description: "Agent spokes first (Rokha first), then things" }
+        events: { type: array, items: { $ref: '#/components/schemas/LiveEvent' }, maxItems: 60, description: "Newest first" }
+        lanes: { type: array, items: { $ref: '#/components/schemas/LiveLane' } }
+        sources: { type: object, additionalProperties: { type: string }, description: "Which ledger each figure is counted from" }
+        note: { type: string }
+
+    EdgeField:
+      allOf:
+        - $ref: '#/components/schemas/LiveDesk'
+        - type: object
+          description: "GET /api/edge/field — /api/live's shape with the world merged in front of Rokha; `cache_seconds` is 30. `lanes` is /api/live's own (null when Rokha was unreadable)."
+          properties:
+            unreadable: { type: array, items: { type: string, enum: [registries, talk, repos, rokha] }, description: "Sources that could not be read this fill — their sector is absent, never zero" }
+
+    EdgeSection:
+      type: object
+      description: "One world section. `null` in place of the whole block when that read failed."
+      required: [as_of, source, source_door, data]
+      properties:
+        as_of: { type: [string, 'null'], format: date-time, description: "When the underlying read was taken (a registry stats read, a metrics read, or the protocol facts' verified date)" }
+        source: { type: [string, 'null'], description: "The source in plain words, e.g. \"Rokha's registry index\"" }
+        source_door: { type: string, description: "The door the figures come from, e.g. /api/marketplace/registry/stats or https://modelcontextprotocol.io/…" }
+        data: { description: "The section's data (shape by section — see EdgeRegistries for `registries`)" }
+
+    EdgeRegistryDay:
+      type: object
+      properties:
+        day: { type: string, format: date, description: "UTC day" }
+        n: { type: integer, description: "New public active listings first seen that day" }
+
+    EdgeRegistryProvider:
+      type: object
+      description: "One synced registry. Counts are what Rokha has indexed from it, not the registry's own total."
+      properties:
+        id: { type: string, example: glama }
+        label: { type: string }
+        active: { type: integer }
+        purged: { type: [integer, 'null'] }
+        downloads: { type: [integer, 'null'], description: "null where a registry reports none" }
+        new_24h: { type: [integer, 'null'] }
+        new_7d: { type: [integer, 'null'], description: "The last-7-day sum of `daily`; null (never 0) when the trend read failed" }
+        daily: { type: [array, 'null'], items: { $ref: '#/components/schemas/EdgeRegistryDay' }, description: "`daily_window_days` UTC days, oldest first, today partial; null when the trend read failed" }
+        last_sync_at: { type: [string, 'null'], format: date-time }
+        stale: { type: [boolean, 'null'], description: "The last completed sync is older than `stale_after_hours`; null when either time is unknown" }
+        items_synced: { type: [integer, 'null'] }
+        share_pct: { type: [number, 'null'], description: "Share of `total_active`, one decimal" }
+        unit: { type: string, example: listings }
+        attribution: { type: [object, 'null'], properties: { label: { type: string }, href: { type: string } }, description: "e.g. Data: Glama" }
+        open_href: { type: string, description: "The site filter for that registry" }
+
+    EdgeRegistries:
+      type: object
+      description: "`sections.registries.data` on GET /api/edge/world."
+      properties:
+        total_active: { type: integer, description: "The one registry total on Edge — the active sum" }
+        unit: { type: string, example: listings }
+        stale_after_hours: { type: integer, example: 48 }
+        daily_window_days: { type: integer, example: 14 }
+        daily_as_of: { type: [string, 'null'], format: date, description: "The UTC day the trend read was taken; null when it failed" }
+        providers: { type: array, items: { $ref: '#/components/schemas/EdgeRegistryProvider' }, description: "Most active first" }
+        note: { type: string }
+
+    EdgeWorld:
+      type: object
+      description: "GET /api/edge/world with no `section`."
+      required: [generated_at, cache_seconds, sections]
+      properties:
+        generated_at: { type: string, format: date-time }
+        cache_seconds: { type: integer, example: 120 }
+        sections:
+          type: object
+          properties:
+            registries: { oneOf: [ { allOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: object, properties: { data: { $ref: '#/components/schemas/EdgeRegistries' } } } ] }, { type: 'null' } ] }
+            network_stats: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ], description: "data = {listings_total, listings_new_24h, registries_synced, last_sync_at} from the same registry read" }
+            new: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ], description: "data = {window_hours: 168, rows[{provider, id, title, type, author, first_seen_at, href, source_href}]} — up to 20, newest first" }
+            clients: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ], description: "data = {window_days: 30, clients_window: all_time, handshakes, tools_list, tool_calls, clients[{ours, name, version, handshakes, last_seen}], other_clients, other_handshakes, note} — self-reported names on initialize, telemetry not identity" }
+            funnel: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ], description: "data = {window_days: 7, days[{day, initialize, tools_list, tools_call, llms_txt, partial}], signed_in_agents{value, below_floor}, top_tools[{tool, calls}]} — public tools with ≥ 3 distinct callers only" }
+            metrics: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ], description: "data = the GET /api/network/metrics body" }
+            protocol: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ], description: "data = the MCP protocol facts: verified (date), current_revision{id, href, changelog, highlights, deprecated}, revisions, primitives, utilities, transports, sdks, sdks_href, clients, clients_href, milestones — every line dated + cited" }
+
+    EdgeWorldSection:
+      type: object
+      description: "GET /api/edge/world?section=<one of the seven> (no `format`)."
+      required: [generated_at, cache_seconds, section, value]
+      properties:
+        generated_at: { type: string, format: date-time }
+        cache_seconds: { type: integer, example: 120 }
+        section: { type: string, enum: [registries, network_stats, new, clients, funnel, metrics, protocol] }
+        value: { oneOf: [ { $ref: '#/components/schemas/EdgeSection' }, { type: 'null' } ] }
+
+    EdgeDigest:
+      type: object
+      description: "The compact answer MCP `edge_read` / `edge_live` serve (and GET /api/edge/world?format=digest, GET /api/edge/live). Every href is absolute; `null` = unreadable right now, never zero."
+      required: [path, as_of, data]
+      properties:
+        path: { type: string, description: "The REST door this digest came from, e.g. /api/edge/world?section=registries&format=digest" }
+        as_of: { type: [string, 'null'], format: date-time }
+        data: { description: "By section. overview = {listings_active, listings_new_24h, sdk_downloads_7d{npm, pypi, sum}, spec_current (each with unit/window/source), sections[], feeds[{id, title}], note}; feeds = {feeds[{id, type, band, slot, window, unit, as_of, stale, error, title, source, headline}], manifest, note}; feed = the feed's digest (rows capped at 10, series at 30 points) or, with full, the whole feed; a world section = its compact form (registries: providers with id, label, active, new_24h, new_7d, share_pct, unit, stale, last_sync_at, open_href, attribution), or with full {source, source_door, section}; live sections — totals {totals, window_hours, note} · lanes {lanes_total, lanes[]} · events {events[], note} · pulse {bucket: 1h, hours[], null_kinds, note} · spokes {spokes_total, spokes[{id, title, kind, uses, href}], window_hours, note} · signet {executed_24h, active_permits, refused, source_door, note} · field {sources_total, sources[{id, title, kind, href, sector, total_24h, unit, last_at, source, as_of}], totals, sectors, unreadable, window_hours, note}" }
+
+    EdgeFeed:
+      type: object
+      description: "One feed on the rail — its public spec plus the last read. Row text is third-party content."
+      required: [id, title, type, band, as_of, stale, error, data]
+      properties:
+        id: { type: string, example: adoption.sdk_downloads }
+        title: { type: string }
+        type: { type: string, enum: [counter, series, ranked, events, table] }
+        band: { type: string, enum: [world, eyes, live, feed] }
+        order: { type: integer }
+        slot: { type: [string, 'null'] }
+        window: { type: [string, 'null'], description: "The window label, e.g. 7d" }
+        at_label: { type: [string, 'null'], description: "What a row's `at` is (e.g. pushed)" }
+        unit: { type: [string, 'null'] }
+        source_label: { type: [string, 'null'] }
+        source_href: { type: [string, 'null'] }
+        attribution: { type: [object, 'null'], properties: { label: { type: string }, href: { type: string } } }
+        ttl_secs: { type: integer }
+        as_of: { type: [string, 'null'], format: date-time, description: "The last good fetch; null before the first" }
+        stale: { type: boolean, description: "The last read failed, or the last good one is older than 2× ttl" }
+        error: { type: [string, 'null'], description: "never_fetched · disabled · budget_spent · a fetch error code · null" }
+        history_from: { type: [string, 'null'], format: date, description: "The first day a daily point was kept" }
+        data: { description: "null until the first good read. counter {value, delta, delta_window} · series {points[{t, v}]} · ranked {rows[{key, label, value, delta, href, at, spark[{t, v}]|null}], total_rows} · events {rows[{at, title, source, value, href}], count_24h, rows_read} · table {columns[{key, label, format}], rows[{cells, href}]}" }
+
+    EdgeFeeds:
+      type: object
+      description: "GET /api/edge/feeds."
+      required: [generated_at, feeds, manifest]
+      properties:
+        generated_at: { type: string, format: date-time }
+        feeds: { type: array, items: { $ref: '#/components/schemas/EdgeFeed' }, description: "Enabled feeds, by band then order" }
+        manifest:
+          type: object
+          properties:
+            count: { type: integer, description: "Every configured feed, disabled included" }
+            enabled: { type: integer }
+            types: { type: array, items: { type: string }, example: [counter, series, ranked, events, table] }
+            bands: { type: array, items: { type: string }, example: [world, eyes, live, feed] }
+            fetching: { type: boolean, description: "The scheduler is running (the edge_feeds lane is on and the kill switch is off)" }
+            kill_switch: { type: boolean }
+
+    EdgeFeedEnvelope:
+      type: object
+      description: "GET /api/edge/feeds?id=<id>."
+      required: [generated_at, feed]
+      properties:
+        generated_at: { type: string, format: date-time }
+        feed: { $ref: '#/components/schemas/EdgeFeed' }
+
+    EdgeFeedDraft:
+      type: object
+      description: "POST /api/admin/edge/feeds/draft (and MCP edge_feed_draft)."
+      required: [ok, spec, type, preview, paths, notes, warnings]
+      properties:
+        ok: { type: boolean, const: true }
+        spec: { type: object, additionalProperties: true, description: "The drafted feed spec in its admin view — id, title, type, url, method, headers (secrets as {secret_ref} names only), map{items_path, fields, …}, link_template, unit, window_label, at_label, source_label, source_href, placement, ttl_secs, daily_budget, enabled: false, … — the body POST /api/admin/edge/feeds {spec} and edge_feed_save take" }
+        type: { type: string, enum: [counter, series, ranked, events, table] }
+        preview: { description: "The drafted spec run over the same sample; rows/points capped at 20 (the EdgeFeed `data` shape)" }
+        paths: { type: array, items: { type: object }, description: "The response's paths and their types — never a value" }
+        notes: { type: array, items: { type: string }, description: "Why each pick was made, in plain words" }
+        warnings: { type: array, items: { type: string }, description: "Validation warnings on the draft" }
+        ms: { type: integer }
+        bytes: { type: integer }
+        next: { type: string, description: "What to do with it" }
+
+    EdgeFeedRefusal:
+      type: object
+      required: [ok, error, message]
+      properties:
+        ok: { type: boolean, const: false }
+        error: { type: string, description: "invalid_spec · nothing_fits · superadmin_only · budget_spent · the fetcher's code · the preview's code" }
+        field: { type: string, description: "On invalid_spec: the offending field" }
+        message: { type: string }
+        paths: { type: array, items: { type: object }, description: "On a preview refusal: the response's paths, so the spec can be edited by hand" }
 
     SaleRefusal:
       type: object

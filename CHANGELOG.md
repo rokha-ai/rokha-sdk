@@ -5,6 +5,159 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## Unreleased — 2026-10-14 — Intel inside every Market search
+
+- **`GET /api/market?q=…`** (and MCP `market_search`): the head of a text search is re-scored by an
+  OpenVINO™ cross-encoder on Intel® Xeon® — relevance first, the text-match order breaks ties.
+  Fail-open: any node trouble serves the plain order. The proof is a response header,
+  **`x-rokha-rerank: openvino; <cpu>`**, never a body field. New optional query param
+  **`rerank`** (`on` default · `off` = the plain text-match order, a comparison knob).
+  The body shape is unchanged.
+
+## Unreleased — 2026-10-14 — Awaken = create an agent: one pipeline, $10, no credits
+
+Awakening a Market thing is creating a Forge agent **from** it, **bound** to it — the same
+create door, the same body, the same guards as a plain agent. There is no second agent shape.
+
+- **`POST /api/agents/mine`** (`AgentCreate`, MCP `agent_create`) gains ONE optional field,
+  **`awakens: {kind, id} | null`**. Plain (absent/null) = today's free agent (1 on a Free account,
+  the Studio lifts it). With `awakens` the server re-checks the caller owns the thing (House-owned
+  and adopted copies refused), needs a `ready` fee for `(purpose: agent, kind, id)` — else
+  **402 `fee_not_paid`** with `doors.pay` + `doors.page` — then creates the agent, writes the
+  binding and consumes the fee in one transaction. The answer adds `awakens`, `agent {id, handle,
+  url, chat}`, `tools` and `who_pays`. `POST /api/entities/{kind}/{id}/agent` and MCP
+  `entity_add_agent` stay as thin twins that fill `awakens` from the path.
+- **`GET /api/entities/{kind}/{id}/agent/plan`** (`AwakenPlan`, public, optional bearer) — the Forge
+  args pre-filled from the thing (handle, the persona with its fenced `⟦entity-data⟧` block, the
+  rigs/skills it is made of) plus `awakens`, `fee`, `quote`, `can_awaken`, `reason`, `who_pays`,
+  `agent`, `doors`. The Forge loads it at `/agents/new?awaken=<kind>/<id>`; `GET …/agent/preflight`
+  and MCP `entity_agent_preflight` answer the same shape for the owner.
+- **The fee** (`POST /api/entities/{kind}/{id}/fee {purpose, rail}`, `EntityFeeOpen` →
+  `EntityFeeOpened`): **awaken is $10 one time** (`purpose: agent`); Tokenize stays $15
+  (`purpose: tokenize`). Rails `card` (new — a hosted Stripe Checkout; answers `{fee_id, rail,
+  checkout_url, status, fee, pay}`, turns `ready` when the processor confirms it, `{mode: "mock"}`
+  with no processor configured), `usdc_wallet`, `rokha_wallet`, `rokha_tank`. **On the three crypto
+  rails half burns as $ROKHA and half goes to the House; a card pays the House in full.**
+  **No credits** on either purpose or any rail: the fee json's `credits` is `null` and `split` is
+  `{burn_usd, house_usd}` only. New reads `GET /api/entity-fees/{fee_id}` (poll a card checkout
+  here) and `GET /api/entity-fees/mine`; `EntityFee` carries `stripe_session_id` on a card.
+  (Replaces the 2026-10-12 "$15 — $5 burned, $5 House, $5 credits" shape for the agent half.)
+- **Every Forge agent has its own free tier** (awakened or plain): a daily allowance on the house
+  model (`ROKHA_AGENT_FREE_DAILY_UNITS`, 10,000 units ≈ 15 short answers a day), then the owner's
+  keys for the turn's model, then the visitor's own meter or keys — never the owner's meter — then
+  one honest line ("This agent has used its free allowance for today and its owner has not added
+  keys yet — try again tomorrow or ask the owner.").
+- Copy: **Awaken**, never "Add an agent"; the `entities` tag, the agent/fee doors, `how-it-works.md`,
+  the FAQ, the index, the white paper (v0.13) and `skills/rokha-network` 4.1.2 say the same thing.
+- The site page `rokha.ai/how-it-works` is retired (it and `/earn` redirect to `rokha.ai`); no doc
+  links it any more — `docs/leaderboard.html` points at `rokha.ai/market`. The SDK guide
+  `docs/guides/how-it-works.md` stays.
+
+The schema version stays 1.0.0.
+
+## Unreleased — 2026-10-14 — The Object Page: every Market thing has a full page
+
+- **`GET /api/market/object/{kind}/{provider}/{external_id}`** (`MarketObject`) — one read for any
+  listing on the Market: the row (full description, tags, stars/downloads, `endpoint` /
+  `protocol` / `install`, `tools` from the probe), the SAME tile `item` the grid draws, the
+  owner's builder page (`owner`), the Give-it-life card (`entity`, with `editable` for the
+  verified caller) and the `doors`: `connect` (MCP servers → `/studio?connect=<provider>%2F<id>`),
+  `run` (rigs + skills → `/studio?run=…`), `adopt` (Rokha rigs), `skill_md`, `agent_door` (the MCP
+  endpoint to paste), `homepage`, `owner_page`. `kind` ∈ rig | skill | mcp is derived server-side;
+  a page asked under the wrong kind still answers 200 with the right `canonical`. Public; an
+  optional bearer only decides `entity.editable` and lets an owner read their own private row.
+  Unknown, private, blocked or malformed → 404 `not_found`.
+- **`/api/market` tiles**: `href` is now the object page `/market/<kind>/<provider>/<external_id>`
+  (a Rokha rig with a sub-page keeps `/@handle/<slug>`; a seat or page MCP server with a page
+  keeps `/@handle`); `cta` Connect / Run it open the Studio's `?connect=` / `?run=` doors instead
+  of the retired registry view (`/registry/<uuid>` links resolve client-side to the object page).
+
+## Unreleased — 2026-10-14 — Edge: the agent world, live
+
+Edge (`rokha.ai/edge`) is the explorer of the agent world — anyone can start there and read
+what the registries list, what ships, what people are saying, and what is running on Rokha,
+every figure a count over a real ledger or a real fetch with its own `as_of`. The doors below
+are documented in `schemas/openapi.yaml` under the new `edge` tag. Edge is a posture flag on
+a deployment (`EDGE_ENABLED`): while it is off, every `/api/edge/*` door answers 404
+`not_found` and `edge_read`/`edge_live` are hidden from `tools/list` (a call answers
+`edge_closed`); `/api/live` is not gated.
+
+- **`GET /api/live`** — the live desk: `manifest`, `totals`, a per-minute + per-hour `pulse`,
+  `spokes` (one per public thing or agent with its dots), `events` (newest first; a public
+  rig's run carries a `trace_id` readable at `GET /api/traces/{id}`), `lanes` (one per
+  nameable agent, Rokha first), `sources` and `note`. Public things only; times rounded to
+  the minute, things under 3 distinct users to the hour (`coarse`); `null` = unreadable,
+  never 0. No parameters, no identity — one cached body (15 s).
+- **`GET /api/edge/world`** — the world snapshot (`generated_at`, `cache_seconds` 120,
+  `sections` = `registries` · `network_stats` · `new` · `clients` · `funnel` · `metrics` ·
+  `protocol`, each `{as_of, source, source_door, data}` or null); `?section=` for one;
+  `?format=digest` (or `section=overview|world|feeds|feed`) for the compact `{path, as_of,
+  data}` answer `edge_read` serves, `full=1` for the whole section. `registries.data` carries
+  `total_active`, `daily_window_days` (14), `daily_as_of` and per provider `new_7d` + `daily`
+  (14 UTC days, today partial; null, never 0, when the trend read failed), `stale`,
+  `attribution`. 404 `unknown_section` / `unknown_feed`; 503 `edge_unavailable`.
+- **`GET /api/edge/feeds[?id=]`** — the feed rail: every external source (npm + PyPI
+  downloads, ecosystem repos, Hacker News, X via Sorsa, …) as a served snapshot, each its
+  public spec + `as_of`, `stale`, `error`, `history_from` and `data` by type (counter ·
+  series · ranked · events · table). A caller never names a URL; 404 `unknown_feed`.
+- **`GET /api/edge/live?section=&limit=`** — the live-on-Rokha digest over `/api/live`:
+  `totals` (default) · `lanes` · `events` · `pulse` · `spokes` · `signet` · `field` (every
+  source on the wire with its 24 h total, busiest first); `limit` 1–60 (default 10). The same
+  answer as MCP `edge_live`.
+- **`GET /api/edge/field`** — `/api/live`'s shape with the world merged in front of Rokha:
+  the event kinds `listed` (new registry listings at the registry's own minute), `posted`
+  (the talk feeds) and `pushed` (repo pushes), `totals.field_24h/world_24h/<kind>_24h`, and
+  `unreadable[]` naming any source that could not be read (its sector is absent, never 0).
+- **`POST /api/admin/edge/feeds/draft {url, title?, headers?}`** (superadmin) — plug any
+  JSON API into Edge: one fetch through the pinned fetcher on the 30/day preview budget, the
+  response's SHAPE (never a value) drafts a feed spec (events · ranked · series · counter ·
+  table), answered as `{spec, type, preview, paths, notes, warnings}`; nothing is saved until
+  `POST /api/admin/edge/feeds {spec}` (saved disabled) or MCP `edge_feed_save`.
+- **MCP** — public `edge_read {section?: overview|world|registries|new|network_stats|protocol|funnel|clients|metrics|feeds|feed, id?, full?}`
+  and `edge_live {section?: totals|lanes|events|pulse|spokes|signet|field, limit?: 1–60}` on both
+  gateways (the public door and Rokha's own kit); superadmin-only `edge_feed_draft {url,
+  title?, headers?}` and `edge_feed_save {spec, enable?}`. Documented in
+  `skills/rokha-network/SKILL.md` § 10.
+
+Also on 2026-10-14 — the founder's calls, every public doc aligned:
+
+- **Studio or Free — no named plans.** An account has Studio access or it does not. The one thing
+  sold is the Studio at $249 a month (card or USDC). Docs no longer name retired tiers, licenses
+  or trials, and no longer explain what happened to them.
+- **Caps as the server enforces them.** Free: ~15 questions a day with Rokha (a streak grows it
+  to 2×), 3 free runs a day (with or without an account), 5 rigs · 2 MCP listings · 1 agent per
+  account, no schedules. Studio: no publish caps, 100 schedules, 300 runs a day, own keys
+  unmetered. (Older docs said two free runs and 50 rigs / 10 agents / 10 MCP / 20 schedules.)
+- **The Object Page.** Every Market listing has a full page at
+  `rokha.ai/market/:kind/:provider/<external_id>` (kind `rig` | `skill` | `mcp`; read door
+  `GET /api/market/object/:kind/:provider/*external_id`). The old `/registry/<uuid>` view is
+  retired (old links still resolve); docs point at the object page or `rokha.ai/market?q=`.
+  **Connect** / **Run it** on a card open the Studio (`/studio?connect=` / `?run=`), where
+  Rokha builds a base rig on that listing. `/api/marketplace/registry*` doors are unchanged.
+- **Awaken.** "Give it life" reads as **Awaken** — give any Market thing an agent (an agentic
+  interface that knows what it is made of, runs its own tools, talks to whoever stops by).
+  **Tokenize** is a separate owner tool, not part of the awaken story.
+- A credit-spending action rides a click, never an arrival: `/studio?remix=1` does nothing;
+  Remix, Run it and Connect are buttons.
+- `skills/rokha-network` 4.1.1 and `skills/rokha-audit` 0.1.1 carry the same lines; the white
+  paper is v0.12 (2026-10-14).
+
+The schema version stays 1.0.0.
+
+## 2026-10-13 — The Market is one grid, popular first
+
+- **`GET /api/market` and `market_search` gain `sort=popular`, the new default** — one order
+  across Rokha and the open registry: a listing by its installs then stars, a Rokha thing by its
+  uses here (installs where it carries them); a tie goes to Rokha; proven is a filter, never a
+  rank. `sort=top` is unchanged and still means **most used on Rokha** (uses, distinct users,
+  last active); `live` and `new` are unchanged. A `popular` page has its own cursor shape —
+  start a page without a cursor from another sort.
+- **`GET /api/front/stats` gains `on_market`** — the whole Market (Rokha's published things plus
+  every open-registry listing, the same total `/api/market` answers unfiltered); `published` stays
+  the Rokha-native count. The landing's Published reading shows `on_market`.
+- rokha.ai/market shows one grid with every filter (what it is · what it's for · source ·
+  price · proven · sort) instead of lanes; every state is still a URL.
+
 ## 2026-10-12 — No payouts: Rokha builds the tools, your work gets used
 
 Rokha pays no one for use or for posts. **Build it. It gets used. It grows.** Pay per use — its
@@ -35,6 +188,8 @@ live. Rokha is the AI Studio and Marketplace: the tools to build agents and put 
   `entity_mine`, `entity_update`, sources, the fee (`entity_fee`, `entity_fee_status`,
   `entity_fee_verify`), `entity_agent_preflight` / `entity_add_agent` / `entity_agent_refresh`,
   `tokenize_preflight` / `tokenize_start` / `tokenize_confirm`.
+  *(Superseded 2026-10-14: Add an agent is **Awaken**, $10, half burns on a crypto rail, no credits —
+  see the Awaken block above; Tokenize keeps $15 on the same half-burn split.)*
 - **Docs** — white paper v0.11 (rewritten around the flywheel), README, FAQ, index,
   get-started, manifesto, Telegram, blockchain, vision; `docs/guides/get-paid.md` is now
   `docs/guides/how-it-works.md`; `rokha-network` skill 4.0.0. The site page is
