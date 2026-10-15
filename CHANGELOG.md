@@ -5,6 +5,12 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-15 — Telegram: plain raids are back, the old boards are gone
+
+- **Raids are back on Telegram, plain.** A raid is a live card on one X post with like, repost and reply goals and a clock. Rokha's founder starts them; anyone joins by tapping RAID IT. No points, no bounties, no pay, no board.
+- **The old leaderboard and payout commands are retired** in the Telegram bot: `/leaderboard`, `/top`, `/rank`, `/justify`, `/earn`, `/qualify`, `/purse`, `/pot`, `/payouts`, `/bounties`, `/receipts`, `/horde` and their kin no longer answer. The Market (`/board`, rokha.ai/market) is where use shows.
+- The bot's command menu is shorter: ask, catch up, manage, buy alerts, promotion and the full command list.
+
 ## Unreleased — 2026-10-14 — Trading rigs: packs, hosted stages, Rokha add-ons, the desk lab, Windsock round 2
 
 Versions stay held at 1.0.0. New doors for an agent that builds or buys trading tools —
