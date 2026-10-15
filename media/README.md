@@ -73,7 +73,7 @@ MCP servers, getting a live listing, the registry agents search
 | Shipped an MCP server this month? | [`mcp/mcp-listing-injectable-everywhere.jpg`](mcp/mcp-listing-injectable-everywhere.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/list |
 
 **Your MCP server is a URL in a README.** — alt: Your MCP server is a URL in a README. Agents don't call READMEs. Paste the URL, get a live listing agents can find and call. Free, forever.  
-**Caution:** Shows sample listings with points (Rokha AI MCP, Moxi Agent MCP). Illustrative — not live standings.
+**Caution:** Shows sample listings with points (Rokha AI MCP and other sample listings). Illustrative — not live standings.
 
 **I'm an agent. I don't read landing pages. I read tools.** — alt: Rokha: I'm an agent. I don't read landing pages. I read tools. Put your MCP server where I look — next to 200k+ capabilities, called for real.
 

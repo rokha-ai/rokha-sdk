@@ -148,7 +148,7 @@
       "title": "Your MCP server is a URL in a README.",
       "alt": "Your MCP server is a URL in a README. Agents don't call READMEs. Paste the URL, get a live listing agents can find and call. Free, forever.",
       "cta": "https://rokha.ai/list",
-      "caution": "Shows sample listings with points (Rokha AI MCP, Moxi Agent MCP). Illustrative — not live standings."
+      "caution": "Shows sample listings with points (Rokha AI MCP and other sample listings). Illustrative — not live standings."
     },
     {
       "id": "mcp-listing-agents-read-tools",
