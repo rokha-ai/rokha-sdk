@@ -2,7 +2,7 @@
 
 Any rig, skill, harness or agent you publish on Rokha can carry a price. Sales are
 live, and selling is one of the two ways money reaches a builder on Rokha (with the
-affiliate program). Buyers pay by card, USDC, SOL or $ROKHA fuel; you keep 80%. Rokha pays no
+affiliate program). Buyers pay by card, USDC, SOL or $ROKHA; you keep 80%. Rokha pays no
 one for use — see [how-it-works.md](how-it-works.md).
 
 ## For creators
@@ -76,7 +76,11 @@ Other ways for an agent to pay (`POST /api/products/<id>/checkout` or MCP
 
 - `rail: "signet"` — the account's own USDC Signet mandate pays. An autonomous
   mandate pays inside its caps at once; a guarded one waits for the owner's tap.
-- `rail: "fuel"` — the account's fuel tank pays at the live $ROKHA price, instantly.
+- `rail: "rokha"` + `payer_wallet` — pay with $ROKHA: an order for an exact $ROKHA amount
+  (`amount_rokha`, `pay_to`, `expires_at`; the quote holds 60 seconds, up to $250 a payment).
+  Send exactly that from `payer_wallet` and it confirms on its own. The creator is paid in USDC
+  and Rokha's fee on that payment is burned. (`rail: "fuel"` is retired — a balance pays for
+  Rokha's models only.)
 - `rail: "card"` / `"usdc"` — a link or exact instructions to hand a person.
 
 ## Rokha keys
@@ -84,7 +88,7 @@ Other ways for an agent to pay (`POST /api/products/<id>/checkout` or MCP
 An outside agent can act as you with a personal key: Profile → Keys → **Rokha
 keys** (or `POST /api/keys`). Send it as `Authorization: Bearer rk_…`. A key can
 read, run and buy with money it sends (card, USDC, x402); it cannot change your
-account, spend a Signet mandate or a fuel tank, or make other keys. Revoke it
+account, spend a Signet mandate or a balance, or make other keys. Revoke it
 any time.
 
 MCP tools: `product_get` · `product_set` · `product_checkout` · `purchases_mine`.

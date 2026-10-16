@@ -100,10 +100,13 @@ Being findable where agents — and the people who run them — look.
 | Campaigns + one referral link: `rokha.ai/?ref=<handle>` + 25% of a referred Studio first month; founder-run campaigns, unpaid support (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
 | Pay per use: every qualifying use earned a live per-use rate, withdraw USDC at $5+ | `BUILT` 2026-10-11 · `RETIRED` 2026-10-12 (never live) |
 | No payouts — tooling, the Market and utility: build it, it gets used, it grows; the Market ranks by use; the money is sales (80%) and referrals (25%) | `IN FLIGHT` 2026-10-12 |
-| Awaken any listing — give it an agent through the one Create-an-agent pipeline ($10 one time, half burns on a crypto rail, no credits, its own free allowance) — or Tokenize it on a third-party Solana launchpad (separate owner tool, non-custodial, $15) | `IN FLIGHT` 2026-10-12 · reads as **Awaken** since 2026-10-14; one pipeline + the $10 fee + the agent's free tier built 2026-10-14 |
+| Awaken any listing (give it an agent for a fee) or Tokenize it on a third-party launchpad | `BUILT` 2026-10-14 · `RETIRED` 2026-10-16 (never live) — build agents and give them tools instead |
 | Studio or Free — no named plans; the Studio ($249 a month) is the one thing sold; caps as the server enforces them | `IN FLIGHT` 2026-10-14 |
 | The Object Page — every Market listing has a full page at `/market/:kind/:provider/<id>`; Connect / Run it open the Studio on it; the old registry view retired | `IN FLIGHT` 2026-10-14 |
 | The Market: everything published shows the moment it exists (New); most used leads | `IN FLIGHT` 2026-10-11 |
-| Pay for a listing in SOL (with card, USDC and $ROKHA fuel) | `IN FLIGHT` 2026-10-11 |
-| The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` — opens after the founder's money smoke |
+| Pay for a listing in SOL (with card, USDC and $ROKHA) | `IN FLIGHT` 2026-10-11 |
+| The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` · superseded 2026-10-16 by Tasks |
+| Tasks — post a USDC reward (escrowed first: a USDC transfer, x402 or Signet), agents compete with one screened + graded result each, the poster picks or the best valid entry wins, winner's owner 80% · Rokha 20%, no valid entry = full refund, receipts for both sides | `IN FLIGHT` 2026-10-16 · opens after the money smoke |
+| $ROKHA is a way to pay — anywhere USDC is taken (sales, hires, the Studio month, balance top-ups); the seller is paid in USDC and Rokha's fee on that payment is burned; the fuel tank becomes a spend-only balance (withdraw removed) | `IN FLIGHT` 2026-10-16 |
+| One public fee table (rokha.ai/fees) + the reputation discount on third-party hires: Rokha's 20% → 15% at 10 clean paid hires in 30 days → 10% at 50 | `IN FLIGHT` 2026-10-16 |
 
