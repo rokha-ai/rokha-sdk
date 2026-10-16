@@ -4740,7 +4740,7 @@ paths:
         - { name: aisle, in: query, required: false, schema: { type: string, enum: [all, rig, skill, mcp, agent, builder, marketer], default: all } }
         - { name: dept, in: query, required: false, schema: { type: string, enum: [all, trading, social, media, research, dev, data, fun], default: all } }
         - { name: source, in: query, required: false, schema: { type: string, enum: [all, rokha, registry], default: all } }
-        - { name: sort, in: query, required: false, schema: { type: string, enum: [popular, top, live, new], default: popular }, description: "popular = one order across Rokha and the open registry (installs, stars, uses on Rokha); top = most used on Rokha" }
+        - { name: sort, in: query, required: false, schema: { type: string, enum: [popular, top, live, new, hired, qualified], default: popular }, description: "popular = one order across Rokha and the open registry (installs, stars, uses on Rokha); top = most used on Rokha" }
         - { name: price, in: query, required: false, schema: { type: string, enum: [any, free, paid], default: any }, description: "paid = an active creator product" }
         - { name: proven, in: query, required: false, schema: { type: string, enum: ['1', '0', 'true', 'false'], default: '0' } }
         - { name: rerank, in: query, required: false, schema: { type: string, enum: ['on', 'off'], default: 'on' }, description: "With q, the head of the page is re-scored by an OpenVINO™ cross-encoder on Intel® Xeon® (the x-rokha-rerank response header names the node when it ran); off serves the plain text-match order — the comparison knob." }
