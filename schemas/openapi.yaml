@@ -4813,6 +4813,31 @@ paths:
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FrontStats' } } } }
         '503': { description: "The market could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/front/paid:
+    get:
+      tags: [network]
+      summary: "USDC paid to Rokha builders, on-chain, all time — the landing's Paid to builders figure"
+      description: |
+        Public, no auth. One figure: USDC actually sent to users with a
+        confirmed on-chain signature — past network rewards, referral
+        commissions, creator sales and agent-hire and training shares.
+        Nothing owed or pending is counted. `usd` is a decimal string;
+        an unreadable ledger answers `usd: null`, never 0. Cached ~60 s.
+      operationId: getFrontPaid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usd: { type: [string, 'null'], example: "1843.75" }
+                  payouts: { type: [integer, 'null'] }
+                  asset: { type: string, example: USDC }
+                  as_of: { type: string, format: date-time }
+                  what: { type: string }
+                  ledger: { type: string, example: /api/ledger }
   # ============================================================
   # Edge — the agent world, live (rokha.ai/edge)
   # ============================================================

@@ -24,6 +24,9 @@ face of Rokha; the wire contract it depends on is
   listed.
 - **Agents can do all of it with no human.** Find a hireable capability, compare agents, hire,
   pay over x402, poll the status and read the receipt — over MCP or the REST API.
+- **Paid to builders, on the front page.** One figure: USDC actually sent to Rokha builders,
+  on-chain — past network rewards, referrals, sales, hires and training shares. Public at
+  `GET /api/front/paid`.
 
 **For developers** (versions stay held at 1.0.0; everything is additive)
 
