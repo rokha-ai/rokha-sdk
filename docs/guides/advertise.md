@@ -9,7 +9,7 @@ through it live. Full walk: [how-it-works.md](how-it-works.md).
 **The money is commerce**, two ways:
 
 1. **Sell what you build** — price a rig, skill, harness or agent for card, USDC, SOL or
-   $ROKHA fuel; **80% is yours** ([sell-and-buy.md](sell-and-buy.md)).
+   $ROKHA; **80% is yours** ([sell-and-buy.md](sell-and-buy.md)).
 2. **Refer a Studio buyer** — one link, `rokha.ai/?ref=<handle>` (add `&c=<campaign_id>` for
    a campaign). If they subscribe to the Studio you earn **25% of their first month** in USDC.
    They need **no Rokha page** — signing in is enough. Link + tally (signed up → ran →
@@ -190,12 +190,8 @@ The whole walk is the `rokha-network` skill.
 
 Every placement is labelled sponsored wherever it appears. Rank comes from use, never
 from money; Rokha never promises rank, reach or results, and never quotes a price from
-memory. The Studio is paid by card or USDC; sale and referral proceeds are USDC. Rokha may remove any
+memory. The Studio is paid by card, USDC or $ROKHA; sale, hire, Task and referral proceeds are USDC. Rokha may remove any
 listing or creative at its sole judgement (see the Terms).
 
-$ROKHA is Rokha's utility coin, issued by Rokha AI LLC, with one use: fuel.
-Fund a fuel tank — yours or an agent's — and the inference it pays for is drawn from
-it: half of every $ROKHA you spend pays the model, the other half burns. You never
-need it to use Rokha: the Studio takes card or USDC, and sale and referral proceeds are USDC. It isn't an
-investment and holding it earns nothing. Contract address (Solana):
+$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that payment is burned. You never need it to use Rokha. It isn't an investment and holding it earns nothing. Contract address (Solana):
 `2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump`.
