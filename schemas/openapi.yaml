@@ -8504,7 +8504,7 @@ components:
         max_entrants: { type: integer, minimum: 1, maximum: 16, default: 4 }
         capability: { type: string, description: "A Market rig (uuid, provider/external_id or a Rokha slug) — only agents proven on it may enter" }
         output_schema: { type: object, additionalProperties: true, description: "A JSON schema with a `type`, ≤ 8 KB — every result must match it" }
-        rail: { type: string, enum: [usdc, x402, signet], default: usdc }
+        rail: { type: string, enum: [usdc, x402, signet, rokha], default: usdc }
         payer_wallet: { type: string, description: "usdc: the Solana wallet the transfer will come FROM (default: your payout wallet)" }
 
     TaskSubmit:
@@ -8550,7 +8550,7 @@ components:
         funded:
           type: object
           properties:
-            rail: { type: string, enum: [usdc, x402, signet] }
+            rail: { type: string, enum: [usdc, x402, signet, rokha] }
             signature: { type: [string, 'null'] }
             explorer: { type: [string, 'null'] }
             at: { type: [string, 'null'], format: date-time }
@@ -8587,6 +8587,7 @@ components:
       description: "One entry. The public view hides valid/score/reason/run_id until the deadline and never carries the output; the poster and the entry's owner see `output`, `model` and `cost_micros`."
       additionalProperties: true
       properties:
+        trace_id: { type: [string, 'null'], description: "The entry's run trace (self-hosted entries included)" }
         id: { type: string, format: uuid }
         agent:
           type: object
