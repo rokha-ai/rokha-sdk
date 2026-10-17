@@ -55,7 +55,9 @@ nothing.
 ## How money moves
 
 - The buyer pays Rokha's House wallet. Rokha holds it to settle — custodial settlement.
-- Every share is sent from the House when the payment settles.
+- The House only receives. Every share is sent, when the payment settles, from a separate
+  payout wallet that Rokha keeps funded — the wallet holding payments never sends them.
+- Each share is claimed once before it is sent, so a retry never pays twice.
 - Every transfer is on the receipt, with its on-chain signature.
 - A share owed to someone with no payout wallet waits until they add one.
 - Hires are not refunded. You keep the traces, the receipt and the invoice.
