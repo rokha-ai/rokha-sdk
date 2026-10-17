@@ -5,6 +5,34 @@ Rokha product it talks to — are documented here. The SDK is the public
 face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
+## 2026-10-17 — Mark Check (#MCP) and launching on pump.fun with Signet
+
+**What changed**
+
+- **Mark Check — don't be the mark.** Paste a coin's contract address, an @handle or any
+  link and get one deep read back: who can still mint or freeze the coin, how concentrated
+  the holders are, the liquidity, how real an X account's following is, what a site and its
+  code actually are. Every check ends in a verdict — CLEAN, SUS or PUNK'D — with the receipts
+  it stands on and a 24-hour call that is scored in public the next day. Agents get the same
+  read as the MCP tool `mark_check`; the scored checks are free to train on. Page:
+  rokha.ai/@markcheck/mark-check. On X, tag Marky with "markcheck" and a coin, account or
+  link — the findings come back as a thread.
+- **Launch a token on pump.fun from your own Signet wallet.** Ask Rokha in your own DM, or
+  `/launch solana pumpfun <SOL> <description>` with an image, or run the pump.fun launch rig.
+  Your mandate decides everything: what you allowed, how much it may spend, and whether you
+  tap to confirm. Before anything is signed, the launch is simulated and refused unless the
+  SOL that leaves your wallet stays inside its price, you are the coin's creator, and the coin
+  exists. Rokha's fee: 5% of the dev buy, 0.02 SOL minimum, in the same transaction.
+- **Money moves only on the owner's word.** Value now leaves a Signet mandate from chat only
+  when Rokha has verified that the request came from that mandate's owner — in their own DM or
+  signed-in session. A mention, a group message or a stranger's reply can never spend from a
+  mandate, whatever it says.
+
+**For developers**
+
+- `GET /api/mark/check?q=` · `GET /api/mark/board` · `GET /api/mark/dataset` (in
+  `schemas/openapi.yaml`); MCP tool `mark_check`.
+
 ## 2026-10-17 — Docs rebuilt: concepts, lifecycles, fees & money, roadmap; white paper v1.0
 
 **What changed**

@@ -5967,6 +5967,88 @@ paths:
                   chain: {}
                   updated_at: {}
 
+  /api/mark/check:
+    get:
+      tags: [signals]
+      summary: "Mark Check (#MCP) — is this coin, account or link a punk? Query: ?q=<Solana CA | @handle | https link>"
+      description: |
+        One deep read on any mark. A Solana contract address (or a pump.fun / DexScreener /
+        Solscan / Birdeye link naming one) gets its mint + freeze authority, holder concentration,
+        the deepest DexScreener pair and the social-signal row. An X account gets the full X account
+        audit. Any public https link gets a crawl of the site, its llms.txt, MCP tools, OpenAPI,
+        repos and packages. Every mark carries a deterministic red-flag audit, a verdict
+        (CLEAN | SUS | PUNK — a critical flag never reads CLEAN), a title, a roast line, receipts
+        and a 24h call (HOLDS | FOLDS) that is scored once, 24 hours later. Marks are saved: a fresh
+        one is served to everyone. Omit `q` for the board. Same builder as the MCP tool `mark_check`.
+        A risk read on public data, not advice. Public; a daily ceiling applies.
+      operationId: getMarkCheck
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 300 } }
+      responses:
+        '200':
+          description: The mark (or an `error` line), its history and the board
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  protocol: { type: string, enum: [mark-check] }
+                  query: { type: string }
+                  kind: { type: string, enum: [coin, x, link] }
+                  error: { type: string }
+                  from_ledger: { type: boolean }
+                  mark:
+                    type: object
+                    additionalProperties: true
+                    properties:
+                      mark_id: { type: integer }
+                      kind: { type: string }
+                      label: { type: string }
+                      verdict: { type: string, enum: [CLEAN, SUS, PUNK] }
+                      title: { type: string }
+                      roast: { type: string }
+                      receipts: { type: array, items: { type: string } }
+                      call: { type: string, enum: [HOLDS, FOLDS], nullable: true }
+                      audit: { type: object, additionalProperties: true }
+                      facts: { type: object, additionalProperties: true }
+                      outcome: { type: string, enum: [called_it, missed], nullable: true }
+                      outcome_state: { type: string, enum: [held, folded], nullable: true }
+                      marked_at: { type: string, format: date-time }
+                      share_url: { type: string }
+                  history: { type: array, items: { type: object, additionalProperties: true } }
+                  scoreboard: { type: object, additionalProperties: true }
+                  recent: { type: array, items: { type: object, additionalProperties: true } }
+                  receipts_wall: { type: array, items: { type: object, additionalProperties: true } }
+
+  /api/mark/board:
+    get:
+      tags: [signals]
+      summary: "Mark Check's board — the scoreboard, the freshest marks and the receipts wall"
+      operationId: getMarkBoard
+      responses:
+        '200': { description: The board }
+
+  /api/mark/dataset:
+    get:
+      tags: [signals]
+      summary: "Every scored mark as training data — features, verdict, the 24h call and what happened"
+      operationId: getMarkDataset
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+        - { name: before, in: query, required: false, schema: { type: integer }, description: "Page with `next_before` from the previous page" }
+      responses:
+        '200':
+          description: A page of scored marks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count: { type: integer }
+                  next_before: { type: integer, nullable: true }
+                  items: { type: array, items: { type: object, additionalProperties: true } }
+
   /api/studio/access:
     get:
       tags: [network]
