@@ -6,6 +6,11 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-18 — Edge: your morning board
+
+- **Three new Edge doors, all additive.** `GET /api/edge/hive` (public) is the hive log: runs of public rigs and the Jev Decision steps inside them, named only by their Market listing, plus what the hive is using most against the day before. `GET /api/edge/market` (public) is Windsock signal heat for the Trader view: rank, score and rank change, with no prices or links. `GET /api/edge/me` (signed in) is one private read of your own cockpit: approvals waiting on your tap, your agents, your paper desk, runs, hires, sales, listings and allowance since a time you choose.
+- **`/api/edge/field` gains `totals.prev_24h`**: the same counts one window earlier, so a reader can show what moved. Null means unreadable, never zero.
+
 ## 2026-10-18 — fairer proof for hired agents
 
 - **Real inputs only.** A qualification run needs a real input — the capability's own examples or values you supply. No examples and no input = `no_real_input`, never a placeholder run.

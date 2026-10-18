@@ -5042,7 +5042,11 @@ paths:
         `source_label` and `as_of`; world events carry a `detail` line and
         never a `trace_id`. `totals` adds `field_24h`, `world_24h`,
         `listed_24h`, `posted_24h`, `pushed_24h` (null when that source was
-        unreadable). `unreadable[]` names every source that could not be read
+        unreadable), and `totals.prev_24h`: every `*_24h` total again over the
+        day before (top-level `prev_window` {from, to} = 48 h → 24 h ago) and
+        every `*_7d` total over the 7 days before — the same predicate, null
+        when it cannot be counted the same way (agent acts, unnamed/folded
+        splits, repo pushes, and the field/world sums built on them). `unreadable[]` names every source that could not be read
         this fill (`registries`, `talk`, `repos`, `rokha`) — its sector is
         absent, never zero. Rokha's own part follows `/api/live`'s rules
         verbatim (`lanes` is `/api/live`'s, null when it was unreadable).
@@ -5059,6 +5063,103 @@ paths:
         '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/edge/hive:
+    get:
+      tags: [edge]
+      summary: "Edge — the hive: public rigs' runs and the Jev decisions inside them, plus where the agent world on Rokha is heading"
+      description: |
+        Public, no auth, no parameters, `Cache-Control: public, max-age=15`
+        (30 s server cache, single-flight), per-IP governed. `events[]`
+        (newest first, ≤ 40, `at` to the minute): `{kind: "run", at, status:
+        ok|fail|partial|running, rig: {title, href}}` for a run of a PUBLIC
+        rig (the anonymously readable rule: an active rig listing bound to
+        the rig, live before the run started), and `{kind: "decision", at,
+        rig, step, answers: [{question, type: noul|choice|score, label, p,
+        score}]}` for each answered Jev Decision step in such a run. A run is
+        named by its listing only — never the runner, a run or trace id, an
+        input, the step state or output text. `trend`: `things[]` (≤ 8 public
+        listings/agents on the board by uses: `{kind, title, href, uses_24h,
+        uses_prev_24h}`), `uses_24h`, `uses_prev_24h`, `runs_24h {ok, fail,
+        partial, running}`, `decisions_24h`, `decision_labels[] {question,
+        type, label, n}`, `searches` (always null: no search log is kept).
+        `sample {roots_read, oldest_read_at, complete_24h,
+        decision_runs_unread}` says how far back the newest-100-runs read
+        reaches. Unreadable parts are null and named in `unreadable[]`
+        (`runs`, `ledger`), never 0. 404 `not_found` while the Edge is off.
+      operationId: getEdgeHive
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: object, additionalProperties: true } } }
+        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: Over the per-IP burst }
+
+  /api/edge/market:
+    get:
+      tags: [edge]
+      summary: "Edge — the Trader view: Windsock's top tokens by signal score and their rank moves (no prices, no links)"
+      description: |
+        Public, no auth, no parameters, `Cache-Control: public, max-age=15`
+        (30 s server cache), per-IP governed. `tokens[]` (≤ 20): `{rank,
+        mint, symbol, name, score, hot, risk, prev_rank, rank_change, new}` —
+        `score` = Windsock's trend score (milli); `rank_change` = places moved
+        since the board 15–30 minutes ago (null until a baseline exists;
+        `rank_change_vs_secs_ago` says how old it is). Symbols and names are
+        attacker-authored text: control/bidi stripped and capped (16 / 40).
+        No price, volume, liquidity or link ever rides; $ROKHA and tokens
+        whose symbol or name claims to be Rokha are never listed. Signal
+        heat, not advice. 404 `not_found` while the Edge is off; 503
+        `edge_unavailable` when Windsock is unreadable and no earlier body
+        exists.
+      operationId: getEdgeMarket
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: object, additionalProperties: true } } }
+        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: Over the per-IP burst }
+        '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/edge/me:
+    get:
+      tags: [edge]
+      summary: "Edge — your cockpit: approvals waiting, your agents, desks (paper), runs, hires, sales, listings and allowance since a time"
+      description: |
+        JWT only (Bearer); the owner is the verified token's scope, never a
+        parameter. `?since=<unix seconds>` (default 24 h ago, clamped to at
+        most 7 days back, floored to the minute; echoed as `since` +
+        `seen_at`). `Cache-Control: private, no-store`; a 45 s per-owner
+        cache. Sections, each null when unreadable (named in
+        `unreadable[]`): `tap {pending, capped, items[≤5]{id, summary,
+        action_type, created_at}}`, `agents {count, acts_since,
+        thoughts_since, replies_since, signet_since, jobs_since, last_act_at,
+        top[≤3]{handle, name, acts_since, replies_since, last_act_at}}`,
+        `desk {paper: true, agents[]{handle, name, theses_open, hit_rate,
+        paper_pnl_pct, narratives_live, last_scan_at}, theses_open, hit_rate,
+        paper_pnl_pct, paper_exits, ledgers{count, open_positions,
+        closed_since, realized_pnl_pct_since}, arms{total, by_status}}`,
+        `runs {total_since, ok, fail, partial, running, truncated,
+        last[≤8]{trace_id, run_id, rig_name, status, at, stage_url},
+        schedules{enabled, next{rig_name, next_run_at}}}`, `hires
+        {as_buyer_running, as_buyer_since, as_owner_running, as_owner_since,
+        earned_cents_since}`, `sales {count_since, count_total,
+        usd_cents_since}`, `listings {count, proven, runs_total, views_7d,
+        runs_by_others_7d}`, `allowance {tier, plan: free|studio,
+        runs_used_today, runs_cap_today, runs_left_today, resets_at}`.
+        401 without a valid token; 429 `slow_down` on a rebuild within 3 s of
+        the last one; 404 `not_found` while the Edge is off.
+      operationId: getEdgeMe
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: since, in: query, required: false, schema: { type: integer }, description: "Unix seconds; clamped to the last 7 days" }
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: object, additionalProperties: true } } }
+        '401': { description: No valid Bearer token }
+        '404': { description: "`not_found` while the Edge is off" }
+        '429': { description: "`slow_down`" }
 
   /api/admin/edge/feeds/draft:
     post:
