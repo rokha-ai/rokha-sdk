@@ -4471,7 +4471,7 @@ paths:
         Public. The free tier is ONE daily allowance in fuel units
         (`units_total`, ≈ $0.75 of Haiku: a small build session with Rokha,
         ≈ 15 questions' worth) plus `free_runs_per_day` (3) free runs of any
-        public rig, per person across the site, X, Telegram and MCP. A
+        public rig, per person across the site and MCP. A
         **loyalty ramp** grows it: every consecutive active day adds 10% to
         the next day's allowance, up to 2× (`ramp`). `free_doors` are what a
         claimed page may publish free (2 MCP listings · 5 rigs · 1 agent);

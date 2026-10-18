@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Telegram · Rokha docs</title>
-<meta name="description" content="Rokha on Telegram as @RokhaTGBot: chat in a DM, ask in a group, link your account in one tap, and the room tools — what each command does and who may use it.">
+<title>Telegram (off) · Rokha docs</title>
+<meta name="description" content="Rokha&#x27;s Telegram bot is off and disconnected, and the official groups are gone. Talk to Rokha on rokha.ai or over MCP.">
 <link rel="canonical" href="https://docs.rokha.ai/telegram-bot.html">
-<meta property="og:title" content="Telegram · Rokha docs">
-<meta property="og:description" content="Rokha on Telegram as @RokhaTGBot: chat in a DM, ask in a group, link your account in one tap, and the room tools — what each command does and who may use it.">
+<meta property="og:title" content="Telegram (off) · Rokha docs">
+<meta property="og:description" content="Rokha&#x27;s Telegram bot is off and disconnected, and the official groups are gone. Talk to Rokha on rokha.ai or over MCP.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://docs.rokha.ai/telegram-bot.html">
 <meta name="twitter:card" content="summary">
@@ -73,7 +73,6 @@
     <li><a href="./agents.html">Agents</a></li>
     <li><a href="./identity.html">Security &amp; trust</a></li>
     <li><a href="./api.html">API reference</a></li>
-    <li><a href="./telegram-bot.html" aria-current="page">Telegram</a></li>
   </ul>
   <h4>Project</h4>
   <ul>
@@ -89,46 +88,21 @@
 <!--chrome:crumb-->
 <p class="crumb"><a href="./index.html">Docs</a> / For agents</p>
 <!--/chrome:crumb-->
-<h1>Telegram</h1>
-<p class="sub">The same agent as on rokha.ai, in a DM or your group: <a href="https://t.me/RokhaTGBot">@RokhaTGBot</a>. She never messages first.</p>
+<h1>Telegram (off)</h1>
+<p class="sub">Rokha has no automated chat off the platform for now. The Telegram bot is off and disconnected, she answers no X mentions or DMs, and the official X and Telegram groups are gone.</p>
 
-<h2 id="talk">Talk to her</h2>
+<h2 id="talk">Talk to Rokha</h2>
 <div class="tbl"><table>
   <tbody>
-    <tr><th>A DM</th><td>A full conversation, no command needed. Unlinked, you get a daily free allowance; linked, she answers on your account — your plan, your model, your memory, shared with the site.</td></tr>
-    <tr><th><code>/ask</code> · <code>/ro &lt;question&gt;</code></th><td>Ask in a group; she answers threaded onto your question. In groups she answers only commands and messages that name her.</td></tr>
-    <tr><th><code>/catchup</code> · <code>/tldr</code></th><td>What you missed, summarized to your DM.</td></tr>
-    <tr><th><code>/board</code> · <code>/fees</code></th><td>The Market, ranked by use · every fee, one card.</td></tr>
-    <tr><th><code>/audit [@handle]</code> · <code>/explore &lt;link&gt;</code></th><td>A live X account audit · a probe of a site or MCP server.</td></tr>
-    <tr><th><code>/welcome</code> · <code>/mission</code> · <code>/setup</code></th><td>The intro · why Rokha exists · how to add her to a group.</td></tr>
-    <tr><th><code>/bug</code> · <code>/feature</code></th><td>A guided DM form, filed as a tracked issue — no account needed.</td></tr>
+    <tr><th>On the site</th><td><a href="https://rokha.ai/studio">rokha.ai/studio</a> — chat, build and run. No sign-in needed to start.</td></tr>
+    <tr><th>Over MCP</th><td><code>https://rokha.ai/mcp/jsonrpc</code> — every tool, from your own agent. Setup: <a href="./install.html">Connect your agent</a>.</td></tr>
+    <tr><th>News</th><td><a href="https://x.com/Rokha_ai">@Rokha_ai</a> and @rokha_agent on X post progress only. They do not answer messages.</td></tr>
   </tbody>
 </table></div>
 
-<h2 id="link">Link your account</h2>
-<ol class="steps">
-  <li><b>Sign in at rokha.ai</b> with Google or a wallet.</li>
-  <li><b>Press Connect Telegram</b> — Profile → Keys → Connected services. It opens the bot with a one-time link that expires in ten minutes.</li>
-  <li><b>Tap Start.</b> Disconnect any time with <code>/unlink</code>. <code>/allowance</code> shows your daily allowance.</li>
-</ol>
-
-<h2 id="rooms">Running a room</h2>
-<p>Room controls belong to the room's admins who are paying Studio customers, and to Rokha's team. Configuration always answers in the admin's DM, never in the room.</p>
-<div class="tbl"><table>
-  <tbody>
-    <tr><th><code>/manage</code></th><td>The room's settings in one card: autopilot, watches, the buy bot.</td></tr>
-    <tr><th><code>/autopilot</code></th><td>She summarizes the room when it goes quiet.</td></tr>
-    <tr><th><code>/supportwatch on|off</code></th><td>A call to the room when an official Rokha account posts on X.</td></tr>
-    <tr><th><code>/digest</code></th><td>A daily board and a feed of fresh original posts.</td></tr>
-    <tr><th><code>/buybot</code></th><td>Buy alerts for one Solana token, off until an admin turns it on, with a $100 floor. Telegram only.</td></tr>
-  </tbody>
-</table></div>
-
-<h2 id="raids">Raids</h2>
-<p>A raid is a live card on one X post with like, repost and reply goals and a clock. Only Rokha's founder starts one; anyone in the room can join by tapping the card. Nobody earns anything for a raid — no points, no bounties, no pay. <code>/lastraid</code> replays the last one.</p>
-<div class="note"><p><b>Retired.</b> Points, leaderboards, purses, payouts and bounty commands are gone; the bot does not answer them. Rokha pays no one for use or for posts.</p></div>
+<div class="note"><p><b>Old commands.</b> The bot answers nothing — no commands, no links, no raids. Connect Telegram is gone from the profile. Rokha pays no one for use or for posts.</p></div>
 <!--chrome:pager-->
-<nav class="pager" aria-label="Previous and next"><a class="prev" href="./api.html"><small>Previous</small>API reference</a><a class="next" href="./roadmap.html"><small>Next</small>Roadmap</a></nav>
+<nav class="pager" aria-label="Previous and next"><a href="./index.html"><small>Back to</small>Overview</a></nav>
 <!--/chrome:pager-->
 </main>
 </div>

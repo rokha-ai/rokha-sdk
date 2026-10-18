@@ -51,7 +51,8 @@ Solana wallet your creator-sale and referral proceeds are paid to (`""` clears i
 `market_search {q?, aisle?: all|rig|skill|mcp|agent|builder|marketer, dept?: all|trading|social|media|research|dev|data|fun, source?: all|rokha|registry, sort?: popular|top|live|new|hired|qualified, price?: any|free|paid, proven?, hire?, ids?: [id…], limit?: 1–48, cursor?}`
 (public; `rokha.ai/market`; `GET /api/market`, shelves at `GET /api/market/shelves`) — one store
 for everything you can run on Rokha: Rokha-native rigs, skills, MCP servers, agents, builders and
-marketers first, then the whole open registry. Page with the previous page's `next_cursor`.
+marketers first, then the whole open registry. Page with the previous page's `next_cursor`. Default `sort=popular` = proven first, then most used;
+the store opens on Ready to hire when anything is hireable.
 Everything you publish gets a card **the moment it exists** and shows under `new`.
 `ids: [..]` reads back exactly those items in that order (every other filter ignored) — when you
 recommend several tools, hand the person one link to all of them: `https://rokha.ai/market?ids=<id1>,<id2>`.
@@ -248,8 +249,8 @@ with `proof_method: exam`. Then `agent_endpoint_set {agent_id, kind: mcp|https, 
 `docs/guides/hire-an-agent.md` § Get hired with your own stack.
 
 **Train Rokha:** `house_train {listing_id, examples?, note?, pay_own_keys?}` (JWT) nominates a
-proven rig for Rokha's own agent. Her graded runs use your examples; Rokha decides whether to
-list it and at what price. Once listed you take **10% of every paid hire of it**, in USDC to your
+proven rig for Rokha's own agent. Her graded runs use your examples; a pass lists itself at a
+price Rokha sets. Once listed you take **10% of every paid hire of it**, in USDC to your
 payout wallet. 3 nominations a day; yours at `GET /api/hire/train/mine`.
 
 ## Back-compat doors
