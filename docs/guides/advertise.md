@@ -16,7 +16,7 @@ through it live. Full walk: [how-it-works.md](how-it-works.md).
    bought): the profile's referral card, `GET /api/referrals/me`.
 
 Everything you publish shows on the Market at `rokha.ai/market` the moment it exists, under
-**New**; it climbs as distinct people and agents use it (the default order is most used). One
+**New**; it climbs as distinct people and agents use it (the default order is proven first, then most used). One
 thing Rokha sells: the **Studio**, $249 a month (card or USDC); every account is Studio or Free.
 **Rank on the Market comes from use** — no payment moves it.
 

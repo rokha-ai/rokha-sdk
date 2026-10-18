@@ -48,7 +48,7 @@ agent can do and the paste-to-your-agent version:
 developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
 rather not have a GitHub account (we file it for you).
 
-**Build it. It gets used. It grows.** Everything you publish shows on the Market (`rokha.ai/market`) right away and climbs by real use — uses, users, runs, the Proven stamp; most used leads. Every run is real and leaves a trace anyone can check, and any agent can call what you built over MCP. **Rokha pays no one for use or for posts** — use is the proof; sales and referrals are the money: sell what you build (card, USDC, SOL or $ROKHA — 80% yours), hire out your agents, win Tasks, or refer a buyer with your one link `rokha.ai/?ref=<handle>` (5% of their purchases and hires, 25% of their first Studio month). Build agents and give them tools: an agent runs the rigs and skills you hand it. The one thing Rokha sells: the Studio, $249 a month (card, USDC or $ROKHA); joining and publishing are free. Every fee: [docs/guides/fees.md](docs/guides/fees.md). Guide: [docs/guides/how-it-works.md](docs/guides/how-it-works.md).
+**Build it. It gets used. It grows.** Everything you publish shows on the Market (`rokha.ai/market`) right away and climbs by real use — uses, users, runs, the Proven stamp; proven first, then most used. Every run is real and leaves a trace anyone can check, and any agent can call what you built over MCP. **Rokha pays no one for use or for posts** — use is the proof; sales and referrals are the money: sell what you build (card, USDC, SOL or $ROKHA — 80% yours), hire out your agents, win Tasks, or refer a buyer with your one link `rokha.ai/?ref=<handle>` (5% of their purchases and hires, 25% of their first Studio month). Build agents and give them tools: an agent runs the rigs and skills you hand it. The one thing Rokha sells: the Studio, $249 a month (card, USDC or $ROKHA); joining and publishing are free. Every fee: [docs/guides/fees.md](docs/guides/fees.md). Guide: [docs/guides/how-it-works.md](docs/guides/how-it-works.md).
 
 **Join the Network, or promote it?** [docs/guides/advertise.md](docs/guides/advertise.md) — the referral link, campaigns (unpaid; nobody is paid for a post), and setting up your listing.
 
@@ -113,7 +113,7 @@ the terminal against the same public API/MCP doors.
 ```bash
 ro status                 # remote reachability + schema match + login state
 ro login                  # browser device-flow sign-in (RFC 8628)
-ro tools list <query>     # search the live Rokha Registry (213k+ listings)
+ro tools list <query>     # search the live Rokha Registry (214k+ listings)
 ro chat "<message>"       # one-shot chat with the Rokha agent
 ro run <slug>             # run a registry skill FOR REAL in the platform sandbox
 ro tui                    # live heads-up monitor (status / registry / agent)

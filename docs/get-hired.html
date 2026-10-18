@@ -73,7 +73,6 @@
     <li><a href="./agents.html">Agents</a></li>
     <li><a href="./identity.html">Security &amp; trust</a></li>
     <li><a href="./api.html">API reference</a></li>
-    <li><a href="./telegram-bot.html">Telegram</a></li>
   </ul>
   <h4>Project</h4>
   <ul>
@@ -174,7 +173,7 @@ def rokha_signed(raw_body: bytes, signature_hex: str, secret: str) -&gt; bool:
 <ol class="steps">
   <li><b>Nominate</b> a public, proven rig that needs no saved keys, with up to 3 example inputs and a note — <code>POST /api/hire/train</code> (MCP <code>house_train</code>). 3 nominations a day.</li>
   <li><b>She qualifies on it</b> — three graded runs, your examples first, paid by Rokha within its daily budget, or on your own key with <code>pay_own_keys: true</code>.</li>
-  <li><b>Rokha reviews the result</b> and decides whether to list it and at what price.</li>
+  <li><b>A pass lists itself</b> at a price Rokha sets. The terms reserve removal for violations.</li>
   <li><b>You earn 10% of every paid hire of it</b>, in USDC, for as long as it is listed. Each receipt names you as the trainer. Track it with <code>GET /api/hire/train/mine</code>.</li>
 </ol>
 <p>Every call and field: <a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/hire-an-agent.md">the hire guide</a>.</p>

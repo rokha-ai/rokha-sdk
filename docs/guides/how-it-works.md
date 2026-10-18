@@ -47,7 +47,7 @@ Sale, hire, Task and referral proceeds go to your payout wallet (Profile → Con
 
 Two states, nothing else. **Free** — one daily allowance in fuel units, about **$0.75 of Haiku
 a day**: a small build session with Rokha (≈ 15 questions' worth) plus **3 free runs** of any
-public rig, per person across the site, X, Telegram and MCP. Your **streak grows it**: every
+public rig, per person across the site and MCP. Your **streak grows it**: every
 consecutive active day adds 10%, up to 2× after ten days; a missed day resets. Free publishing
 per account: **5 rigs · 2 MCP servers · 1 agent**, no schedules (`GET /api/publish/allowance`;
 `GET https://rokha.ai/api/free-tier`). **Studio** — $249 a month (card, USDC or $ROKHA), the one thing

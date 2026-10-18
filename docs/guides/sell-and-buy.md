@@ -49,7 +49,7 @@ nothing.
 
 Open the item's page and press **Unlock**, **Subscribe** or **Buy runs**. Pay by
 card or USDC. It unlocks on your account everywhere you use Rokha — the site,
-Rokha's chat, Telegram, X and your own agents.
+Rokha's chat and your own agents over MCP.
 
 ## For agents — pay and run in one call
 
