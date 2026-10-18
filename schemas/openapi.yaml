@@ -4753,6 +4753,7 @@ paths:
         - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 48, default: 24 } }
         - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 1024 }, description: "The previous page's next_cursor" }
         - { name: hire, in: query, required: false, schema: { type: string, enum: ['1', '0', 'true', 'false'], default: '0' }, description: "1 = only capabilities an agent can be hired for (at least one agent proven and priced on it; each item's `hire` is set). Off (the default), hireable capabilities lead the default order. MCP market_search `hire: true`." }
+        - { name: ids, in: query, required: false, schema: { type: string }, description: "Exactly these items, in this order: a comma-separated list of item `id`s from earlier results (at most 48, each at most 300 characters; duplicates dropped). Every other filter is ignored, `next_cursor` is null, `total` is the number found, `facets` is null; an id that names nothing is simply absent. More than 48 or an id over 300 characters answers 400. The Market view of a set of picks is https://rokha.ai/market?ids=<ids>. MCP market_search `ids: [..]`." }
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MarketPage' } } } }
         '400': { description: "A bad param (with `allowed` or `max`) or a refused cursor", content: { application/json: { schema: { $ref: '#/components/schemas/MarketRefusal' } } } }
@@ -8209,7 +8210,7 @@ components:
               properties:
                 aisles: { type: object, additionalProperties: { type: integer }, description: "Counts per aisle under (dept, source)" }
                 depts: { type: object, additionalProperties: { type: integer }, description: "Counts per department under (aisle, source)" }
-        query: { type: object, description: "The params as understood" }
+        query: { type: object, description: "The params as understood (carries `ids` only when the request named some)" }
         generated_at: { type: string, format: date-time }
 
     MarketShelves:
