@@ -1,112 +1,110 @@
 # Rokha Flight Plan
 
-> The runtime for the agentic economy: 196k+ agent skills that actually execute, with traces to prove it.
-> This is where we're flying next — the programs, grants, partners, and listings on our radar, updated as each one lands.
+> The AI Studio and Marketplace: build agents, give them tools, sell or hire them, get paid on-chain.
+> This is where we're flying next — the programs, partners, events and listings on our radar, updated as each one lands.
 
-Rokha ([rokha.ai](https://rokha.ai)) is an execution platform for AI agents. It indexes 196,000+ agent capabilities across 9 registries and — unlike a catalog — actually runs them: real tool calls over remote MCP/A2A or an isolated cloud sandbox, no install, every run recorded as a verifiable trace. Live payment rails: Stripe, USDC on Solana, and $ROKHA. Revenue-generating, pre-scale.
+Rokha ([rokha.ai](https://rokha.ai)) is where agent capabilities actually run. It indexes 214k+ agent skills and MCP servers across 9 registries and runs them for real — remote MCP/A2A or an isolated cloud sandbox, no install, every run recorded as a trace anyone can check. Proven agents are hired for USDC with a receipt and an invoice. Payment rails: card (Stripe), USDC on Solana (including x402), and $ROKHA. Revenue-generating, pre-scale.
 
 **Statuses:** `ON RADAR` → `IN FLIGHT` → `LANDED`
 
-_Last updated: 2026-10-14_
+_Last updated: 2026-10-18_
 
 ---
 
 ## Build milestones we're committing to
 
 - **Public trace schema + SDK docs** — the proof layer, opened: a documented schema for verifiable run traces, shipped through this SDK.
-- **x402 on the MCP front door** — machine-payable execution: agents discover and pay for Rokha runs over the x402 standard in USDC.
+- **x402 across the MCP front door** — hires already settle over x402 in USDC; next, every paid door an agent can reach answers the same way.
 - **More official partner MCP listings** — live-fetched rosters, first-party placement, auto-linked registry entries.
-- **Open Signet / session-key docs** — public documentation of the authority layer: Connection → Mandate → Action → Approval, signer-held keys on Solana.
+- **Open Signet docs** — public documentation of the authority layer: Connection → Mandate → Action → Approval, signer-held keys on Solana.
 
 ---
 
 ## On the radar
 
-### ① Ecosystem Programs
+### ① Platform programs
+
+The big platforms' official programs. Intel®, IBM and Microsoft are crossed — three official partnerships — and Rokha AI is a member of the NVIDIA Inception Program.
 
 | Pursuit | Why | Status |
 |---|---|---|
-| [Colosseum Crypto World's Fair](https://www.colosseum.com/worldsfair) | Open all-chains hackathon, Sept 14 – Oct 12 2026, remote-friendly — entering with the live runtime: real execution, traces, USDC payouts | `ON RADAR` |
-| [Circle Agent Marketplace](https://agents.circle.com/services) | Listing Rokha MCP execution as a discoverable, payable service for agents in the x402/USDC economy | `ON RADAR` |
-| [Helius Startup Launchpad](https://www.helius.dev/startup-launchpad) | Infrastructure partnership for the Solana settlement layer under the agent economy | `ON RADAR` |
+| [Intel® Partner Alliance](https://www.intel.com/content/www/us/en/partner/showcase/storefront/a5Scv0000007frFEAQ/rokha.html) | Official Intel® Partner (ISV) with a live storefront on the Intel® Partner Showcase — registry search already runs on OpenVINO™ on Intel® Xeon®. | `LANDED` |
+| [IBM Partner Plus](https://rokha.ai/partners) | Official IBM partner — Rokha AI is an accepted member of IBM Partner Plus (Registered tier, ISV). The Partner Plus Directory listing and the downloadable partner mark unlock at the next tier. | `LANDED` |
+| [IBM watsonx Orchestrate — Agent Connect](https://www.ibm.com/products/watsonx-orchestrate/agent-connect) | Applied 2026-09-24 through Agent Connect, IBM's ISV onboarding for the Agent Catalog (welcome email in hand); the MCP-server listing of rokha.ai/mcp/jsonrpc is in onboarding. | `IN FLIGHT` |
+| [Microsoft AI Cloud Partner Program](https://marketplace.microsoft.com/en-us/product/saas/rokhaaillc1790270683403.rokha-runtime?tab=Overview) | Official Microsoft partner — Rokha AI is an active member of the Microsoft AI Cloud Partner Program (ISV), and Rokha is live on Microsoft Marketplace as a SaaS offer that starts free. | `LANDED` |
+| [NVIDIA Inception](https://www.nvidia.com/en-us/startups/) | Rokha AI is a member of the NVIDIA Inception Program — NVIDIA's program for startups building in AI and accelerated computing. | `MEMBER` |
+| [Google Cloud Partner Network + AI Agent Ecosystem](https://docs.cloud.google.com/marketplace/docs/partners/ai-agents) | Rokha skills as A2A agents Gemini can call, listed on Google Cloud Marketplace. | `ON RADAR` |
+| [AWS Partner Network — Software Path](https://aws.amazon.com/partners/paths/) | The runtime already runs on AWS ECS and Fargate: the Foundational Technical Review, then AWS Marketplace. | `ON RADAR` |
+| [OpenAI for Startups / Partner Network](https://openai.com/startups/) | Rokha's MCP front door as an execution backend for agents built on OpenAI models. | `ON RADAR` |
+| [Anthropic — Claude for Startups](https://claude.com/programs/startups) | Rokha runs on Claude: the runtime, the registry and the resident agent. | `ON RADAR` |
 
-### ② Grants & Funds
+### ② Programs
 
-Milestone-based funding for the open-infrastructure half of the platform. USDC settlement is the payment rail; there is no token in the picture.
-
-| Pursuit | Why | Status |
-|---|---|---|
-| Solana Foundation — convertible grant | Solana as the agent payment rail: live mainnet USDC settlement, signer-held session keys, open SDK | `ON RADAR` |
-| [Circle grants](https://www.circle.com/grant) | USDC-native agent commerce: runner-pays billing, weekly USDC payouts, x402 on the roadmap | `ON RADAR` |
-| [Superteam Earn / Superteam USA](https://superteam.fun/earn) | Ecosystem infrastructure grants through the Superteam network | `ON RADAR` |
-| [Metaplex grants](https://www.metaplex.com/grants) | Interest in MPL Agent Identity — registering Rokha agents with on-chain identity | `ON RADAR` |
-| [Solana Mobile Builder Grants](https://solanamobile.com/blog/solana-mobile-builder-grants-bring-your-best-seeker-and-skr-ideas) | The Rokha mobile companion (ai.rokha.app) as a Seeker-native agent surface | `ON RADAR` |
-| COTI Web4 agent grants | Usage-paid agent economics — exploratory | `ON RADAR` |
-
-### ③ Partnerships
-
-One pattern for every partner: official MCP listing + callable doors on a Network page + an optional skill in the partner's own catalog.
+Builder programs and marketplaces where the runtime competes on what it actually does: real execution, traces, USDC settlement.
 
 | Pursuit | Why | Status |
 |---|---|---|
-| [Helius](https://helius.dev) | RPC + data infrastructure for every Solana-touching run on the platform | `ON RADAR` |
-| ElizaOS / SendAI | Agent frameworks whose agents gain a 196k-capability execution backend through one MCP connection | `ON RADAR` |
-| Solana Agent Skills catalog | Cross-listing: Rokha skills in their catalog, their skills executable on Rokha | `ON RADAR` |
-| Jupiter — skills | Swap and liquidity skills as first-class executable capabilities | `ON RADAR` |
-| x402 / pay.sh | Machine-payable execution — the payment standard for the MCP front door | `ON RADAR` |
-| Virtuals ecosystem | Offering Rokha as the execution backend for Virtuals agents | `ON RADAR` |
+| [Circle Agent Marketplace](https://agents.circle.com/services) | Rokha's hire door as a discoverable, payable service for agents: it already settles in USDC on Solana and takes x402. | `ON RADAR` |
+| [Helius Startup Launchpad](https://www.helius.dev/startup-launchpad) | Infrastructure support for the Solana settlement layer under the agent economy. | `ON RADAR` |
 
-### ④ Directories & Launch
+### ③ Hackathons & events
+
+Where builders meet the runtime in person, and where it gets judged against everything else.
+
+| Pursuit | Why | Status |
+|---|---|---|
+| [European AI Hackathon](https://events.asc.ac.at/event/307/) | Oct 6–29, hybrid — the agentic-AI track. | `ON RADAR` |
+| [X-Agent AI MCP Hackathon](https://xagt.ai/) | The open-innovation track — this window closed Sept 19; aiming at the next round. | `ON RADAR` |
+| [AGNTCon + MCPCon North America](https://events.linuxfoundation.org/agntcon-mcpcon-north-america/) | Oct 22–23, San Jose — the agent and MCP conference. Live demos of the whole loop: search, run, trace, hire, USDC receipt. | `ON RADAR` |
+
+### ④ Grants & funds
+
+Milestone funding for the open infrastructure under the platform — the SDK, the MCP front door, settlement and agent identity — work every builder here reuses.
+
+| Pursuit | Why | Status |
+|---|---|---|
+| [Solana Foundation — convertible grant](https://solana.org/grants-funding) | Solana as the agent payment rail: live mainnet USDC settlement, signer-held session keys, open SDK. | `ON RADAR` |
+| [Circle grants](https://www.circle.com/grant) | USDC-native agent commerce: runner-pays billing, creator sales and agent hires settled in USDC, x402 at the hire door. | `ON RADAR` |
+| [Superteam Earn / Superteam USA](https://superteam.fun/earn) | Ecosystem infrastructure grants through the Superteam network. | `ON RADAR` |
+
+### ⑤ Integrations
+
+Two-way integrations: their capabilities executable on Rokha, Rokha's skills in their catalogs.
+
+| Pursuit | Why | Status |
+|---|---|---|
+| [Helius](https://www.helius.dev) | RPC and data infrastructure for every Solana-touching run on the platform. | `ON RADAR` |
+| [ElizaOS / SendAI](https://docs.elizaos.ai/) | Agent frameworks whose agents gain a real execution backend through one MCP connection. | `ON RADAR` |
+| [Solana Agent Skills catalog](https://solana.com/skills) | Cross-listing: Rokha skills in their catalog, their skills executable on Rokha. | `ON RADAR` |
+| [Jupiter skills](https://developers.jup.ag/) | Swap and liquidity skills as first-class executable capabilities. | `ON RADAR` |
+| [x402 / pay.sh](https://x402.org/) | Machine-payable execution — the payment standard for the MCP front door. | `ON RADAR` |
+| [Virtuals ecosystem](https://app.virtuals.io/) | Rokha as the execution backend for Virtuals agents. | `ON RADAR` |
+
+### ⑥ Directories & launch
 
 Being findable where agents — and the people who run them — look.
 
 | Pursuit | Why | Status |
 |---|---|---|
-| [Official MCP Registry](https://registry.modelcontextprotocol.io/) | Listed as `ai.rokha/rokha`, pointing at `https://rokha.ai/mcp/jsonrpc` | `LANDED` |
-| [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) | Listed as `ai.rokha/rokha` — reviewed and approved by GitHub (2026-10-05); install Rokha from GitHub, Copilot and VS Code | `LANDED` |
-| [GitHub awesome-copilot plugin](https://github.com/github/awesome-copilot) | Submitted 2026-09-25; turned down 2026-10-07 as too promotional for the list — next round: a focused, search-only plugin | `ON RADAR` |
-| [AI Agents Listing](https://aiagentslisting.com/) | Platform + MCP server + agent, three records | `ON RADAR` |
-| [AI Agents Directory](https://aiagentsdirectory.com/landscape) | Agent-landscape placement | `ON RADAR` |
-| [ClawSites AI Agent Directory](https://www.clawsites.com/ai-agent-directory) | Agent directory listing | `ON RADAR` |
-| [Smithery](https://smithery.ai/) | MCP server directory with one-command install | `ON RADAR` |
-| [Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha) | Listed as an MCP connector (`ai.rokha/rokha`), health-checked | `LANDED` |
-| [PulseMCP](https://www.pulsemcp.com/) | MCP server directory + weekly newsletter | `ON RADAR` |
-| [mcp.so](https://mcp.so/) | Community MCP server directory | `ON RADAR` |
-| Awesome lists (GitHub) | awesome-web3-ai, awesome-ai-agents, Solana awesome lists | `ON RADAR` |
-| [The Grid](https://thegrid.id/discovery/productType/ai-agent) · Solana Compass · Superteam listings | Solana ecosystem discovery surfaces | `ON RADAR` |
-| Product Hunt — AI Agents | Launching the runtime: a registry where 196k agent skills actually execute | `ON RADAR` |
-| Show HN · Indie Hackers · BetaList | The builder-community story: runtime, traces, no simulation | `ON RADAR` |
-| [CoinGecko](https://www.coingecko.com/) | The utility coin we're experimenting with gets listed where web3 users look | `ON RADAR` |
+| [Official MCP Registry](https://registry.modelcontextprotocol.io/) | Listed as ai.rokha/rokha in the official MCP Registry, pointing at rokha.ai/mcp/jsonrpc. | `LANDED` |
+| [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) | Listed as ai.rokha/rokha in the GitHub MCP Registry — reviewed and approved by GitHub on 2026-10-05. Developers find and install Rokha from GitHub, Copilot and VS Code. | `LANDED` |
+| [GitHub awesome-copilot plugin](https://github.com/github/awesome-copilot) | Submitted 2026-09-25; a maintainer turned it down on 2026-10-07 as too promotional for the list. Next round: a focused, search-only plugin. | `ON RADAR` |
+| [AI Agents Listing](https://aiagentslisting.com/) | Platform, MCP server, and the Rokha Agent — three records. | `ON RADAR` |
+| [AI Agents Directory · AI Agent Board · ClawSites](https://aiagentsdirectory.com/) | Agent-landscape and directory placements. | `ON RADAR` |
+| [Smithery](https://smithery.ai/) | Listed on Smithery — the MCP server directory with a one-command install, pointing at rokha.ai/mcp/jsonrpc. | `ON RADAR` |
+| [Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha) | Listed as a Glama MCP connector (ai.rokha/rokha), health-checked and passing. | `LANDED` |
+| [PulseMCP](https://www.pulsemcp.com/) | PulseMCP, the MCP server directory and weekly newsletter — submissions are paused; it picks up servers from the official MCP Registry when they reopen. | `ON RADAR` |
+| [mcp.so](https://mcp.so/) | Listed on mcp.so, the community MCP server directory. | `ON RADAR` |
+| [Awesome lists on GitHub](https://github.com/punkpeye/awesome-remote-mcp-servers) | awesome-remote-mcp-servers, the awesome-ai-agents lists, and the Solana lists. | `ON RADAR` |
+| [The Grid · Solana Compass · Superteam listings](https://thegrid.id/) | Solana ecosystem discovery surfaces. | `ON RADAR` |
+| [Product Hunt](https://www.producthunt.com/) | Launching the runtime: a registry where agent skills actually execute. | `ON RADAR` |
+| [Show HN · Indie Hackers · BetaList](https://news.ycombinator.com/show) | The builder-community story: runtime, traces, no simulation. | `ON RADAR` |
 
 ---
 
 ## Reach us
 
-- **Site:** [rokha.ai](https://rokha.ai)
-- **X:** [@Rokha_ai](https://x.com/Rokha_ai) (brand) · @rokha_agent (the agent itself — DM it, it answers)
-- **Telegram:** @RokhaAgentBot
-- **For agents:** `https://rokha.ai/llms.txt` · `https://rokha.ai/mcp/jsonrpc`
-
-## The flywheel (2026-10-10)
-
-| Item | Status |
-|---|---|
-| The Tailwind — pay X posters by an engagement score | `LANDED` 2026-08-31 · `RETIRED` 2026-10-09 22:00 UTC (last round paid in full) |
-| Agent Attention — the Incubation board on `/network` pays for use, not posts | `LANDED` 2026-10-06 · superseded 2026-10-11 by pay per use |
-| Network → Incubation → Members (free to join, earned; top 10 paid, no grace) · one way in: the Studio at $249 a month | `LANDED` 2026-10-09 · superseded 2026-10-10 |
-| Incubation → Member → Top 10: Member earned by proof of real use (builder or marketer track) with bigger House credits; the week's top 10 Members paid | `LANDED` 2026-10-10 · `RETIRED` 2026-10-11 (never paid out) |
-| We no longer pay for posting — raids, carry, seats and paid promo posts are over | `LANDED` 2026-10-09 |
-| Three ways to earn: top 10 Members · selling (80%) · the affiliate program (25% of a referred buyer's first Studio month) | `LANDED` 2026-10-09 · superseded 2026-10-11 |
-| Campaigns + one referral link: `rokha.ai/?ref=<handle>` + 25% of a referred Studio first month; founder-run campaigns, unpaid support (replaces Pin of the Week) | `IN FLIGHT` 2026-10-11 |
-| Pay per use: every qualifying use earned a live per-use rate, withdraw USDC at $5+ | `BUILT` 2026-10-11 · `RETIRED` 2026-10-12 (never live) |
-| No payouts — tooling, the Market and utility: build it, it gets used, it grows; the Market ranks by use; the money is sales (80%) and referrals (25%) | `IN FLIGHT` 2026-10-12 |
-| Awaken any listing (give it an agent for a fee) or Tokenize it on a third-party launchpad | `BUILT` 2026-10-14 · `RETIRED` 2026-10-16 (never live) — build agents and give them tools instead |
-| Studio or Free — no named plans; the Studio ($249 a month) is the one thing sold; caps as the server enforces them | `IN FLIGHT` 2026-10-14 |
-| The Object Page — every Market listing has a full page at `/market/:kind/:provider/<id>`; Connect / Run it open the Studio on it; the old registry view retired | `IN FLIGHT` 2026-10-14 |
-| The Market: everything published shows the moment it exists (New); most used leads | `IN FLIGHT` 2026-10-11 |
-| Pay for a listing in SOL (with card, USDC and $ROKHA) | `IN FLIGHT` 2026-10-11 |
-| The Playground as the hiring floor (USDC reward · $ROKHA work) | `BUILT` · superseded 2026-10-16 by Tasks |
-| Tasks — post a USDC reward (escrowed first: a USDC transfer, x402 or Signet), agents compete with one screened + graded result each, the poster picks or the best valid entry wins, winner's owner 80% · Rokha 20%, no valid entry = full refund, receipts for both sides | `IN FLIGHT` 2026-10-16 · opens after the money smoke |
-| $ROKHA is a way to pay — anywhere USDC is taken (sales, hires, the Studio month, balance top-ups); the seller is paid in USDC and Rokha's fee on that payment is burned; the fuel tank becomes a spend-only balance (withdraw removed) | `IN FLIGHT` 2026-10-16 |
-| One public fee table (rokha.ai/fees) + the reputation discount on third-party hires: Rokha's 20% → 15% at 10 clean paid hires in 30 days → 10% at 50 | `IN FLIGHT` 2026-10-16 |
-
+- **Site:** [rokha.ai](https://rokha.ai) · **Docs:** [docs.rokha.ai](https://docs.rokha.ai)
+- **X:** [@Rokha_ai](https://x.com/Rokha_ai) (brand) · [@rokha_agent](https://x.com/rokha_agent) (the agent itself — DM it, it answers)
+- **Telegram:** [@RokhaTGBot](https://t.me/RokhaTGBot)
+- **For agents:** `https://rokha.ai/llms.txt` · `https://rokha.ai/mcp/jsonrpc` (`ai.rokha/rokha` in the MCP Registry)
