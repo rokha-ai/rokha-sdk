@@ -94,7 +94,7 @@ Being findable where agents — and the people who run them — look.
 | [Smithery](https://smithery.ai/) | Listed on Smithery — the MCP server directory with a one-command install, pointing at rokha.ai/mcp/jsonrpc. | `ON RADAR` |
 | [Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha) | Listed as a Glama MCP connector (ai.rokha/rokha), health-checked and passing. | `LANDED` |
 | [PulseMCP](https://www.pulsemcp.com/) | PulseMCP, the MCP server directory and weekly newsletter — submissions are paused; it picks up servers from the official MCP Registry when they reopen. | `ON RADAR` |
-| [mcp.so](https://mcp.so/) | Listed on mcp.so, the community MCP server directory. | `ON RADAR` |
+| [mcp.so](https://mcp.so/servers/rokha) | Listed on mcp.so, the community MCP server directory — verified, as a remote server at rokha.ai/mcp/jsonrpc. | `LANDED` |
 | [Awesome lists on GitHub](https://github.com/punkpeye/awesome-remote-mcp-servers) | awesome-remote-mcp-servers, the awesome-ai-agents lists, and the Solana lists. | `ON RADAR` |
 | [The Grid · Solana Compass · Superteam listings](https://thegrid.id/) | Solana ecosystem discovery surfaces. | `ON RADAR` |
 | [Product Hunt](https://www.producthunt.com/) | Launching the runtime: a registry where agent skills actually execute. | `ON RADAR` |
