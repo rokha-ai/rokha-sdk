@@ -6148,7 +6148,7 @@ paths:
                       type: object
                       additionalProperties: true
                       properties:
-                        severity: { type: string, enum: [Critical, Warning, Note] }
+                        severity: { type: string, enum: [critical, warning, note] }
                         title: { type: string }
                         evidence: { type: string }
                         source: { type: string }
@@ -6158,9 +6158,36 @@ paths:
                   sites: { type: array, items: { type: string } }
                   mcp_live: { type: boolean }
                   composed_by: { type: string, enum: [rokha, rules] }
+                  id: { type: string, format: uuid, description: "The hunt's id — rokha.ai/hunt/<id> and the card use it" }
+                  headline: { type: string, description: "One plain sentence naming what this is" }
+                  read: { type: string, description: "One sentence: can they trust and use it, and what to verify first" }
+                  share_url: { type: string, format: uri, description: "The public page for this hunt (unfurls on X with the card)" }
+                  card_url: { type: string, format: uri, description: "The 1200×630 PNG share card" }
+                  stage: { type: object, additionalProperties: true, description: "A rokha_app block — title, verdict, metrics, sections (prose + the flag/surface tables), a Hunt-another action" }
                   cached: { type: boolean }
                   generated_at: { type: string, format: date-time }
                   note: { type: string }
+
+  /api/hunt/{id}:
+    get:
+      tags: [signals]
+      summary: "One finished hunt by id — the payload `/api/hunt` answered, served under its unguessable id"
+      operationId: getHuntById
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: "The hunt — the same shape as /api/hunt, with cached: true" }
+        '404': { description: "`ok:false, error: no_such_hunt`" }
+  /api/hunt/{id}/card.png:
+    get:
+      tags: [signals]
+      summary: "The hunt's 1200×630 share card (PNG; SVG if the rasterizer fails)"
+      operationId: getHuntCard
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: "The card image — image/png, or image/svg+xml when the rasterizer fails" }
+        '404': { description: No hunt has this id }
 
   /api/mark/board:
     get:
