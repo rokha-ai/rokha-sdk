@@ -6110,6 +6110,58 @@ paths:
                   recent: { type: array, items: { type: object, additionalProperties: true } }
                   receipts_wall: { type: array, items: { type: object, additionalProperties: true } }
 
+  /api/hunt:
+    get:
+      tags: [signals]
+      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name>"
+      description: |
+        One lead in, one report out. Rokha crawls the project behind the lead — the site and its
+        llms.txt, a live MCP server's tools/list, OpenAPI, the GitHub repo and manifests, npm/PyPI
+        packages, the X account, and whether the Rokha Market already lists it — runs a
+        deterministic red-flag audit, and writes the report from what was fetched: WHAT IT IS ·
+        WHO'S BEHIND IT · AGENT SURFACES · ON ROKHA · RED FLAGS · BOTTOM LINE. A project's claims
+        are attributed to it; "not found" is said plainly. The same lead within 24h is served from
+        cache (`cached: true`). Reads only — nothing is posted, signed, paid or filed. Same builder
+        as the MCP tool `hunt_report` and the `hunt` rig. A read of public data, not advice.
+        Public; a daily ceiling applies (`error: daily_ceiling`).
+      operationId: getHunt
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, maxLength: 300 } }
+      responses:
+        '200':
+          description: The hunt, or `ok:false` with an `error` code and the inputs it takes
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  error: { type: string, enum: [missing_q, too_long, no_lead, not_cached, daily_ceiling, nothing_answered] }
+                  message: { type: string }
+                  usage: { type: string }
+                  target: { type: string }
+                  report: { type: string, description: "Plain text, in the section order above" }
+                  red_flags:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                      properties:
+                        severity: { type: string, enum: [Critical, Warning, Note] }
+                        title: { type: string }
+                        evidence: { type: string }
+                        source: { type: string }
+                  checks_passed: { type: array, items: { type: object, properties: { check: { type: string }, source: { type: string } } } }
+                  not_checked: { type: array, items: { type: object, properties: { check: { type: string }, why: { type: string } } } }
+                  critical: { type: boolean }
+                  sites: { type: array, items: { type: string } }
+                  mcp_live: { type: boolean }
+                  composed_by: { type: string, enum: [rokha, rules] }
+                  cached: { type: boolean }
+                  generated_at: { type: string, format: date-time }
+                  note: { type: string }
+
   /api/mark/board:
     get:
       tags: [signals]
