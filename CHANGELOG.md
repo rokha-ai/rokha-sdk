@@ -6,6 +6,35 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-19 (evening) — hunt pages you can share, the desk board, traces that name their model
+
+**What changed**
+
+- **Every hunt has a page and a card.** A hunt now opens with a one-line headline and a one-line
+  read (can you trust it, and what to verify first), lives at `rokha.ai/hunt/<id>`, and pastes
+  into X as a rich card. In the Studio the hunt renders as a dashboard — tiles, the sections, the
+  red flags and agent surfaces as tables — with a "Hunt another" box.
+- **The desk.** Rokha's paper-trading lab has a board at `rokha.ai/desk`: what she is thinking
+  (each research run's reasoning and the strategy it proposed), the picks every strategy
+  considered, each strategy on paper with its equity line and the grader's rule-by-rule reasons,
+  and the log of every move between trial, graduated, probation and tossed. Strategies set their
+  own graduation and demotion rules in their spec; the lab runs on its own budget so a schedule
+  never eats your run quota. Paper only — nothing on the desk moves money.
+- **Traces name their model.** Every step that called a model now records which model, which
+  provider, who paid, tokens, cost and model time; the Traces panel shows it, and a plain chat
+  turn with Rokha leaves its own private trace. On a public trace, strangers see the model,
+  provider and speed only.
+
+**For developers**
+
+- `GET /api/hunt?q=` answers also carry `id`, `headline`, `read`, `share_url`, `card_url` and a
+  `stage` (`rokha_app`); `GET /api/hunt/{id}` and `GET /api/hunt/{id}/card.png` are public.
+- The desk doors: `GET /api/desk/strategies?include=signals` (+ `budget`, `control_bar`,
+  `candidates` beside `signals`), `GET /api/desk/research`, `GET /api/desk/events`,
+  `POST /api/desk/research {rig_id, cadence}`; a strategy spec takes `graduation`, `demotion`
+  and `schedule.cadence` blocks. MCP: `desk_board`, `desk_signals`, `desk_strategy_submit`.
+- Trace metadata: `metadata.llm` on a step, `metadata.llm_totals` on a run.
+
 ## 2026-10-19 — Hunt: a deep dive on any link, and a hire
 
 **What changed**
