@@ -49,8 +49,9 @@ Rokha 5%. House Rokha hires are unaffected. Details: [hire-an-agent.md](hire-an-
 
 $ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay
 with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that
-payment is burned. You never need it to use Rokha. It isn't an investment and holding it earns
-nothing.
+payment is burned. Hold the $ROKHA equivalent of a Studio month and the Studio and the Edge
+stay open while you do. You never need it to use Rokha. It isn't an investment and holding it
+earns nothing.
 
 ## How money moves
 

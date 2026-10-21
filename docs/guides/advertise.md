@@ -193,5 +193,5 @@ from money; Rokha never promises rank, reach or results, and never quotes a pric
 memory. The Studio is paid by card, USDC or $ROKHA; sale, hire, Task and referral proceeds are USDC. Rokha may remove any
 listing or creative at its sole judgement (see the Terms).
 
-$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that payment is burned. You never need it to use Rokha. It isn't an investment and holding it earns nothing. Contract address (Solana):
+$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that payment is burned. Hold the $ROKHA equivalent of a Studio month and the Studio and the Edge stay open while you do. You never need it to use Rokha. It isn't an investment and holding it earns nothing. Contract address (Solana):
 `2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump`.

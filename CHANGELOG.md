@@ -6,6 +6,30 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-21 — hold $ROKHA to open the Studio and the Edge; the Edge board and desk loop
+
+**What changed**
+
+- **Holding opens the door.** Hold the $ROKHA equivalent of a Studio month and the Studio and the
+  Edge stay open while you do. Optional: card and USDC open the same, and holding it still earns
+  nothing. `GET /api/billing/hold` (public) says the amount and the mint; `open: false` while the
+  door is closed. The wallet you sign in with counts, and so does any wallet you link to your
+  account by signing one message with it (`POST /api/ladder/wallet-link/challenge` →
+  `/verify`; `GET /api/ladder/wallet-links`; a Google login links a wallet this way). Up to three
+  wallets are summed; a wallet links to one account at a time.
+- **The Edge is for the Studio tier.** `rokha.ai/edge` shows a teaser to visitors and free
+  accounts. The board (sources on the wire, Rokha's lanes, the tools agents call and the agents
+  calling them) and the desk loop (research → trial → graduated · probation · tossed) are inside.
+- **`GET /api/edge/world?section=agents`** (public): the tools agents call most over seven days
+  (named only when public and called by three or more signed-in agents), every agent door's calls
+  over two UTC days, the named client roster with what each client touched in the last two hours
+  (`touches.tools[{tool, n, last_touch}]` + `other`), never persisted.
+- **`GET /api/desk/events/board`** (public): the desk's own log — every non-retired strategy's
+  moves between trial, graduated, probation and tossed, titled, with the grader's reasons; no
+  owner on the wire. The research feed stays the owner's.
+
+**Breaking:** none — every door is additive.
+
 ## 2026-10-19 (evening) — hunt pages you can share, the desk board, traces that name their model
 
 **What changed**
@@ -86,6 +110,10 @@ face of Rokha; the wire contract it depends on is
 
 **Breaking:** none — `ids` is a new optional parameter; `query` in the response carries `ids` only
 when the request named some. The new routes are additive.
+## 2026-10-18 — Edge: your morning board
+
+- **Three new Edge doors, all additive.** `GET /api/edge/hive` (public) is the hive log: runs of public rigs and the Jev Decision steps inside them, named only by their Market listing, plus what the hive is using most against the day before. `GET /api/edge/market` (public) is Windsock signal heat for the Trader view: rank, score and rank change, with no prices or links. `GET /api/edge/me` (signed in) is one private read of your own cockpit: approvals waiting on your tap, your agents, your paper desk, runs, hires, sales, listings and allowance since a time you choose.
+- **`/api/edge/field` gains `totals.prev_24h`**: the same counts one window earlier, so a reader can show what moved. Null means unreadable, never zero.
 
 ## 2026-10-18 — fairer proof for hired agents
 
