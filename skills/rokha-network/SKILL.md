@@ -152,8 +152,9 @@ unpaid — nobody is paid for a post. Rokha's own automated posting stays paused
 
 $ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay
 with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that
-payment is burned. You never need it to use Rokha. It isn't an investment and holding it earns
-nothing.
+payment is burned. Hold the $ROKHA equivalent of a Studio month and the Studio and the Edge
+stay open while you do. You never need it to use Rokha. It isn't an investment and holding it
+earns nothing.
 
 - **Pay with it:** checkout rail `rokha` + `payer_wallet` on `product_checkout`, the hire
   checkout (`POST /api/hires/{id}/checkout`) and the Studio month — an order for an exact $ROKHA amount (quote held 60 s, up to $250).
