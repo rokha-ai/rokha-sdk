@@ -1868,6 +1868,48 @@ paths:
         '400': { description: Invalid agent_config field }
         '412': { description: No claimed page — claim a handle first }
 
+  /api/pages/me/payout-evm:
+    put:
+      tags: [Pages]
+      summary: "Be paid on an EVM chain instead of Solana (MCP payout_wallet_set {evm_address, chain, token})"
+      description: >-
+        Sets where this account's sale shares, hire shares, trainer shares and affiliate credits are
+        sent: a 0x wallet, on Base (USDC), Ethereum (USDC or USDT) or Robinhood Chain (USDG).
+        `address: ""` goes back to Solana. The Solana payout address is never changed by this call.
+        Changing the destination of an account that was already payable pauses sends for 10 minutes.
+        Signed-in session only (never an rk_ key). Needs a claimed page.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address: { type: string, description: "A 0x wallet address, or \"\" to go back to Solana" }
+                chain: { type: string, enum: [base, ethereum, robinhood], default: base }
+                token: { type: string, enum: [USDC, USDT, USDG] }
+                prefer: { type: string, enum: [evm, solana], default: evm }
+      responses:
+        '200':
+          description: "Saved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  handle: { type: string }
+                  paid_on: { type: string, enum: [evm, solana] }
+                  evm:
+                    type: object
+                    properties:
+                      address: { type: string, nullable: true }
+                      chain: { type: string, nullable: true }
+                      token: { type: string, nullable: true }
+        '400': { description: "not a payable EVM address · unknown chain · a token that chain does not take" }
+        '412': { description: "claim a handle first" }
   /api/pages/me/badge:
     put:
       tags: [pages]
@@ -3887,9 +3929,12 @@ paths:
               type: object
               required: [rail]
               properties:
-                rail: { type: string, enum: [card, usdc, sol, rokha, x402, signet] }
-                payer_wallet: { type: string, description: "usdc / sol / rokha — the Solana address the payment is sent FROM" }
+                rail: { type: string, enum: [card, usdc, sol, rokha, x402, signet, evm] }
+                payer_wallet: { type: string, description: "usdc / sol / rokha — the Solana address the payment is sent FROM; evm — the 0x address it is sent FROM" }
                 signature: { type: string, description: "x402 — the landed transfer's signature" }
+                chain: { type: string, enum: [base, ethereum, robinhood], description: "evm — the chain (also accepts eip155:<id>)" }
+                token: { type: string, enum: [USDC, USDT, USDG], description: "evm — Base: USDC · Ethereum: USDC or USDT · Robinhood Chain: USDG (the chain's default when omitted)" }
+                tx_hash: { type: string, pattern: "^0x[0-9a-fA-F]{64}$", description: "evm — the landed transfer's hash; omit to open the order (amount + House address), then present it" }
                 ref_code: { type: string, maxLength: 40, description: "A referral code — the referrer's page handle from rokha.ai/?ref=<handle>. The referrer earns 5% of the price, out of Rokha's share (never your own code, never on a hire of Rokha's own agent)." }
       responses:
         '200':
@@ -7112,9 +7157,12 @@ paths:
               type: object
               required: [rail]
               properties:
-                rail: { type: string, enum: [x402, usdc, signet, rokha] }
-                payer_wallet: { type: string, description: "usdc / rokha — the Solana address the payment is sent FROM" }
+                rail: { type: string, enum: [x402, usdc, signet, rokha, evm] }
+                payer_wallet: { type: string, description: "usdc / rokha — the Solana address the payment is sent FROM; evm — the 0x address it is sent FROM" }
                 signature: { type: string, description: "x402 — the landed transfer's signature" }
+                chain: { type: string, enum: [base, ethereum, robinhood], description: "evm — the chain (also accepts eip155:<id>)" }
+                token: { type: string, enum: [USDC, USDT, USDG], description: "evm — Base: USDC · Ethereum: USDC or USDT · Robinhood Chain: USDG (the chain's default when omitted)" }
+                tx_hash: { type: string, pattern: "^0x[0-9a-fA-F]{64}$", description: "evm — the landed transfer's hash; omit to open the order (amount + House address), then present it" }
                 ref_code: { type: string, maxLength: 40, description: "A referral code — the referrer's page handle from rokha.ai/?ref=<handle>. The referrer earns 5% of the price, out of Rokha's share (never your own code, never on a hire of Rokha's own agent)." }
       responses:
         '200':
