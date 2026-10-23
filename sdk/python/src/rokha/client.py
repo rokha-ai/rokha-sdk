@@ -144,7 +144,7 @@ class RokhaClient:
         Body and response mirror Anthropic's shape verbatim. The caller's
         Bearer JWT is sent automatically (set via `set_auth_token`).
         BYO Anthropic keys win; otherwise the Rokha tenant key is used
-        with the free-tier daily rate limit applied.
+        with the free chat-turn daily rate limit applied.
         """
         return self.post("/api/v1/llm/proxy", body)
 
@@ -279,10 +279,10 @@ class RokhaClient:
         instruction: str = "",
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """The free PUBLIC door: one real sandbox run per anon session per day.
-
-        No auth. `anon_session_id` (a UUID) scopes the free run; `harness_id`
-        (a UUID) anchors the trace that the run writes as its receipt.
+        """The public taste — CLOSED since 2026-10-23: no free runs, the door
+        answers a refusal. Kept for back-compat. Use `runtime_run` with a
+        signed-in account that has the Studio open (the month, or the $ROKHA
+        hold); `harness_id` (a UUID) anchors the trace the run writes.
         """
         return self.post(
             "/api/runtime/taste",

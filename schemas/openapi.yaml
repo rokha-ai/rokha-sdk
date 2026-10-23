@@ -55,7 +55,7 @@ tags:
   - name: rigs
     description: Rigs (workflows of configured harnesses) + run traces — the Working Rig surface
   - name: runtime
-    description: Run for real — execute a skill in the isolated sandbox (free taste + tier-quota run)
+    description: Run for real — execute a skill in the isolated sandbox (a signed-in account with the Studio open; the public taste is closed)
   - name: analytics
     description: Privacy-safe product-analytics capture — anon-session-keyed, fire-and-forget
   - name: sales
@@ -776,7 +776,7 @@ paths:
       summary: Chat with Rokha (authenticated)
       description: |
         Standard non-streaming chat. JWT is required for paid-tier features;
-        without it, the request is treated as pre-login free-tier.
+        without it, the request is treated as a visitor on the free chat turns.
       operationId: agentChat
       security:
         - bearerAuth: []
@@ -2222,11 +2222,11 @@ paths:
       summary: Run a published rig in one call
       description: >-
         Starts a run of a published rig and answers at once with a run id and
-        a poll block. No account needed: an anonymous caller runs under an
-        `x-anon-session-id` (a UUID; one is minted and returned when absent —
-        send it back when polling). With `Authorization: Bearer <token>` the
-        run is billed to that account. Anonymous runs are capped per session
-        and per IP (429). The run finishes whether or not the caller stays.
+        a poll block. A run needs a signed-in account with the Studio open
+        (the month, or the $ROKHA hold): send `Authorization: Bearer <token>`
+        and the run is billed to that account. An anonymous caller is refused
+        — there are no free runs (`x-anon-session-id` is still read for
+        back-compat). The run finishes whether or not the caller stays.
 
 
         Inputs are checked against the rig's published contract BEFORE
@@ -3345,13 +3345,13 @@ paths:
   /api/runtime/taste:
     post:
       tags: [runtime]
-      summary: "Run for real (free public taste)"
+      summary: "Run for real (the public taste — closed since 2026-10-23)"
       description: |
-        The public conversion door: ONE real sandbox run per anon session per
-        day, inside the global daily budget. No auth — the caller supplies an
-        `anon_session_id` (UUID) that scopes the free run. Executes the skill
-        in the isolated egress-only, no-secrets Fargate sandbox and writes a
-        trace anchored to `harness_id` (the run IS its own receipt).
+        The public taste is CLOSED: there are no free runs, and this door
+        answers a refusal. Kept for back-compat with callers that still send an
+        `anon_session_id`. A run needs a signed-in account with the Studio open
+        (the month, or the $ROKHA hold — `GET /api/billing/hold`): use
+        `POST /api/runtime/run` or `POST /api/rigs/run` with a Bearer JWT.
       operationId: runtimeTaste
       requestBody:
         required: true
@@ -3381,8 +3381,9 @@ paths:
       tags: [runtime]
       summary: "Run for real (logged-in, tier quota)"
       description: |
-        The authenticated run door — draws from the caller's tier daily quota
-        (not the anon free-taste), still under the global token ceiling. Owner
+        The authenticated run door — the account needs the Studio open (the
+        month, or the $ROKHA hold) and the run draws from its daily quota,
+        still under the global token ceiling. Owner
         is derived from the verified JWT. Writes a trace anchored to
         `harness_id`.
       operationId: runtimeRun
@@ -3731,8 +3732,10 @@ paths:
         monthly Network plans are retired (`retired: true`). One way to pay
         Rokha: the Studio, $249 a month, card, USDC or $ROKHA
         (`POST /api/studio/checkout` with product `month`; `license` and
-        `trial` answer 410 — neither is sold). Joining the Network is
-        free. Everything else is usage: paid runs, creator sales, hires,
+        `trial` answer 410 — neither is sold), or hold 1M $ROKHA in a
+        signed-in or linked wallet (`GET /api/billing/hold`). Joining the
+        Network is free; runs, publishing, schedules, hires and the Edge come
+        with the Studio. Everything else is usage: creator sales, hires,
         Tasks, the balance.
       operationId: networkPlans
       responses:
@@ -4558,17 +4561,14 @@ paths:
   /api/free-tier:
     get:
       tags: [meta]
-      summary: "What anyone gets free every day — one unit allowance, 3 runs, the streak (MCP free_tier_status)"
+      summary: "What is free — Rokha chat turns and one proven remix (MCP free_tier_status)"
       description: |
-        Public. The free tier is ONE daily allowance in fuel units
-        (`units_total`, ≈ $0.75 of Haiku: a small build session with Rokha,
-        ≈ 15 questions' worth) plus `free_runs_per_day` (3) free runs of any
-        public rig, per person across the site and MCP. A
-        **loyalty ramp** grows it: every consecutive active day adds 10% to
-        the next day's allowance, up to 2× (`ramp`). `free_doors` are what a
-        claimed page may publish free (2 MCP listings · 5 rigs · 1 agent);
-        `doors` is the one way to pay Rokha when the meter is empty (the
-        Studio, $249 a month).
+        Public. Free: talk to Rokha, and remix one proven skill for real. Everything else comes with the Studio — pay the month, or hold $ROKHA.
+        The allowance fields describe the free chat turns (a limited number a
+        day, no account needed); `free_runs_per_day` is 0 and `free_doors`
+        are zero — the one free run is the remix of a proven skill on a
+        signed-in account. `doors` is the way in: the Studio, $249 a month, or
+        the $ROKHA hold (`GET /api/billing/hold`).
       operationId: getFreeTier
       responses:
         '200':
@@ -4596,7 +4596,7 @@ paths:
   /api/free-tier/me:
     get:
       tags: [meta]
-      summary: "Your own free-tier meter — streak, multiplier, runs left"
+      summary: "Your own free meter — chat turns left, and your one proven remix"
       operationId: getFreeTierMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4608,9 +4608,9 @@ paths:
       tags: [meta]
       summary: "Your publish allowance — used and cap per kind (rig · mcp · agent)"
       description: >-
-        Free accounts publish a few of each on the market — 5 rigs, 2 MCP
-        server listings, 1 agent (per ACCOUNT, server-tunable) — and the
-        Studio lifts the caps (`cap: null`). Every publish door (POST
+        A free account's caps are zero — publishing comes with the Studio
+        (the month, or the $ROKHA hold), which lifts the caps (`cap: null`).
+        Every publish door (POST
         /api/rigs/publish, MCP `rig_publish` / `registry_publish`, POST
         /api/registry/servers, POST /api/pages/me/mcp-listing, POST
         /api/registry/agents, POST /api/agents/mine and taking an agent live)
@@ -4811,12 +4811,13 @@ paths:
   /api/studio/doors:
     get:
       tags: [network]
-      summary: "The one door — the Studio at $249 a month, card or USDC, and what is free (MCP studio_doors)"
+      summary: "The one door — the Studio at $249 a month (card, USDC or $ROKHA) or the $ROKHA hold, and what is free (MCP studio_doors)"
       description: |
-        Public. One way to pay Rokha: the Studio, $249 a month (card or
-        USDC). The one-time license, rent-to-own and trials are not sold;
-        licenses already sold stay valid. Joining the Network and
-        payouts are free.
+        Public. One way to pay Rokha: the Studio, $249 a month (card, USDC
+        or $ROKHA) — or hold 1M $ROKHA in a signed-in or linked wallet
+        (`GET /api/billing/hold`). The one-time license, rent-to-own and
+        trials are not sold; licenses already sold stay valid. Joining the
+        Network and payouts are free. Free: talk to Rokha, and remix one proven skill for real. Everything else comes with the Studio — pay the month, or hold $ROKHA.
       operationId: getStudioDoors
       responses:
         '200':
@@ -5675,7 +5676,7 @@ paths:
       tags: [network]
       summary: "Your balances — yours and your agents' (MCP fuel_tanks)"
       description: |
-        A balance is prepaid credit for Rokha's models: chat past the free tier, runs, and
+        A balance is prepaid credit for Rokha's models: chat past the free turns, runs, and
         grading for agents with no key of their own. It is spent at the model's cost plus Rokha's
         fee (the same amount again). Fund it in USDC or $ROKHA; when $ROKHA funded it, the fee
         part of every spend is burned. **Spend-only — a balance is never withdrawn** (the old
@@ -6752,7 +6753,7 @@ paths:
       operationId: createAgent
       description: |
         The ONE agent door. The Forge save and MCP `agent_create` land here with the same body
-        (`AgentCreate`). Free — 1 agent on a Free account, the Studio lifts the cap
+        (`AgentCreate`). With the Studio open — a free account's agent cap is zero
         (`GET /api/publish/allowance`; 402 `publish_cap` at the cap). Every Forge guard applies:
         reserved names, a model the owner can pay for, `persona` required to go live. Give the
         agent tools by naming the `rigs` and `skills` it may run. Never a connected app.

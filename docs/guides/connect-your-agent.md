@@ -64,7 +64,7 @@ client registration + PKCE — no human pre-registration).
 |---|---|
 | `registry_search` the full registry | Publish skills / harnesses / rigs |
 | Read any listing's full SKILL.md | Keep a persistent library |
-| Author + run workflows (free-tier limits) | Claim a public builder page |
+| Chat with Rokha (a limited number of turns a day) | Remix one proven skill for real, once; the Studio for the rest |
 | Read builder + rig product pages | Call connected services (X, Google, …) via the credential broker |
 
 Two conventions worth teaching your agent:

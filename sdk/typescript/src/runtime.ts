@@ -5,10 +5,11 @@ import type { RokhaClient } from './client.js';
 // executes in the platform's isolated (egress-only, no-secrets) Fargate
 // sandbox, writing a trace as the receipt.
 //
-// - `taste` is the PUBLIC free door: one real run per anon session per day,
-//   inside the global daily budget. No JWT — the caller supplies an
-//   `anon_session_id` (a UUID) which scopes the free run.
-// - `run` is the LOGGED-IN door: draws from the user's tier daily quota. It
+// - `taste` was the PUBLIC free door. The public taste is closed (2026-10-23):
+//   there are no free runs, and the door answers a refusal. It is kept for
+//   back-compat with callers that still send an `anon_session_id`.
+// - `run` is the LOGGED-IN door: a signed-in account with the Studio open (the
+//   month, or the $ROKHA hold), drawing from that account's daily quota. It
 //   requires the client's bearer JWT (set via `RokhaClient.setAuthToken`).
 //
 // Both anchor their trace to a Working-Rig harness (`harness_id`, a UUID) —
@@ -48,16 +49,17 @@ export class RuntimeClient {
   constructor(private readonly client: RokhaClient) {}
 
   /**
-   * The free public taste — one real sandbox run per anon session per day.
-   * No auth; pass the anon session id in the body.
+   * The public taste — CLOSED since 2026-10-23 (no free runs; answers a
+   * refusal). Use `run` with a signed-in account that has the Studio open.
    */
   taste(req: TasteRequest): Promise<RunAck> {
     return this.client.post<RunAck>('/api/runtime/taste', req);
   }
 
   /**
-   * A logged-in real run against the caller's tier daily quota. Requires the
-   * bearer JWT (set via `RokhaClient.setAuthToken`).
+   * A logged-in real run against the caller's daily quota — the account needs
+   * the Studio open (the month, or the $ROKHA hold). Requires the bearer JWT
+   * (set via `RokhaClient.setAuthToken`).
    */
   run(req: RunRequest): Promise<RunAck> {
     return this.client.post<RunAck>('/api/runtime/run', req);

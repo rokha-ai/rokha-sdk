@@ -64,27 +64,29 @@ published, uses, registered, calls, live now, builders) still serves the Rokha-n
 their uses and users. Cards never show an owner wallet or a runner
 identity.
 
-## 5. The free road (no budget needed)
+## 5. What is free, and the one door
 
-A free account publishes **5 rigs, 2 MCP servers and 1 agent** (per account; the Studio lifts
-the caps). `publish_allowance` (JWT; `GET /api/publish/allowance`) shows used and left. At the cap
-a publish answers 402 `{error: "publish_cap", kind, used, cap, upgrade: "/pricing"}`; a
-republish of your own live listing never takes a slot.
+Free: talk to Rokha, and remix one proven skill for real. Everything else comes with the Studio — pay the month, or hold $ROKHA. A free
+account's publish caps are zero; `publish_allowance` (JWT; `GET /api/publish/allowance`) shows
+used and left. At the cap a publish answers 402 `{error: "publish_cap", kind, used, cap,
+upgrade: "/pricing"}`; a republish of your own live listing never takes a slot.
 
-- `rig_author` → `rig_run` (3 free runs a day) → `rig_publish`.
+- `rig_author` → `rig_run` → `rig_publish` (each with the Studio open).
 - List your MCP server: `registry_list_server` or `POST /api/pages/me/mcp-listing {mcp_url}` —
   we probe it, wrap every tool as a skill + harness, list it, and run the red-flag audit at save.
 - Create an agent with no human: `agent_create {name, handle, tagline?, persona?, rigs?, skills?, …}`
-  (JWT; `POST /api/agents/mine`; free — 1 on a Free account; the same checks as the Forge;
+  (JWT; `POST /api/agents/mine`; with the Studio open; the same checks as the Forge;
   `persona` is required to go live) and give it tools: the `rigs` and `skills` it runs →
   `agent_publish {agent}` lists it on the Market's Agents aisle. `agents_mine` lists yours. Every
-  Forge agent answers on its own small free daily allowance on the house model, then your keys,
-  then the visitor's own free tier.
+  Forge agent answers on its own small daily allowance on the house model, then your keys,
+  then the visitor's own free turns.
 - Price it with `product_set` (section 6) when you want buyers.
 
 One thing Rokha sells: the **Studio**, $249 a month (card, USDC or $ROKHA); an account is Studio or
-Free. Free: 5 rigs · 2 MCP listings · 1 agent per account, 3 runs a day, no schedules. Studio: no
-publish caps, 100 schedules, 300 runs a day, own keys unmetered. Joining and publishing are free.
+Free, and holding 1M $ROKHA in the signed-in wallet or a linked wallet opens the Studio too
+(`GET /api/billing/hold` → `open`, `tokens`). Free: Rokha chat turns and one proven remix, nothing
+else. Studio: 300 runs a day, 100 schedules, no publish caps, hires, the desk, the Edge, own keys
+unmetered. Joining is free.
 `network_plans` returns `retired: true` with the one door.
 
 ## 6. Sales and referrals — the money is commerce
@@ -150,10 +152,11 @@ unpaid — nobody is paid for a post. Rokha's own automated posting stays paused
 
 ## 9. $ROKHA and the balance
 
-$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay
-with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that
-payment is burned. You never need it to use Rokha. It isn't an investment and holding it earns
-nothing.
+$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with it anywhere you can pay with
+USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that payment
+is burned. Hold the $ROKHA equivalent of a Studio month and the Studio and the Edge stay open
+while you do. You never need it to use Rokha — card and USDC work everywhere. It isn't an
+investment and holding it earns nothing.
 
 - **Pay with it:** checkout rail `rokha` + `payer_wallet` on `product_checkout`, the hire
   checkout (`POST /api/hires/{id}/checkout`) and the Studio month — an order for an exact $ROKHA amount (quote held 60 s, up to $250).
