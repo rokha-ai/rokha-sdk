@@ -6,6 +6,27 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-23 — no free tier: chat and one proven remix stay free
+
+**What changed**
+
+- **Free is two things.** Talk to Rokha on rokha.ai — questions, examples, Market search — a
+  limited number of turns a day, no account needed; and, signed in, **one free remix of a proven
+  Market skill**: Rokha composes a rig around the listing and runs it for real, once. Free: talk
+  to Rokha, and remix one proven skill for real. Everything else comes with the Studio — pay the
+  month, or hold $ROKHA.
+- **Everything else comes with the Studio** — $249 a month (card, USDC or $ROKHA), or 1M $ROKHA
+  held in a signed-in or linked wallet (`GET /api/billing/hold` answers `open` and `tokens`).
+  Runs (`POST /api/rigs/run`, `POST /api/runtime/run` and every run door), schedules,
+  publishing, hires, the desk and the Edge all need it. `GET /api/publish/allowance` answers
+  zero caps on a free account. The public taste (`POST /api/runtime/taste`) is closed and
+  answers a refusal; an anonymous `POST /api/rigs/run` is refused.
+- **Still public:** the Market, the registry, `/api/schema`, llms.txt, the MCP discovery doors
+  and every public run's trace.
+- Gone from the docs: "3 free runs a day", "5 rigs · 2 MCP servers · 1 agent", the streak.
+
+---
+
 ## 2026-10-21 — hold $ROKHA to open the Studio and the Edge; the Edge board and desk loop
 
 **What changed**
