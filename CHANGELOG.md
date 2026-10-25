@@ -6,24 +6,35 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
-## 2026-10-23 — no free tier: chat and one proven remix stay free
+## 2026-10-25 — a free day of real use, and the Edge comes with the Studio
+
+Supersedes the 2026-10-23 entries ("no free tier", "one free remix"): free accounts run, build
+and publish again, every day.
 
 **What changed**
 
-- **Free is two things.** Talk to Rokha on rokha.ai — questions, examples, Market search — a
-  limited number of turns a day, no account needed; and, signed in, **one free remix of a proven
-  Market skill**: Rokha composes a rig around the listing and runs it for real, once. Free: talk
-  to Rokha, and remix one proven skill for real. Everything else comes with the Studio — pay the
-  month, or hold $ROKHA.
-- **Everything else comes with the Studio** — $249 a month (card, USDC or $ROKHA), or 1M $ROKHA
-  held in a signed-in or linked wallet (`GET /api/billing/hold` answers `open` and `tokens`).
-  Runs (`POST /api/rigs/run`, `POST /api/runtime/run` and every run door), schedules,
-  publishing, hires, the desk and the Edge all need it. `GET /api/publish/allowance` answers
-  zero caps on a free account. The public taste (`POST /api/runtime/taste`) is closed and
-  answers a refusal; an anonymous `POST /api/rigs/run` is refused.
-- **Still public:** the Market, the registry, `/api/schema`, llms.txt, the MCP discovery doors
-  and every public run's trace.
-- Gone from the docs: "3 free runs a day", "5 rigs · 2 MCP servers · 1 agent", the streak.
+- **No account:** talk to Rokha (about 15 questions a day) and read everything public — the
+  Market, listings, rig pages, traces, public signal reads. Hunt 1 a day, Mark Check 2. No runs:
+  an anonymous `POST /api/rigs/run` and the anonymous `POST /api/runtime/taste` are refused (sign
+  in).
+- **Signed in, free, every day:** about 30 questions; **3 real runs** of any kind (a rig run, a
+  sandbox run, a scheduled fire — all count); **3 builds** with Rokha (author, create or publish
+  a rig); **1 schedule**, daily at most (its fires use the 3 runs); Hunt 3; Mark Check 5; web
+  search 2; voice 2,000 characters + 10 transcriptions. Publish in total **1 agent · 3 rigs ·
+  2 MCP servers · 3 skills** (`GET /api/publish/allowance`). Tasks, hiring, Signet, paper ledgers,
+  your own keys and your builder page need only a sign-in. `GET /api/free-tier` states the day.
+- **The Studio** — $249 a month (card, USDC or $ROKHA), or hold 1M $ROKHA (same access while you
+  hold; `GET /api/billing/hold`): everything, including **the Edge, the desk and Windsock intel**
+  (events, wallets, the signal feed, scans); 300 runs a day; Hunt 50; Mark Check 100.
+- **Refusals name both doors** (the month, the hold). The Edge (`/api/edge/*`, MCP
+  `edge_read`/`edge_live`), the desk (`/api/desk/*`, MCP `desk_board`/`desk_signals`) and Windsock
+  intel (`/api/signals/events`, `/api/signals/wallets`, `POST /api/signals/scan`, MCP
+  `signal_feed`) answer **401 `sign_in`** without a login and **402 `studio_required`** on a free
+  account. `GET /api/edge/world?section=agents` and `GET /api/desk/events/board` (public in the
+  2026-10-21 entry) are behind the same gate.
+
+**Breaking:** the Edge, desk and Windsock intel doors no longer answer anonymously or for a free
+account; anonymous runs are refused.
 
 ---
 

@@ -110,8 +110,8 @@ installs the package: if you get *"still coming up — try again in a minute"*,
 do exactly that — the next call answers in a couple of seconds.
 
 Builders with a published demo rig (it is on their `rokha.ai/@handle` page) run
-end to end with the one-call run door — signed in, with the Studio open (the month, or the
-$ROKHA hold); `ROKHA_TOKEN` is your session token (see *Sign in* below):
+end to end with the one-call run door — signed in (a free account gets 3 runs a day);
+`ROKHA_TOKEN` is your session token (see *Sign in* below):
 
 ```
 # 1 · start the run — returns a poll url
@@ -136,8 +136,8 @@ jq '{status, steps, output}' poll.json
 
 A single poll straight after the POST reads `"starting"` — that is normal;
 keep polling. `output` is the finished result, `steps[]` has every step's
-status and trace id, `traces[]` has each trace in full. Runs come with the Studio ($249 a
-month — card, USDC or $ROKHA — or hold 1M $ROKHA; 300 runs a day). Free: talk to Rokha, and remix one proven skill for real. Everything else comes with the Studio — pay the month, or hold $ROKHA.
+status and trace id, `traces[]` has each trace in full. A signed-in free account runs 3 times a
+day; the Studio ($249 a month — card, USDC or $ROKHA — or hold 1M $ROKHA) runs 300 a day.
 
 A builder's demo rig is a public rig, so **its runs are public**: anyone with the
 `run_id` (or a step's `trace_id`) can read them with no header at all —
@@ -149,7 +149,7 @@ payload). See [runs-traces-data.md](runs-traces-data.md).
 ## Sign in for your account's limits
 
 Searches and sponsor calls work anonymously, with anonymous limits: one sponsor
-call every 2 seconds per IP. Runs need your account with the Studio open, and
+call every 2 seconds per IP. Runs need a sign-in (3 a day free), and
 **your limits ride your account** — so let your agent sign in as your account:
 
 - **Headless, no browser** — with the wallet you sign in with:
@@ -164,8 +164,8 @@ call every 2 seconds per IP. Runs need your account with the Studio open, and
   and opens its consent screen — approve it while signed in to your account.
 
 Signed in, sponsor calls are limited **per account** (one every 250 ms, never
-shared with your office IP), `rig_run` spends your account's run allowance instead
-of the anonymous one. `GET /api/studio/access` shows exactly what your account
+shared with your office IP), `rig_run` spends your account's run allowance (3 a day free,
+300 with the Studio). `GET /api/studio/access` shows exactly what your account
 holds.
 
 ## For agents — do it yourself
@@ -174,7 +174,7 @@ Everything above works with no human in the loop.
 
 | Do | MCP tool | REST |
 |---|---|---|
-| The one door and what is free (public) | `network_plans` | `GET /api/network/plans` |
+| What is free and what the Studio adds (public) | `network_plans` | `GET /api/network/plans` |
 | Claim your page | `page_claim` | — |
 | The market (public) | `front_board` | `GET /api/front` |
 | Search the Market (public) | `market_search` | `GET /api/market` |

@@ -2,10 +2,10 @@
 name: signal-feed
 description: Read Rokha's live social-trading signal board for Solana tokens — one scored list built from pump.fun launches and graduations, DexScreener paid boosts and 1h volume, GMGN smart-money and KOL fills, fomo.family top traders, and X buzz, with every score's per-term working. Use when the user asks what is trending or heating up on Solana, what smart money is buying, whether anyone is talking about a token, which tokens move together, or wants the raw material for a trading thesis. Read-only; it never trades.
 license: MIT
-compatibility: Any agent that can make HTTPS GET/POST requests. trending, token and heat need no account and no key. events and wallets need a Rokha JWT with a paid standing (Network + Studio or the Studio license).
+compatibility: Any agent that can make HTTPS GET/POST requests. trending, token and heat need no account and no key. events, wallets, scan and the signal_feed MCP tool come with the Rokha Studio ($249 a month, or hold 1M $ROKHA) and need a Rokha JWT.
 metadata:
   author: rokha
-  version: "1.0.0"
+  version: "1.1.0"
   rokha_kind: agent-tool
   homepage: https://rokha.ai
   source_repo: https://github.com/rokha-ai/rokha-sdk
@@ -60,7 +60,7 @@ curl -s "https://rokha.ai/api/signals/heat?window=1h"   # 1h | 6h | 24h
   - `buzz_author`: the same X author was among the loudest on both.
   - `deployer`: both tokens came from the same deployer wallet.
 
-## 4. The firehose and the roster (signed in, paid standing)
+## 4. The firehose and the roster (the Studio)
 
 ```bash
 curl -s -H "Authorization: Bearer $JWT" \
@@ -76,10 +76,12 @@ smart-money roster. Its `label` names where each wallet came from, and
 `POST /api/signals/scan {"mint": "..."}` refreshes one token's metrics and
 X buzz on demand. Each owner gets a daily scan allowance.
 
-A refusal returns `needs_login` (401), `needs_plan` (403) or `scan_limit`
-(429). Each carries an `upgrade` block that names the way in.
+These come with the Studio — $249 a month (card, USDC or $ROKHA), or hold 1M $ROKHA.
+Without a login they answer 401 `sign_in`; a free account gets 402 `studio_required`;
+a spent scan allowance answers 429 `scan_limit`. Each refusal names both doors
+(the month, the hold).
 
-## 5. Over MCP
+## 5. Over MCP (the Studio)
 
 ```bash
 curl -s -X POST https://rokha.ai/mcp/jsonrpc -H "Content-Type: application/json" \

@@ -64,7 +64,7 @@ client registration + PKCE — no human pre-registration).
 |---|---|
 | `registry_search` the full registry | Publish skills / harnesses / rigs |
 | Read any listing's full SKILL.md | Keep a persistent library |
-| Chat with Rokha (a limited number of turns a day) | Remix one proven skill for real, once; the Studio for the rest |
+| Chat with Rokha (about 15 questions a day) | 3 real runs + 3 builds a day; publish 1 agent · 3 rigs · 2 MCP servers · 3 skills |
 | Read builder + rig product pages | Call connected services (X, Google, …) via the credential broker |
 
 Two conventions worth teaching your agent:

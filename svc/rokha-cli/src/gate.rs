@@ -11,7 +11,7 @@
 
 use crate::credentials::{self, Credentials};
 
-const PLANS_URL: &str = "https://rokha.ai/?plan=1";
+const PLANS_URL: &str = "https://rokha.ai/pricing";
 
 /// Tiers that unlock the local agent. `free` and unknown tiers do not.
 fn is_paid(tier: &str) -> bool {
@@ -40,17 +40,17 @@ fn need_login(feature: &str) {
     eprintln!();
     eprintln!("  You're not logged in. To use it:");
     eprintln!("    1. \x1b[1mro login\x1b[0m        — sign in through your browser");
-    eprintln!("    2. be on a paid plan (Casual or Pro)");
+    eprintln!("    2. open the Studio — $249 a month, or hold 1M $ROKHA");
     eprintln!();
-    eprintln!("  See plans → {PLANS_URL}");
+    eprintln!("  The Studio → {PLANS_URL}");
     eprintln!();
 }
 
 fn need_upgrade(feature: &str, tier: &str) {
     eprintln!();
-    eprintln!("\x1b[1m🔒 {feature} is a paid feature — your plan is '{tier}'.\x1b[0m");
+    eprintln!("\x1b[1m🔒 {feature} comes with the Studio — your account is '{tier}'.\x1b[0m");
     eprintln!();
-    eprintln!("  The local Rokha agent unlocks on \x1b[1mCasual\x1b[0m or \x1b[1mPro\x1b[0m.");
+    eprintln!("  The local Rokha agent opens with the \x1b[1mStudio\x1b[0m — $249 a month, or hold 1M $ROKHA.");
     eprintln!("  Upgrade → {PLANS_URL}");
     eprintln!();
 }

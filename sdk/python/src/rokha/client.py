@@ -279,10 +279,10 @@ class RokhaClient:
         instruction: str = "",
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """The public taste — CLOSED since 2026-10-23: no free runs, the door
-        answers a refusal. Kept for back-compat. Use `runtime_run` with a
-        signed-in account that has the Studio open (the month, or the $ROKHA
-        hold); `harness_id` (a UUID) anchors the trace the run writes.
+        """The anonymous taste — CLOSED: an anonymous caller has no runs, and
+        the door answers a refusal (sign in). Kept for back-compat. Use
+        `runtime_run` with a signed-in key — free accounts get 3 runs a day,
+        the Studio 300; `harness_id` (a UUID) anchors the trace the run writes.
         """
         return self.post(
             "/api/runtime/taste",
@@ -305,7 +305,9 @@ class RokhaClient:
         params: dict[str, Any] | None = None,
         model: str | None = None,
     ) -> dict[str, Any]:
-        """The LOGGED-IN door: a real run against the caller's tier daily quota.
+        """The signed-in door: a real run against the caller's daily runs —
+        3 a day on a free account, 300 with the Studio (the month, or the 1M
+        $ROKHA hold).
 
         Requires the bearer JWT (set via `set_auth_token`). `harness_id` (a
         UUID) anchors the trace.

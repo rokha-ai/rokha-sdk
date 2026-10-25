@@ -5,9 +5,10 @@
 //! installs locally, no secrets travel — and the trace is the receipt.
 //!
 //! Two doors, same contract as the browser (runner pays, always):
-//! - logged in  → `POST /api/runtime/run` (your tier's daily run quota)
-//! - anonymous  → `POST /api/runtime/taste` (the free public taste — a small
-//!   per-session daily allowance, inside the global daily budget)
+//! - logged in  → `POST /api/runtime/run` (your account's daily runs — 3 on a
+//!   free account, 300 with the Studio)
+//! - anonymous  → `POST /api/runtime/taste` (closed: an anonymous caller has
+//!   no runs, and the server answers a refusal — `ro login` first)
 //!
 //! Every limit denial is LOUD and names the ladder up. Run-Real-or-Raise: this
 //! command never simulates — if the platform can't run it, you get the typed
@@ -70,12 +71,12 @@ pub async fn run(
     let creds = credentials::load();
     let (door_line, spend_line) = match &creds {
         Some(c) => (
-            "your account's run quota".to_string(),
+            "one of your account's daily runs".to_string(),
             format!("runs as {} ({})", c.identity.identity, c.identity.tier),
         ),
         None => (
-            "one of the day's free public taste runs".to_string(),
-            "anonymous — log in to run on your own quota".to_string(),
+            "nothing — anonymous runs are refused".to_string(),
+            "run `ro login` first (a free account gets 3 runs a day)".to_string(),
         ),
     };
     println!(
@@ -345,10 +346,10 @@ async fn read_ack(
         if status.as_u16() == 429 || status.as_u16() == 402 {
             eprintln!(
                 "{}",
-                t.amber("  That's a plan limit. Resets on the daily cycle, or:")
+                t.amber("  That's a daily limit. It resets at 00:00 UTC, or:")
             );
-            eprintln!("    • log in (`ro login`) to run on your own quota");
-            eprintln!("    • upgrade / top up → https://rokha.ai/?plan=1");
+            eprintln!("    • log in (`ro login`) — a free account gets 3 runs a day");
+            eprintln!("    • the Studio ($249 a month, or hold 1M $ROKHA) → https://rokha.ai/pricing");
         }
         Err(1)
     }

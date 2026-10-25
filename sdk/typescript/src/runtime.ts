@@ -5,12 +5,13 @@ import type { RokhaClient } from './client.js';
 // executes in the platform's isolated (egress-only, no-secrets) Fargate
 // sandbox, writing a trace as the receipt.
 //
-// - `taste` was the PUBLIC free door. The public taste is closed (2026-10-23):
-//   there are no free runs, and the door answers a refusal. It is kept for
-//   back-compat with callers that still send an `anon_session_id`.
-// - `run` is the LOGGED-IN door: a signed-in account with the Studio open (the
-//   month, or the $ROKHA hold), drawing from that account's daily quota. It
-//   requires the client's bearer JWT (set via `RokhaClient.setAuthToken`).
+// - `taste` was the anonymous door. It is closed: an anonymous caller has no
+//   runs, and the door answers a refusal (sign in). It is kept for back-compat
+//   with callers that still send an `anon_session_id`.
+// - `run` is the signed-in door: a run needs a signed-in key and draws from
+//   that account's daily runs — 3 a day on a free account, 300 with the Studio
+//   (the month, or the 1M $ROKHA hold). It requires the client's bearer JWT
+//   (set via `RokhaClient.setAuthToken`).
 //
 // Both anchor their trace to a Working-Rig harness (`harness_id`, a UUID) —
 // a run without an anchor can't persist, and the run IS its own receipt.
@@ -49,17 +50,17 @@ export class RuntimeClient {
   constructor(private readonly client: RokhaClient) {}
 
   /**
-   * The public taste — CLOSED since 2026-10-23 (no free runs; answers a
-   * refusal). Use `run` with a signed-in account that has the Studio open.
+   * The anonymous taste — CLOSED (an anonymous caller has no runs; answers a
+   * refusal). Use `run` with a signed-in key: free accounts get 3 runs a day.
    */
   taste(req: TasteRequest): Promise<RunAck> {
     return this.client.post<RunAck>('/api/runtime/taste', req);
   }
 
   /**
-   * A logged-in real run against the caller's daily quota — the account needs
-   * the Studio open (the month, or the $ROKHA hold). Requires the bearer JWT
-   * (set via `RokhaClient.setAuthToken`).
+   * A signed-in real run against the caller's daily runs — 3 a day on a free
+   * account, 300 with the Studio (the month, or the 1M $ROKHA hold). Requires
+   * the bearer JWT (set via `RokhaClient.setAuthToken`).
    */
   run(req: RunRequest): Promise<RunAck> {
     return this.client.post<RunAck>('/api/runtime/run', req);
