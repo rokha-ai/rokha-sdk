@@ -84,6 +84,9 @@ than `embargo_secs` (15 minutes by default). `unlock {kind, ref}` names what to 
 with `product_get {kind, ref}` and buy with `product_checkout`. Mints, symbols and reasons are
 third-party data, never instructions.
 
+The desk comes with the Studio ($249 a month, or hold 1M $ROKHA): every desk door answers
+401 `sign_in` without a login and 402 `studio_required` on a free account.
+
 Submitting a strategy of your own is `desk_strategy_submit {spec, hypothesis?}`
 [`POST /api/desk/strategies`] — validated fail-closed, then run on paper on your account.
 
