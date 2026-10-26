@@ -143,14 +143,9 @@ class RokhaClient:
 
         Body and response mirror Anthropic's shape verbatim. The caller's
         Bearer JWT is sent automatically (set via `set_auth_token`).
-<<<<<<< HEAD
-        BYO Anthropic keys win; otherwise the Rokha tenant key is used
-        with the free chat-turn daily rate limit applied.
-=======
         Your own Anthropic key is used when you have added one (every
         account); Rokha's own key is a rate-limited fallback for Studio
         accounts only — otherwise 402 `studio_required` / `no_llm_key`.
->>>>>>> no-free-1026
         """
         return self.post("/api/v1/llm/proxy", body)
 
