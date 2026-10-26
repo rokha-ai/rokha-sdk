@@ -1,6 +1,6 @@
 ---
 name: rokha-registry
-description: Search the Rokha Registry's 218k+ published agent skills and install any of them into your own skill library — no account, no API key. Use when the user asks to find an agent skill ("is there a skill for X?"), browse what skills exist for a task, or download/install a skill from the Rokha registry (or clawhub) into Claude's skills. Works over Rokha's public MCP endpoint with plain HTTP calls.
+description: Search the Rokha Registry's 220k+ published agent skills and install any of them into your own skill library — no account, no API key. Use when the user asks to find an agent skill ("is there a skill for X?"), browse what skills exist for a task, or download/install a skill from the Rokha registry (or clawhub) into Claude's skills. Works over Rokha's public MCP endpoint with plain HTTP calls.
 license: MIT
 compatibility: Any agent that can make HTTPS POST requests (curl, fetch, requests). No authentication required for search + fetch. Works against rokha.ai or any self-hosted Rokha deployment.
 metadata:
@@ -13,7 +13,7 @@ metadata:
 
 # Rokha Registry — find and install agent skills
 
-Rokha indexes 218k+ published agent skills (agentskills.io format) and
+Rokha indexes 220k+ published agent skills (agentskills.io format) and
 exposes them through a **public MCP endpoint** — searchable and installable
 by any agent with zero setup. This skill teaches you the two calls.
 
@@ -87,6 +87,5 @@ and anything in `requires_bins` they'd need installed for scripted parts.
   Recommended: install a vetting skill first (search the registry for
   `skill-vetter`) and run its protocol on everything you pull down.
 - To RUN a skill without installing anything (in Rokha's cloud sandbox
-  instead of locally), point the user at https://rokha.ai — the Studio
-  runs skills for real: signed in, 3 free runs a day; 300 with the Studio
-  (the month, or the 1M $ROKHA hold).
+  instead of locally), point the user at https://rokha.ai — the editor
+  runs skills for real in the Studio, on your own model keys.

@@ -6,6 +6,52 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-26 — $29.99 Studio, bring your own keys, the Lab
+
+**What changed**
+
+- **No free runs or builds.** Everything that runs or builds on Rokha — a rig run, a build in the
+  Studio, a schedule, an agent at work — needs the Studio and your own model keys (Anthropic or
+  OpenRouter, added in Profile → Keys). Runs and builds use your keys, unmetered; Rokha pays for no
+  model use on your behalf. The old "about $0.75 of model use + 3 runs a day", the streak that grew
+  it and the daily build allowance are gone.
+- **The Studio is $29.99 a month** (card, USDC or $ROKHA) — was $249 — or hold **1,000,000 $ROKHA**
+  and the Studio stays open while you do. It brings unlimited publishing, 100 schedules, 300 runs a
+  day, voice (30,000 characters and 500 transcriptions a day), 50 hunts and 100 Mark Checks a day,
+  and the Lab.
+- **What stays free for anyone:** ten questions a day with Rokha (on rokha.ai and on X), and
+  listing — claim a page, list an MCP server, publish 1 agent, 3 rigs, 2 MCP servers and 3 skills.
+- **The Edge is now the Lab.** `rokha.ai/lab` (`/edge` redirects). The landing is new. The API paths
+  (`/api/edge/*`) and the MCP tools `edge_read` / `edge_live` keep their names.
+- **List your MCP server** moved under the Market: `rokha.ai/market/list` (`rokha.ai/list` redirects).
+  Media CTAs point there.
+- **Hunt reads Solana contract addresses.** A bare address, or one inside a pump.fun, DexScreener or
+  Solscan link, is a hunt lead: the token is audited by Solwatch, and Mark Check wraps the hunt.
+
+**For developers**
+
+- `GET /api/free-tier` (MCP `free_tier_status`) now reports `free_runs_per_day: 0`, the ten-question
+  unit allowance (`questions_per_day`, `questions_left_today`), the listing caps in `free_doors` and
+  the two doors in `doors` (`studio_monthly_usd: 29.99`; the hold at `GET /api/billing/hold`).
+- `POST /api/v1/llm/proxy` on Rokha's own key is Studio-only: a Free account with no key of its own
+  gets 402 `studio_required`; `no_llm_key` when there is no key to use. Your own key works on every
+  account, as before.
+- Docs, README, the `rokha-network` skill, the schema descriptions and the SDK docstrings say the
+  same; every path and schema shape is unchanged.
+
+**Where it gets us**
+
+One honest line: talking to Rokha and listing your work are free; running and building are the
+Studio, on your own keys, at a price a builder can carry every month. Rokha stops paying for
+model use it cannot see the value of, and the people who build here pay for exactly what they run.
+
+**What's next**
+
+The Lab opens to more of the desk — the research loop, the paper trials and what graduates —
+and Hunt keeps widening what counts as a lead.
+
+**Breaking:** none on the wire — `free_runs_per_day` reads 0, `studio_monthly_usd` reads 29.99,
+and a Free account's call to `/api/v1/llm/proxy` without a key of its own now answers 402.
 ## 2026-10-25 — a free day of real use, and the Edge comes with the Studio
 
 Supersedes the 2026-10-23 entries ("no free tier", "one free remix"): free accounts run, build

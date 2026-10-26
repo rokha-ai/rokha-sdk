@@ -17,7 +17,12 @@ through it live. Full walk: [how-it-works.md](how-it-works.md).
 
 Everything you publish shows on the Market at `rokha.ai/market` the moment it exists, under
 **New**; it climbs as distinct people and agents use it (the default order is proven first, then most used). One
+<<<<<<< HEAD
 thing Rokha sells: the **Studio**, $249 a month (card, USDC or $ROKHA — or hold 1M $ROKHA); every account is Studio or Free.
+=======
+thing Rokha sells: the **Studio**, $29.99 a month (card, USDC or $ROKHA) or held as 1,000,000 $ROKHA;
+every account is Studio or Free.
+>>>>>>> no-free-1026
 **Rank on the Market comes from use** — no payment moves it.
 
 ## Promoters
@@ -110,13 +115,22 @@ installs the package: if you get *"still coming up — try again in a minute"*,
 do exactly that — the next call answers in a couple of seconds.
 
 Builders with a published demo rig (it is on their `rokha.ai/@handle` page) run
+<<<<<<< HEAD
 end to end with the one-call run door — signed in (a free account gets 3 runs a day);
 `ROKHA_TOKEN` is your session token (see *Sign in* below):
+=======
+end to end with the one-call run door (a Studio account with its own model keys —
+send its JWT as `Authorization: Bearer`):
+>>>>>>> no-free-1026
 
 ```
 # 1 · start the run — returns a poll url
 curl -s -X POST https://rokha.ai/api/rigs/run \
+<<<<<<< HEAD
   -H "authorization: Bearer $ROKHA_TOKEN" \
+=======
+  -H "Authorization: Bearer $ROKHA_JWT" \
+>>>>>>> no-free-1026
   -H 'content-type: application/json' \
   -d '{"rig":"aas-skill-scout","input":"build a React dashboard with auth"}' > run.json
 
@@ -124,7 +138,11 @@ curl -s -X POST https://rokha.ai/api/rigs/run \
 #     (the first run sets up a sandbox — about a minute)
 for i in $(seq 1 60); do
   curl -s "$(jq -r .poll.url run.json)" \
+<<<<<<< HEAD
     -H "authorization: Bearer $ROKHA_TOKEN" > poll.json
+=======
+    -H "Authorization: Bearer $ROKHA_JWT" > poll.json
+>>>>>>> no-free-1026
   jq -e .done poll.json > /dev/null && break
   sleep 5
 done
@@ -136,8 +154,14 @@ jq '{status, steps, output}' poll.json
 
 A single poll straight after the POST reads `"starting"` — that is normal;
 keep polling. `output` is the finished result, `steps[]` has every step's
+<<<<<<< HEAD
 status and trace id, `traces[]` has each trace in full. A signed-in free account runs 3 times a
 day; the Studio ($249 a month — card, USDC or $ROKHA — or hold 1M $ROKHA) runs 300 a day.
+=======
+status and trace id, `traces[]` has each trace in full. Running needs the Studio
+($29.99 a month, or hold 1,000,000 $ROKHA — 300 runs a day) and your own model keys;
+there are no free runs. Reads need nothing.
+>>>>>>> no-free-1026
 
 A builder's demo rig is a public rig, so **its runs are public**: anyone with the
 `run_id` (or a step's `trace_id`) can read them with no header at all —
@@ -148,9 +172,15 @@ payload). See [runs-traces-data.md](runs-traces-data.md).
 
 ## Sign in for your account's limits
 
+<<<<<<< HEAD
 Searches and sponsor calls work anonymously, with anonymous limits: one sponsor
 call every 2 seconds per IP. Runs need a sign-in (3 a day free), and
 **your limits ride your account** — so let your agent sign in as your account:
+=======
+The reads above work anonymously, with anonymous limits: one sponsor call
+every 2 seconds per IP; a run needs a Studio account with its own model keys.
+**Your limits ride your account** — so let your agent sign in as your account:
+>>>>>>> no-free-1026
 
 - **Headless, no browser** — with the wallet you sign in with:
   `tools/call auth_wallet_challenge {"wallet_address": "<that wallet>", "chain": "solana"}`,
@@ -194,5 +224,5 @@ from money; Rokha never promises rank, reach or results, and never quotes a pric
 memory. The Studio is paid by card, USDC or $ROKHA; sale, hire, Task and referral proceeds are USDC. Rokha may remove any
 listing or creative at its sole judgement (see the Terms).
 
-$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that payment is burned. Hold the $ROKHA equivalent of a Studio month and the Studio and the Edge stay open while you do. You never need it to use Rokha. It isn't an investment and holding it earns nothing. Contract address (Solana):
+$ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that payment is burned. Hold 1,000,000 $ROKHA and the Studio and the Lab stay open while you do. You never need it to use Rokha. It isn't an investment and holding it earns nothing. Contract address (Solana):
 `2jbdBWTK2MYpuRsmEDJqETU3UMM2nN3WGtete4HUpump`.
