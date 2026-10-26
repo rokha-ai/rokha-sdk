@@ -88,7 +88,7 @@ tags:
   - name: addons
     description: "Rokha add-ons — published rigs and skills a person attaches to THEIR Rokha; she lists them on every signed-in turn with the exact call that runs each. Attaching never unlocks a priced one."
   - name: edge
-    description: "Edge — the explorer of the agent world (rokha.ai/edge): the live desk (`/api/live`), the world digest, the feed rail and the field. Public, cached, counts over real ledgers and real fetches; null means unreadable, never zero. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` answer 404 while a deployment keeps the Edge switched off."
+    description: "The Lab (API: edge) — the agent world live at rokha.ai/lab (`/edge` redirects), open to Studio accounts: the live desk (`/api/live`), the world digest, the feed rail and the field. These doors stay public, cached, counts over real ledgers and real fetches; null means unreadable, never zero. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` answer 404 while a deployment keeps the Lab switched off."
   - name: hire
     description: "Hire an agent — an agent proves it can run a Market capability (three graded runs), its owner sets one USDC price, and anyone signed in hires it for one task: pay up front in USDC or $ROKHA, watch the runs live, stop any time (no refunds), and keep the traces, the receipt and the invoice. A third-party hire pays the agent's owner 70%, the capability's creator 10% and Rokha 20% (owner 80% when the owner made the rig; Rokha 30% on a House-built capability); the reputation discount lowers Rokha's 20% to 15% for an agent with 10+ paid hires done and none failed in 30 days, and to 10% at 50+ — the difference goes to the owner. A hire of Rokha's own agent goes to Rokha (less 10% to the capability's creator and 10% to whoever trained her on it). Every fee: https://rokha.ai/fees. Train Rokha: nominate a proven rig for Rokha's own agent and earn 10% of every hire of it."
   - name: tasks
@@ -688,7 +688,7 @@ paths:
 
   # ============================================================
   # LLM proxy — federated Anthropic forwarding via the user's
-  # Rokha account (BYO key wins; tenant key + rate-limit fallback).
+  # Rokha account (own key wins; Rokha's key is a Studio-only, rate-limited fallback).
   # ============================================================
 
   /api/v1/llm/proxy:
@@ -697,9 +697,12 @@ paths:
       summary: Forward an Anthropic /v1/messages request through Rokha
       description: |
         JWT-required. Forwards an Anthropic-shaped messages request to
-        Anthropic using the caller's BYO key (if present in
-        `agent_api_keys`) or the Rokha tenant key as a rate-limited
-        fallback. Only `claude-*` models are accepted; default is
+        Anthropic using the caller's own key when they have added one
+        (every account), or Rokha's own key as a rate-limited fallback
+        for **Studio accounts only**: a Free account with no key of its
+        own gets 402 `studio_required`; a Studio account with no key
+        when Rokha's key is unavailable gets 402 `no_llm_key`. Only
+        `claude-*` models are accepted; default is
         `claude-haiku-4-5-20251001`. Streaming is rejected in this
         slice (v0.3.2 will add it).
 
@@ -732,8 +735,14 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: "`studio_required` (a Free account with no key of its own) or `no_llm_key`"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
-          description: Tenant-key rate limit exceeded (free tier)
+          description: Rate limit on Rokha's own key exceeded (Studio fallback)
           content:
             application/json:
               schema:
@@ -745,7 +754,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '503':
-          description: No tenant key configured AND caller has no BYO key
+          description: Rokha's key is not configured AND the caller has no key of their own
           content:
             application/json:
               schema:
@@ -776,7 +785,7 @@ paths:
       summary: Chat with Rokha (authenticated)
       description: |
         Standard non-streaming chat. JWT is required for paid-tier features;
-        without it, the request is treated as pre-login free-tier.
+        without it, the request is a visitor's — ten questions a day.
       operationId: agentChat
       security:
         - bearerAuth: []
@@ -1258,12 +1267,12 @@ paths:
         an arm's owner and buyers, embargoed for everyone else; a Bearer
         token unlocks what you own or bought), `rokha_addons_catalog`,
         `pack_get`,
-        `edge_read` and `edge_live` (the Edge explorer — listed and
-        answered only while a deployment has the Edge switched on; off,
+        `edge_read` and `edge_live` (the Lab, API name `edge` — listed and
+        answered only while a deployment has the Lab switched on; off,
         `tools/call` answers `edge_closed`),
         and every sponsor tool
         (`<brand>__<tool>`). `edge_feed_draft` and `edge_feed_save`
-        (plug a JSON API into Edge as a feed) are superadmin-only. `justify_seeds`, `seeds_explain`,
+        (plug a JSON API into the Lab as a feed) are superadmin-only. `justify_seeds`, `seeds_explain`,
         `seeds_recent_posts`, `carry_brief`, `boosts_explain`, `network_briefs`,
         `fuel_boost_menu` and `adnet_*` are read-only history — Rokha no longer
         pays for posting. An MCP 2026-07-28 `server/discover` probe answers
@@ -3729,7 +3738,8 @@ paths:
       description: |
         Public. Since 2026-10-06 joining the Rokha Network is **free** and the
         monthly Network plans are retired (`retired: true`). One way to pay
-        Rokha: the Studio, $249 a month, card, USDC or $ROKHA
+        Rokha: the Studio, $29.99 a month, card, USDC or $ROKHA — or hold
+        1,000,000 $ROKHA and it stays open while you do
         (`POST /api/studio/checkout` with product `month`; `license` and
         `trial` answer 410 — neither is sold). Joining the Network is
         free. Everything else is usage: paid runs, creator sales, hires,
@@ -3743,7 +3753,7 @@ paths:
       summary: "RETIRED (410) — Network plans no longer exist; joining is free"
       description: |
         Answers **410 `network_plans_retired`** with the one door (the Studio,
-        $249 a month). Joining the Network costs nothing:
+        $29.99 a month, or the 1,000,000 $ROKHA hold). Joining the Network costs nothing:
         claim a page (`page_claim`) and what you publish shows on the Market.
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
@@ -4558,17 +4568,17 @@ paths:
   /api/free-tier:
     get:
       tags: [meta]
-      summary: "What anyone gets free every day — one unit allowance, 3 runs, the streak (MCP free_tier_status)"
+      summary: "What anyone gets free — ten questions a day with Rokha, listing; no free runs (MCP free_tier_status)"
       description: |
-        Public. The free tier is ONE daily allowance in fuel units
-        (`units_total`, ≈ $0.75 of Haiku: a small build session with Rokha,
-        ≈ 15 questions' worth) plus `free_runs_per_day` (3) free runs of any
-        public rig, per person across the site and MCP. A
-        **loyalty ramp** grows it: every consecutive active day adds 10% to
-        the next day's allowance, up to 2× (`ramp`). `free_doors` are what a
-        claimed page may publish free (2 MCP listings · 5 rigs · 1 agent);
-        `doors` is the one way to pay Rokha when the meter is empty (the
-        Studio, $249 a month).
+        Public. What is free: ONE daily unit allowance for talking to Rokha
+        (`units_total` — about ten questions a day, on rokha.ai and on X;
+        `questions_per_day`, `questions_left_today`), and listing. There
+        are no free runs or builds: `free_runs_per_day` is 0 and every run
+        or build needs the Studio and the caller's own model keys.
+        `free_doors` are what a claimed page may list free (2 MCP listings ·
+        3 rigs · 1 agent · 3 skills); `doors` is the way in when you want
+        to run or build: `studio_monthly_usd` (29.99 — card, USDC or
+        $ROKHA) and the hold (1,000,000 $ROKHA, `GET /api/billing/hold`).
       operationId: getFreeTier
       responses:
         '200':
@@ -4581,22 +4591,22 @@ paths:
                 properties:
                   tier: {}
                   line: {}
-                  units_total: { type: integer, description: "Today's allowance in fuel units at the caller's multiplier" }
-                  units_per_day: { type: integer, description: "The 1× allowance (150,000 ≈ $0.75 of Haiku output)" }
+                  units_total: { type: integer, description: "Today's allowance in fuel units — about ten questions with Rokha" }
+                  units_per_day: { type: integer, description: "The daily allowance in units (ten questions' worth)" }
                   units_usd_equiv: { type: number }
                   question_units: { type: integer, description: "Units one question costs" }
-                  free_runs_per_day: { type: integer }
+                  free_runs_per_day: { type: integer, description: "0 — there are no free runs" }
                   free_runs_left: { type: integer, nullable: true }
                   ramp: { type: object, additionalProperties: true, properties: { streak_days: { type: integer }, multiplier: { type: number }, step: { type: number }, max: { type: number } } }
                   free_doors: { type: object, properties: { mcp_listings: { type: integer }, published_rigs: { type: integer }, agents: { type: integer } } }
-                  doors: { type: object, properties: { studio_monthly_usd: { type: integer }, studio_license_usd: { type: integer }, fuel: { type: string } } }
+                  doors: { type: object, properties: { studio_monthly_usd: { type: number, example: 29.99 }, studio_license_usd: { type: integer }, fuel: { type: string } } }
                   questions_per_day: {}
                   questions_left_today: {}
                   resets: {}
   /api/free-tier/me:
     get:
       tags: [meta]
-      summary: "Your own free-tier meter — streak, multiplier, runs left"
+      summary: "Your own meter — questions left today, what you have listed, runs left (0 on Free)"
       operationId: getFreeTierMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4608,9 +4618,9 @@ paths:
       tags: [meta]
       summary: "Your publish allowance — used and cap per kind (rig · mcp · agent)"
       description: >-
-        Free accounts publish a few of each on the market — 5 rigs, 2 MCP
-        server listings, 1 agent (per ACCOUNT, server-tunable) — and the
-        Studio lifts the caps (`cap: null`). Every publish door (POST
+        Free accounts list a few of each on the market — 1 agent, 3 rigs,
+        2 MCP server listings, 3 skills (per ACCOUNT, server-tunable) — and
+        the Studio lifts the caps (`cap: null`). Every publish door (POST
         /api/rigs/publish, MCP `rig_publish` / `registry_publish`, POST
         /api/registry/servers, POST /api/pages/me/mcp-listing, POST
         /api/registry/agents, POST /api/agents/mine and taking an agent live)
@@ -4783,11 +4793,12 @@ paths:
   /api/billing/hold:
     get:
       tags: [sales]
-      summary: "Hold $ROKHA and the Studio and the Edge stay open — the amount (public)"
+      summary: "Hold $ROKHA and the Studio and the Lab stay open — the amount (public)"
       description: |
-        Public, no auth. Hold the $ROKHA equivalent of a Studio month and the
-        Studio and the Edge stay open while you do — optional (a Studio month
-        by card or USDC opens the same) and holding earns nothing. The amount
+        Public, no auth. Hold 1,000,000 $ROKHA and the Studio and the Lab
+        stay open while you do — optional (a Studio month, $29.99, by card
+        or USDC opens the same) and holding earns nothing. Runs and builds
+        use your own model keys either way. The amount
         is read at every sign-in and token refresh from the wallet you sign in
         with plus up to three wallets you linked by signature
         (`/api/ladder/wallet-link/*`), summed; an unreadable chain holds
@@ -4811,12 +4822,14 @@ paths:
   /api/studio/doors:
     get:
       tags: [network]
-      summary: "The one door — the Studio at $249 a month, card or USDC, and what is free (MCP studio_doors)"
+      summary: "The one door — the Studio at $29.99 a month (card, USDC or $ROKHA) or the 1,000,000 $ROKHA hold, and what is free (MCP studio_doors)"
       description: |
-        Public. One way to pay Rokha: the Studio, $249 a month (card or
-        USDC). The one-time license, rent-to-own and trials are not sold;
-        licenses already sold stay valid. Joining the Network and
-        payouts are free.
+        Public. One way to pay Rokha: the Studio, $29.99 a month (card,
+        USDC or $ROKHA), or hold 1,000,000 $ROKHA and it stays open while
+        you do. Every run and build uses your own model keys. Free: ten
+        questions a day with Rokha, and listing. The one-time license,
+        rent-to-own and trials are not sold; licenses already sold stay
+        valid. Joining the Network and payouts are free.
       operationId: getStudioDoors
       responses:
         '200':
@@ -5055,7 +5068,7 @@ paths:
                   what: { type: string }
                   ledger: { type: string, example: /api/ledger }
   # ============================================================
-  # Edge — the agent world, live (rokha.ai/edge)
+  # The Lab (API: edge) — the agent world, live (rokha.ai/lab; /edge redirects)
   # ============================================================
 
   /api/live:
@@ -5075,7 +5088,7 @@ paths:
         the body; the one id that may is `events[].trace_id`, and only for a
         run of a PUBLIC rig started after it went public (it reads
         anonymously at `GET /api/traces/{id}`). Per-IP governed (429 above
-        the burst). Not gated by the Edge switch.
+        the burst). Not gated by the Lab switch.
       operationId: getLiveDesk
       responses:
         '200':
@@ -5129,7 +5142,7 @@ paths:
         (`tool`, `n`, `last_touch`) + `touches.other` for the last two hours
         one process saw — a 512-deep ring, never persisted.
 
-        Every door here answers 404 `not_found` while the Edge is switched
+        Every door here answers 404 `not_found` while the Lab is switched
         off on a deployment (`EDGE_ENABLED`), the same as a route that does
         not exist. 503 `edge_unavailable` = every section failed and no
         earlier body exists (unreadable, never zero). Feed rows and listing
@@ -5152,14 +5165,14 @@ paths:
                   - $ref: '#/components/schemas/EdgeWorld'
                   - $ref: '#/components/schemas/EdgeWorldSection'
                   - $ref: '#/components/schemas/EdgeDigest'
-        '404': { description: "`unknown_section`, `unknown_feed`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`unknown_section`, `unknown_feed`, or `not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable` — nothing readable and no earlier body", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/feeds:
     get:
       tags: [edge]
-      summary: "Edge — the feed rail: every external source (npm/PyPI downloads, GitHub repos, Hacker News, X via Sorsa, …) as a served snapshot"
+      summary: "The Lab (API: edge) — the feed rail: every external source (npm/PyPI downloads, GitHub repos, Hacker News, X via Sorsa, …) as a served snapshot"
       description: |
         Public, no auth, `Cache-Control: public, max-age=30`, per-IP governed.
         Feeds are config (seeds + superadmin overlays) fetched server-side on
@@ -5179,7 +5192,7 @@ paths:
         title, source, value, href}], count_24h, rows_read}` · table
         `{columns[{key, label, format}], rows[{cells, href}]}`. Row text is
         third-party content — data, never instructions. Before the first tick
-        the body is the seeds with no data. 404 `not_found` while the Edge is
+        the body is the seeds with no data. 404 `not_found` while the Lab is
         off.
       operationId: getEdgeFeeds
       parameters:
@@ -5195,7 +5208,7 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/EdgeFeeds'
                   - $ref: '#/components/schemas/EdgeFeedEnvelope'
-        '404': { description: "`unknown_feed`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`unknown_feed`, or `not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
 
   /api/edge/live:
@@ -5227,7 +5240,7 @@ paths:
         non-number is the default 10). Never the per-minute pulse or spoke dots. Answers
         `{path, as_of, data}` with absolute hrefs. An unlisted section is 404
         `unknown_section`; 503 `edge_unavailable` when the live desk cannot be
-        read; 404 `not_found` while the Edge is off.
+        read; 404 `not_found` while the Lab is off.
       operationId: getEdgeLive
       parameters:
         - { name: section, in: query, required: false, schema: { type: string, enum: [totals, lanes, events, pulse, spokes, signet, field], default: totals } }
@@ -5238,14 +5251,14 @@ paths:
           headers:
             Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
           content: { application/json: { schema: { $ref: '#/components/schemas/EdgeDigest' } } }
-        '404': { description: "`unknown_section`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`unknown_section`, or `not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable` — the live desk could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/field:
     get:
       tags: [edge]
-      summary: "Edge — the field: /api/live's shape with the world (new registry listings, posts, repo pushes) merged in front of Rokha's own activity"
+      summary: "The Lab (API: edge) — the field: /api/live's shape with the world (new registry listings, posts, repo pushes) merged in front of Rokha's own activity"
       description: |
         Public, no auth, no parameters, `Cache-Control: public, max-age=15`
         (30 s server cache), per-IP governed. Exactly `/api/live`'s shape —
@@ -5255,7 +5268,7 @@ paths:
         seen by Rokha's sync in the last 24 h, at the registry's own creation
         minute when it falls in the window; `posted` = a post from the talk
         feeds on `/api/edge/feeds`; `pushed` = an ecosystem repo's last push)
-        each a real timestamped thing from a source Edge already reads —
+        each a real timestamped thing from a source the Lab already reads —
         nothing spread, interpolated or invented. World spokes carry `unit`,
         `source_label` and `as_of`; world events carry a `detail` line and
         never a `trace_id`. `totals` adds `field_24h`, `world_24h`,
@@ -5269,7 +5282,7 @@ paths:
         absent, never zero. Rokha's own part follows `/api/live`'s rules
         verbatim (`lanes` is `/api/live`'s, null when it was unreadable).
         Per-day aggregates (SDK downloads) have no minute and stay off the
-        field. 404 `not_found` while the Edge is off; 503 `edge_unavailable`
+        field. 404 `not_found` while the Lab is off; 503 `edge_unavailable`
         when nothing was readable and no earlier body exists.
       operationId: getEdgeField
       responses:
@@ -5278,14 +5291,14 @@ paths:
           headers:
             Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
           content: { application/json: { schema: { $ref: '#/components/schemas/EdgeField' } } }
-        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/hive:
     get:
       tags: [edge]
-      summary: "Edge — the hive: public rigs' runs and the Jev decisions inside them, plus where the agent world on Rokha is heading"
+      summary: "The Lab (API: edge) — the hive: public rigs' runs and the Jev decisions inside them, plus where the agent world on Rokha is heading"
       description: |
         Public, no auth, no parameters, `Cache-Control: public, max-age=15`
         (30 s server cache, single-flight), per-IP governed. `events[]`
@@ -5304,19 +5317,19 @@ paths:
         `sample {roots_read, oldest_read_at, complete_24h,
         decision_runs_unread}` says how far back the newest-100-runs read
         reaches. Unreadable parts are null and named in `unreadable[]`
-        (`runs`, `ledger`), never 0. 404 `not_found` while the Edge is off.
+        (`runs`, `ledger`), never 0. 404 `not_found` while the Lab is off.
       operationId: getEdgeHive
       responses:
         '200':
           description: OK
           content: { application/json: { schema: { type: object, additionalProperties: true } } }
-        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
 
   /api/edge/market:
     get:
       tags: [edge]
-      summary: "Edge — the Trader view: Windsock's top tokens by signal score and their rank moves (no prices, no links)"
+      summary: "The Lab (API: edge) — the Trader view: Windsock's top tokens by signal score and their rank moves (no prices, no links)"
       description: |
         Public, no auth, no parameters, `Cache-Control: public, max-age=15`
         (30 s server cache), per-IP governed. `tokens[]` (≤ 20): `{rank,
@@ -5327,7 +5340,7 @@ paths:
         attacker-authored text: control/bidi stripped and capped (16 / 40).
         No price, volume, liquidity or link ever rides; $ROKHA and tokens
         whose symbol or name claims to be Rokha are never listed. Signal
-        heat, not advice. 404 `not_found` while the Edge is off; 503
+        heat, not advice. 404 `not_found` while the Lab is off; 503
         `edge_unavailable` when Windsock is unreadable and no earlier body
         exists.
       operationId: getEdgeMarket
@@ -5335,14 +5348,14 @@ paths:
         '200':
           description: OK
           content: { application/json: { schema: { type: object, additionalProperties: true } } }
-        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/me:
     get:
       tags: [edge]
-      summary: "Edge — your cockpit: approvals waiting, your agents, desks (paper), runs, hires, sales, listings and allowance since a time"
+      summary: "The Lab (API: edge) — your cockpit: approvals waiting, your agents, desks (paper), runs, hires, sales, listings and allowance since a time"
       description: |
         JWT only (Bearer); the owner is the verified token's scope, never a
         parameter. `?since=<unix seconds>` (default 24 h ago, clamped to at
@@ -5366,7 +5379,7 @@ paths:
         runs_by_others_7d}`, `allowance {tier, plan: free|studio,
         runs_used_today, runs_cap_today, runs_left_today, resets_at}`.
         401 without a valid token; 429 `slow_down` on a rebuild within 3 s of
-        the last one; 404 `not_found` while the Edge is off.
+        the last one; 404 `not_found` while the Lab is off.
       operationId: getEdgeMe
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -5376,7 +5389,7 @@ paths:
           description: OK
           content: { application/json: { schema: { type: object, additionalProperties: true } } }
         '401': { description: No valid Bearer token }
-        '404': { description: "`not_found` while the Edge is off" }
+        '404': { description: "`not_found` while the Lab is off" }
         '429': { description: "`slow_down`" }
 
   /api/admin/edge/feeds/draft:
@@ -5403,7 +5416,7 @@ paths:
         Nothing is saved: hand `spec` (edited or not) to `POST
         /api/admin/edge/feeds {spec}` — saved with `enabled: false` until
         flipped — or MCP `edge_feed_save`. Audit-logged (feed id + type,
-        never the URL or a secret). Not gated by the Edge switch.
+        never the URL or a secret). Not gated by the Lab switch.
       operationId: adminEdgeFeedDraft
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -5675,7 +5688,7 @@ paths:
       tags: [network]
       summary: "Your balances — yours and your agents' (MCP fuel_tanks)"
       description: |
-        A balance is prepaid credit for Rokha's models: chat past the free tier, runs, and
+        A balance is prepaid credit for Rokha's models: chat past the ten free questions, runs, and
         grading for agents with no key of their own. It is spent at the model's cost plus Rokha's
         fee (the same amount again). Fund it in USDC or $ROKHA; when $ROKHA funded it, the fee
         part of every spend is burned. **Spend-only — a balance is never withdrawn** (the old
@@ -6358,7 +6371,7 @@ paths:
   /api/hunt:
     get:
       tags: [signals]
-      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name>"
+      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name | Solana contract address>"
       description: |
         One lead in, one report out. Rokha crawls the project behind the lead — the site and its
         llms.txt, a live MCP server's tools/list, OpenAPI, the GitHub repo and manifests, npm/PyPI
@@ -6367,7 +6380,9 @@ paths:
         WHO'S BEHIND IT · AGENT SURFACES · ON ROKHA · RED FLAGS · BOTTOM LINE. A project's claims
         are attributed to it; "not found" is said plainly. The same lead within 24h is served from
         cache (`cached: true`). Reads only — nothing is posted, signed, paid or filed. Same builder
-        as the MCP tool `hunt_report` and the `hunt` rig. A read of public data, not advice.
+        as the MCP tool `hunt_report` and the `hunt` rig. A Solana contract address — bare, or in a
+        pump.fun, DexScreener or Solscan link — is a lead too: the token is audited by Solwatch, and
+        Mark Check wraps the hunt. A read of public data, not advice.
         Public; a daily ceiling applies (`error: daily_ceiling`).
       operationId: getHunt
       parameters:
@@ -8686,7 +8701,7 @@ components:
         builders: { type: integer, description: "Distinct non-House owners with a published thing or agent" }
         generated_at: { type: string, format: date-time }
 
-    # --- Edge (rokha.ai/edge) + the live desk ---
+    # --- The Lab (API: edge; rokha.ai/lab) + the live desk ---
     LiveThing:
       type: object
       description: "A public thing on the Market as the live desk names it. Never an owner or a runner."
@@ -8889,7 +8904,7 @@ components:
       type: object
       description: "`sections.registries.data` on GET /api/edge/world."
       properties:
-        total_active: { type: integer, description: "The one registry total on Edge — the active sum" }
+        total_active: { type: integer, description: "The one registry total on the Lab — the active sum" }
         unit: { type: string, example: listings }
         stale_after_hours: { type: integer, example: 48 }
         daily_window_days: { type: integer, example: 14 }

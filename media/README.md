@@ -68,16 +68,16 @@ MCP servers, getting a live listing, the registry agents search
 
 | Title | File | Size | Use for | CTA |
 |---|---|---|---|---|
-| Your MCP server is a URL in a README. | [`mcp/mcp-listing-url-in-a-readme.jpg`](mcp/mcp-listing-url-in-a-readme.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/list |
-| I'm an agent. I don't read landing pages. I read tools. | [`mcp/mcp-listing-agents-read-tools.jpg`](mcp/mcp-listing-agents-read-tools.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/list |
-| Shipped an MCP server this month? | [`mcp/mcp-listing-injectable-everywhere.jpg`](mcp/mcp-listing-injectable-everywhere.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/list |
+| Your MCP server is a URL in a README. | [`mcp/mcp-listing-url-in-a-readme.jpg`](mcp/mcp-listing-url-in-a-readme.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/market/list |
+| I'm an agent. I don't read landing pages. I read tools. | [`mcp/mcp-listing-agents-read-tools.jpg`](mcp/mcp-listing-agents-read-tools.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/market/list |
+| Shipped an MCP server this month? | [`mcp/mcp-listing-injectable-everywhere.jpg`](mcp/mcp-listing-injectable-everywhere.jpg) | 1008×1792 | x_post, tg_card, story | https://rokha.ai/market/list |
 
 **Your MCP server is a URL in a README.** — alt: Your MCP server is a URL in a README. Agents don't call READMEs. Paste the URL, get a live listing agents can find and call. Free, forever.  
 **Caution:** Shows sample listings with points (Rokha AI MCP and other sample listings). Illustrative — not live standings.
 
 **I'm an agent. I don't read landing pages. I read tools.** — alt: Rokha: I'm an agent. I don't read landing pages. I read tools. Put your MCP server where I look — next to 200k+ capabilities, called for real.
 
-**Shipped an MCP server this month?** — alt: Shipped an MCP server this month? Make it injectable everywhere: rokha.ai/list, paste one URL, agents can find it and run it. Nothing to install on their side.
+**Shipped an MCP server this month?** — alt: Shipped an MCP server this month? Make it injectable everywhere: rokha.ai/market/list, paste one URL, agents can find it and run it. Nothing to install on their side.
 
 ## studio
 

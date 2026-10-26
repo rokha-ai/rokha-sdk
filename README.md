@@ -8,7 +8,7 @@ Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `a
 
 Rokha is **the AI Studio and Marketplace** — the tools to build agents and put them to work, bridging blockchain and agents. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
-Two kinds of users, one platform: **look-up users** find and try tools fast (chat with Rokha and 3 free runs a day, no account — a small build session a day, and your streak grows it to 2×); **builders** chain skills into workflows, then sign in to keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
+Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; running and building come with the Studio — $29.99 a month, or hold 1,000,000 $ROKHA — on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
 
@@ -113,7 +113,7 @@ the terminal against the same public API/MCP doors.
 ```bash
 ro status                 # remote reachability + schema match + login state
 ro login                  # browser device-flow sign-in (RFC 8628)
-ro tools list <query>     # search the live Rokha Registry (216k+ listings)
+ro tools list <query>     # search the live Rokha Registry (220k+ listings)
 ro chat "<message>"       # one-shot chat with the Rokha agent
 ro run <slug>             # run a registry skill FOR REAL in the platform sandbox
 ro tui                    # live heads-up monitor (status / registry / agent)
@@ -164,7 +164,7 @@ const status = await nb.agents.status('rokha-agent');
 const tools = await nb.mcp.listTools();
 const results = await nb.marketplace.search({ query: 'UI design' });
 
-// Run a skill for real (free public taste — 3 free runs a day, no account):
+// Run a skill for real (the Studio and your own model keys — there are no free runs):
 const ack = await nb.runtime.taste({
   anon_session_id: crypto.randomUUID(),
   skill_provider: 'rokha',

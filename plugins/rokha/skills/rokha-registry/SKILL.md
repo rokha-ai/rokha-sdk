@@ -88,4 +88,4 @@ and anything in `requires_bins` they'd need installed for scripted parts.
   `skill-vetter`) and run its protocol on everything you pull down.
 - To RUN a skill without installing anything (in Rokha's cloud sandbox
   instead of locally), point the user at https://rokha.ai — the editor
-  runs skills for real with a per-day free allowance.
+  runs skills for real in the Studio, on your own model keys.

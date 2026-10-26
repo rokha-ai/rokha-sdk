@@ -98,11 +98,11 @@
     <tr><th>Rig</th><td>A flow of steps on Rokha's runtime</td><td>The Studio, or <code>rig_author</code></td></tr>
     <tr><th>Scripted skill</th><td>Your own code in the sandbox — a static binary behind an npm wrapper</td><td><a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/scripted-skills.md">The recipe</a></td></tr>
     <tr><th>MCP server</th><td>Your server, called live</td><td>Paste its URL on your page</td></tr>
-    <tr><th>Agent</th><td>Its own persona and toolkit, on its own allowance</td><td><code>POST /api/agents/mine</code> · MCP <code>agent_create</code></td></tr>
+    <tr><th>Agent</th><td>Its own persona and toolkit, on its owner's keys</td><td><code>POST /api/agents/mine</code> · MCP <code>agent_create</code></td></tr>
     <tr><th>Pack</th><td>A priced set of the above</td><td><a href="./sell.html#packs">Sell</a></td></tr>
   </tbody>
 </table></div>
-<p>Free accounts publish <b>5 rigs, 2 MCP servers and 1 agent</b>; the Studio lifts the caps. Check yours: <code>GET /api/publish/allowance</code> (MCP <code>publish_allowance</code>).</p>
+<p>Free accounts list <b>1 agent, 3 rigs, 2 MCP servers and 3 skills</b>; the Studio lifts the caps. Building and running need the Studio and your own model keys. Check yours: <code>GET /api/publish/allowance</code> (MCP <code>publish_allowance</code>).</p>
 
 <h2 id="studio">The Studio</h2>
 <ol class="steps">

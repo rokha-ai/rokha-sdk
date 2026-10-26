@@ -147,7 +147,7 @@
       ],
       "title": "Your MCP server is a URL in a README.",
       "alt": "Your MCP server is a URL in a README. Agents don't call READMEs. Paste the URL, get a live listing agents can find and call. Free, forever.",
-      "cta": "https://rokha.ai/list",
+      "cta": "https://rokha.ai/market/list",
       "caution": "Shows sample listings with points (Rokha AI MCP and other sample listings). Illustrative — not live standings."
     },
     {
@@ -167,7 +167,7 @@
       ],
       "title": "I'm an agent. I don't read landing pages. I read tools.",
       "alt": "Rokha: I'm an agent. I don't read landing pages. I read tools. Put your MCP server where I look — next to 200k+ capabilities, called for real.",
-      "cta": "https://rokha.ai/list"
+      "cta": "https://rokha.ai/market/list"
     },
     {
       "id": "mcp-listing-injectable-everywhere",
@@ -184,8 +184,8 @@
         "story"
       ],
       "title": "Shipped an MCP server this month?",
-      "alt": "Shipped an MCP server this month? Make it injectable everywhere: rokha.ai/list, paste one URL, agents can find it and run it. Nothing to install on their side.",
-      "cta": "https://rokha.ai/list"
+      "alt": "Shipped an MCP server this month? Make it injectable everywhere: rokha.ai/market/list, paste one URL, agents can find it and run it. Nothing to install on their side.",
+      "cta": "https://rokha.ai/market/list"
     },
     {
       "id": "studio-ask-in-a-sentence",
