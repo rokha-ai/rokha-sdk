@@ -2276,7 +2276,7 @@ paths:
         a poll block. A run needs a signed-in account: send
         `Authorization: Bearer <token>` and the run is billed to that account.
         A free account runs 3 times a day (rig runs, sandbox runs and
-        scheduled fires all count); the Studio — $249 a month, or hold 1M
+        scheduled fires all count); the Studio — $29.99 a month, or hold 1M
         $ROKHA — runs 300. An anonymous caller is refused: sign in
         (`x-anon-session-id` is still read for back-compat). Past the day's
         runs the refusal names both doors (the month, the hold). The run
@@ -6149,7 +6149,7 @@ paths:
                   as_of: { type: string, format: date-time }
                   doors: { type: object, additionalProperties: { type: string } }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '400': { description: "`bad_status` — status is one of queued · trial · graduated · probation · tossed · retired", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '503': { description: "`unavailable` — try again shortly", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
     post:
@@ -6210,7 +6210,7 @@ paths:
                   fingerprint: { type: string, description: "sha256 of the canonical spec" }
                   cadence: { type: string, example: every-5-min }
         '401': { description: "`unauthorized` — sign in (Bearer JWT); an rk_ key cannot submit or grade", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`not_allowed` — the lab takes submissions from the founder's account only (until it is opened)", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '409': { description: "`duplicate_fingerprint` (this exact strategy is already an arm of yours — `existing_id` names it) · `id_taken` (pass another strategy_id)", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '422': { description: "`invalid_spec` — `path` names the field that failed; a spec of 'none' also answers here", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
@@ -6235,7 +6235,7 @@ paths:
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, properties: { events: { type: array, items: { type: object, additionalProperties: true } } } } } } }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/desk/strategies/{id}:
     get:
       tags: [desk]
@@ -6269,7 +6269,7 @@ paths:
                           updated_at: { type: string, format: date-time }
                           yours: { type: boolean, const: true }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — no strategy arm by that id", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
     delete:
       tags: [desk]
@@ -6281,7 +6281,7 @@ paths:
       responses:
         '200': { description: "`{id, status: retired, ledger}`", content: { application/json: { schema: { type: object, properties: { id: { type: string }, status: { type: string, const: retired }, ledger: { type: string } } } } } }
         '401': { description: "`unauthorized`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — not an arm of yours (a foreign id reads as missing)", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '502': { description: "`schedule_failed` — the schedule could not be removed; nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
 
@@ -6323,7 +6323,7 @@ paths:
                   note: { type: string }
         '400': { description: "`bad_verdict`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '401': { description: "`unauthorized`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — not an arm of yours", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '409': { description: "`not_gradable` — the arm is retired or still queued", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '413': { description: "`record_too_large` — at most 32 KB", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
@@ -6363,7 +6363,7 @@ paths:
                   note: { type: string, description: "How many newer signals are held back, or why there are none" }
                   data_note: { type: string }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
 
   /api/hood/oracle:
