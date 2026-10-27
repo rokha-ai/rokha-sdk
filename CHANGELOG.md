@@ -6,6 +6,31 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-27 — The MCP shelf: a 28-tool door, toolsets, `tools_catalog`
+
+**What changed**
+
+- **`tools/list` is a selection, not the whole server.** The door now carries the `core` set — 28
+  tools: sign in, what is free, the Market and the registry, author and run, talk to Rokha, hunt and
+  Mark Check, your agent and page, buy, and `tools_catalog`. It was 293 tools and ~86k tokens before
+  an agent could do anything.
+- **Toolsets.** `build` · `agents` · `sell` · `lab` · `signet` · `tasks` · `about` · `sponsors`.
+  List them at connect time with `?toolset=build,signet` (any names, or `all`) on the server URL,
+  the `x-rokha-toolset` header, or `params.toolset` on `tools/list`. The `initialize`
+  `instructions` name the map.
+- **`tools_catalog`** (public): `{query}` finds tools by what they do, `{toolset}` lists one set,
+  `{name}` returns one full definition. Every tool is callable whether or not it is listed.
+- **Trimmed definitions at the public door.** `rig_author` ships a compact schema (~1.1k tokens, was
+  ~4.4k; the full node contract is `tools_catalog {name: "rig_author"}`), and the wallet-scoped
+  tools no longer list `wallet_address` — the gateway always injected it from your token.
+- **Every parameter has a description** on the first-party tools (118 added).
+- **Retired programs leave the shelf for good** (still answer a call, honestly): the ad network,
+  Rokha Ads, AdSpace, carry, Amplify, campaigns, seeds, boosts, the board, the Network ladder and
+  plans, hunting parties, the Telegram room, fuel boosts/gifts/tanks, the Top Builders board,
+  badges, the payout ledger, the media library, the X account audit, the legacy `create_task` /
+  `get_task_status`. The `hunting-party` skill and the advertise guide are gone from this repo.
+- `rokha.ai/llms.txt` names the toolsets and no retired program.
+
 ## 2026-10-26 — $29.99 Studio, bring your own keys, the Lab
 
 **What changed**

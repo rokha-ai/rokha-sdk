@@ -1243,43 +1243,61 @@ paths:
       summary: MCP JSON-RPC endpoint (full protocol)
       description: |
         Implements MCP 2025-11-25. Common methods:
-          - `initialize` — protocol negotiation
-          - `tools/list` — enumerate tools
+          - `initialize` — protocol negotiation; its `instructions` carry the manifesto and the toolset map
+          - `tools/list` — the shelf (see TOOLSETS below)
           - `tools/call` — invoke a tool with arguments
+
+        TOOLSETS (2026-10-27). `tools/list` carries the `core` set — 28 tools: sign in
+        (`auth_resolve`, `auth_wallet_challenge`, `auth_wallet_verify`), what is free
+        (`free_tier_status`, `studio_doors`), the Market and the registry (`market_search`,
+        `registry_search`, `registry_get_skill`, `registry_adopt`, `registry_publish`,
+        `registry_list_server`), author and run (`rig_author`, `skill_author`, `rig_run`,
+        `rig_get`, `rig_search`, `trace_get`, `trace_search`), talk to Rokha
+        (`send_agent_message`), hunt and check (`hunt_report`, `mark_check`), your agent and
+        page (`agent_create`, `page_claim`, `page_me`), buy (`product_get`,
+        `product_checkout`, `purchases_mine`), and `tools_catalog`. The other sets — `build`
+        (rig nodes and edges, harnesses, stages, schedules, webhooks, the sandbox, favorites,
+        keys, model), `agents` (publish, specialize, prove and price your agents; hire a
+        proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
+        affiliate link, the balance, add-ons), `lab` (`edge_read`, `edge_live`, the desk,
+        crews, `signal_feed`), `signet` (connections, mandates, actions, paper trading, pledge
+        pools, reads), `tasks`, `about` and `sponsors` (`<brand>__<tool>`) — list when the
+        client asks: `?toolset=build,signet` (any names, or `all`) on the server URL, the
+        `x-rokha-toolset` header, or `params.toolset` on `tools/list`. An unknown set name
+        answers JSON-RPC `-32602` naming the sets. `tools_catalog` (public) finds any tool in
+        session: `{query}` matches words against name, title and description, `{toolset}`
+        lists one set, `{name}` returns one full definition. EVERY TOOL IS CALLABLE WHETHER
+        OR NOT IT IS LISTED. The public door also trims what it lists: `rig_author` ships a
+        compact schema (the full node contract is `tools_catalog {name: "rig_author"}`), and
+        the wallet-scoped tools drop `wallet_address` — the gateway injects it from your
+        token.
+
+        RETIRED (off every list, never in the catalog; a call still answers honestly): the ad
+        network, Rokha Ads and AdSpace, carry, Amplify, campaigns, seeds, boosts, the board,
+        the Network ladder and plans, hunting parties, the Telegram room, fuel boosts, gifts
+        and tanks, the Top Builders board, badges, the payout ledger, the media library, the X
+        account audit and the legacy task system.
 
         PUBLIC (no auth): the discovery handshake — `initialize`,
         `notifications/initialized`, `ping`, `tools/list`, `resources/list`,
-        `prompts/list` — plus `tools/call` on the public tools:
-        `registry_search`, `registry_get_skill`, `skill_author`,
-        `harness_author`, `auth_wallet_challenge`, `auth_wallet_verify`,
-        `page_get`, `page_directory`, `page_leaderboard`, `justify_seeds`,
-        `x_account_audit` (self-gated: JWT or `x-anon-session-id`),
-        `adnet_feed`, `adnet_stats`, `adnet_rounds`, `network_report`,
-        `carry_brief`, `studio_doors`, `flight_plan`, `seeds_explain`,
-        `seeds_recent_posts`, `boosts_explain`, `audit_history`,
-        `payouts_ledger`, `hunting_parties`, `free_tier_status`,
-        `media_library`, `agents_directory`, `trace_get` and `trace_search`
-        (a PUBLIC rig's run, by id), `agent_desk`,
-        `network_plans`, `network_pot`, `network_members`, `product_get`,
-        `network_briefs`, `fuel_boost_menu`, `campaigns`, `board_get`
-        (the Network's boards), `bounty_list`, `amplify_campaigns`,
-        `desk_board` and `desk_signals` (the desk lab — signals live for
-        an arm's owner and buyers, embargoed for everyone else; a Bearer
-        token unlocks what you own or bought), `rokha_addons_catalog`,
-        `pack_get`,
-        `edge_read` and `edge_live` (the Lab, API name `edge` — listed and
-        answered only while a deployment has the Lab switched on; off,
-        `tools/call` answers `edge_closed`),
-        and every sponsor tool
-        (`<brand>__<tool>`). `edge_feed_draft` and `edge_feed_save`
-        (plug a JSON API into the Lab as a feed) are superadmin-only. `justify_seeds`, `seeds_explain`,
-        `seeds_recent_posts`, `carry_brief`, `boosts_explain`, `network_briefs`,
-        `fuel_boost_menu` and `adnet_*` are read-only history — Rokha no longer
-        pays for posting. An MCP 2026-07-28 `server/discover` probe answers
-        JSON-RPC `-32601` so the client falls back to `initialize`.
-        Every other method/tool requires `Authorization: Bearer <JWT>`.
+        `prompts/list` — plus `tools/call` on the public tools: `tools_catalog`,
+        `registry_search`, `registry_get_skill`, `skill_author`, `harness_author`,
+        `auth_wallet_challenge`, `auth_wallet_verify`, `page_get`, `page_directory`,
+        `studio_doors`, `flight_plan`, `free_tier_status`, `agents_directory`,
+        `market_search`, `front_board`, `blog_list`, `mark_check`, `hunt_report`,
+        `trace_get` and `trace_search` (a PUBLIC rig's run, by id), `product_get`,
+        `pack_get`, `rokha_addons_catalog`, `desk_board` and `desk_signals` (the desk lab —
+        signals live for an arm's owner and buyers, embargoed for everyone else; a Bearer
+        token unlocks what you own or bought), `desk_crews`, `signal_feed`, `edge_read` and
+        `edge_live` (the Lab, API name `edge` — listed and answered only while a deployment
+        has the Lab switched on; off, `tools/call` answers `edge_closed`),
+        `signet_pledge_pool`, and every sponsor tool (`<brand>__<tool>`). `edge_feed_draft`,
+        `edge_feed_save`, `interface_set` and `platform_interfaces_get` are founder-only and
+        listed to a superadmin alone. An MCP 2026-07-28 `server/discover` probe answers
+        JSON-RPC `-32601` so the client falls back to `initialize`. Every other method/tool
+        requires `Authorization: Bearer <JWT>`.
 
-        Notable tool families (enumerate live via `tools/list`): harness /
+        Notable tool families (enumerate live via `tools_catalog`): harness /
         rig / trace CRUD (the Working-Rig surface), `skill_author` — author a portable Agent Skill (SKILL.md) the same
         way the human Build-a-Skill builder does (two-front-door parity); and
         `harness_author` — configure a Harness (a skill/instruction wired to
@@ -1327,9 +1345,8 @@ paths:
         (submit the signature → auto-registers a new wallet, free tier, and
         returns the `session_token` JWT every gated tool needs — mirrors
         `/api/wallets/challenge` + `/api/wallets/verify`); and the BUILDER
-        PAGES suite — public reads `page_directory` (claimed pages),
-        `page_leaderboard` (the Top Builders board) and `page_get` (any
-        /@handle page; counts a genuine view), plus JWT-gated `page_me`
+        PAGES suite — public reads `page_directory` (claimed pages) and
+        `page_get` (any /@handle page; counts a genuine view), plus JWT-gated `page_me`
         (your page, or `{claimed:false, suggested_handle}`), `page_claim`
         (claim/update your public /@handle — owner is always the verified
         bearer) and `page_rig_config` (mode / featured / linked for one of
