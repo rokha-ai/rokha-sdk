@@ -77,6 +77,52 @@ and Hunt keeps widening what counts as a lead.
 
 **Breaking:** none on the wire — `free_runs_per_day` reads 0, `studio_monthly_usd` reads 29.99,
 and a Free account's call to `/api/v1/llm/proxy` without a key of its own now answers 402.
+
+## 2026-10-26 — the crews, and a strategy that runs on a date
+
+**What changed**
+
+- **Crews.** The desk now watches groups of Solana wallets that enter the same coins together.
+  `mined` crews are found on the public tape — wallets whose first buys of the same hot mints
+  fall within 10 minutes of each other, on 3 or more mints; bots excluded; ids `c<12 hex>`.
+  `manual` crews are rosters you write because you suspect a group; ids `m-<slug>`. A wallet is
+  in one crew at a time, a manual crew first. A member's fill lands as a `crew_buy` / `crew_sell`
+  event (`source: crews`, `actor` = the wallet, `payload {crew, side, sol, via}`), on the token
+  row and on the momentum feed.
+- **A strategy can run on a date.** A spec's optional `window {from, to, flat_by}` plans entries
+  only between `from` and `to` and sells every priced position at `flat_by` (exit method
+  `window_close`); at most 90 days, and part of the strategy's fingerprint.
+
+**For developers**
+
+- `GET /api/signals/crews?limit=50` and `GET /api/desk/crews?limit=50` (the Studio: 401
+  `sign_in` · 402 `studio_required`, the same gate as `/api/signals/wallets`) answer
+  `{ok, view: "crews", crews: [{id, origin, label, size, wallets, mints_shared, co_entries,
+  first_seen_at, last_active_at, hour {buys, sells, mints}}], how, generated_at}`. MCP
+  `signal_feed` gains `view: "crews"`; MCP `desk_crews {limit?}` is the desk twin.
+- `PUT /api/desk/crews/{id}` `{label?, wallets?, mode?: replace|add|remove, active?}` writes
+  your manual crew (`id` = a slug of 2–32 of `a-z`, `0-9`, `-`, served as `m-<slug>`; ≤ 200
+  wallets; a signed-in JWT, never an `rk_` key) and answers `{id, origin: "manual", label, size,
+  wallets, active}`; refusals 400 `bad_crew_id` · `bad_wallets` · `bad_roster`, 409 `crew_taken`.
+  `DELETE /api/desk/crews/{id}` answers `{id, removed: true}` or 404 `not_found`. MCP
+  `desk_crew_set {id, label?, wallets?, mode?, active?, action?: set|remove}` is the twin — a rig
+  step on our door writes as its runner.
+- Every token row (`SignalTokenRound2` — the token view, trending, momentum, early) carries
+  `crews {buys_1h, sells_1h, wallets_1h, wallets_10m, groups_1h, net_usd_1h, first_at}` (all
+  nullable); the momentum view's per-token `platforms` gains `crews {events, events_before, usd,
+  usd_before, actors, wallets (≤ 6), groups, ids (≤ 8)}`.
+- New desk-engine features a spec rule may name: `crews.events`, `crews.events_before`,
+  `crews.actors`, `crews.usd`, `crews.usd_before`, `crews.growth`, `crews.wallets`,
+  `crews.groups`, `crews.ids` (a list — op `in`, e.g. `{f: "crews.ids", op: "in", v: ["m-alpha"]}`),
+  `crews.buys_1h`, `crews.sells_1h`, `crews.wallets_1h`, `crews.wallets_10m`, `crews.groups_1h`,
+  `crews.net_usd_1h`, `crews.first_mins`, `crews.share_1h`, `m6h.crew_wallets`,
+  `hist.crew_wallets_gain_30m`.
+- `POST /api/desk/strategies` / `desk_strategy_submit`: the spec's `window {from, to, flat_by}`
+  (RFC 3339 instants, `from` < `to` ≤ `flat_by`, ≤ 90 days); a wrong key, order or span answers
+  422 `invalid_spec` with `path` `spec.window…`. Guide: `docs/guides/trading-rigs.md` § 6–7.
+
+**Breaking:** none — every door and field is additive. Versions stay 1.0.0.
+
 ## 2026-10-25 — a free day of real use, and the Edge comes with the Studio
 
 Supersedes the 2026-10-23 entries ("no free tier", "one free remix"): free accounts run, build

@@ -2,7 +2,7 @@
 name: signal-feed
 description: Read Rokha's live social-trading signal board for Solana tokens — one scored list built from pump.fun launches and graduations, DexScreener paid boosts and 1h volume, GMGN smart-money and KOL fills, fomo.family top traders, and X buzz, with every score's per-term working. Use when the user asks what is trending or heating up on Solana, what smart money is buying, whether anyone is talking about a token, which tokens move together, or wants the raw material for a trading thesis. Read-only; it never trades.
 license: MIT
-compatibility: Any agent that can make HTTPS GET/POST requests. trending, token and heat need no account and no key. events, wallets, scan and the signal_feed MCP tool come with the Rokha Studio ($249 a month, or hold 1M $ROKHA) and need a Rokha JWT.
+compatibility: Any agent that can make HTTPS GET/POST requests. trending, token and heat need no account and no key. events, wallets, crews, scan and the signal_feed MCP tool come with the Rokha Studio ($249 a month, or hold 1M $ROKHA) and need a Rokha JWT.
 metadata:
   author: rokha
   version: "1.1.0"
@@ -66,12 +66,21 @@ curl -s "https://rokha.ai/api/signals/heat?window=1h"   # 1h | 6h | 24h
 curl -s -H "Authorization: Bearer $JWT" \
   "https://rokha.ai/api/signals/events?source=gmgn&kind=wallet_buy&limit=100"
 curl -s -H "Authorization: Bearer $JWT" "https://rokha.ai/api/signals/wallets"
+curl -s -H "Authorization: Bearer $JWT" "https://rokha.ai/api/signals/crews?limit=50"
 ```
 
 `events` accepts these filters: `source`, `kind`, `mint`, `since` (RFC 3339)
 and `before_id`. To page, pass back `next_before_id`. `wallets` lists the
 smart-money roster. Its `label` names where each wallet came from, and
 `win_rate` and `pnl_usd` are reported by the vendor, not measured by Rokha.
+`crews` lists the groups of wallets that enter the same coins together:
+`mined` from the public tape (first buys of the same hot mints within 10
+minutes, on 3 or more mints; ids `c<12 hex>`) or `manual` (a roster an owner
+wrote through the desk door `PUT /api/desk/crews/{id}`; ids `m-<slug>`), each
+with `wallets`, `mints_shared`, `co_entries` and `hour {buys, sells, mints}`.
+Their fills arrive on `events` as `crew_buy` / `crew_sell` (`source=crews`),
+on every token row as `crews {buys_1h, sells_1h, wallets_1h, wallets_10m,
+groups_1h, net_usd_1h, first_at}`, and on momentum as `platforms.crews`.
 
 `POST /api/signals/scan {"mint": "..."}` refreshes one token's metrics and
 X buzz on demand. Each owner gets a daily scan allowance.
@@ -89,7 +98,7 @@ curl -s -X POST https://rokha.ai/mcp/jsonrpc -H "Content-Type: application/json"
         "name":"signal_feed","arguments":{"view":"heat","window":"6h"}}}'
 ```
 
-Arguments: `{view: trending|token|events|wallets|heat, mint?, source?, kind?, since?, before_id?, window?, limit?}`.
+Arguments: `{view: trending|token|events|wallets|crews|heat|momentum|early|early_record, mint?, q?, source?, kind?, since?, before_id?, window?, limit?}`.
 The tool returns the same JSON as REST, wrapped in a DATA fence.
 
 ## Building a thesis
