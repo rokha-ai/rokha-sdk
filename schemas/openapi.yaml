@@ -1291,7 +1291,10 @@ paths:
         token unlocks what you own or bought), `desk_crews`, `signal_feed`, `edge_read` and
         `edge_live` (the Lab, API name `edge` — listed and answered only while a deployment
         has the Lab switched on; off, `tools/call` answers `edge_closed`),
-        `signet_pledge_pool`, and every sponsor tool (`<brand>__<tool>`). `edge_feed_draft`,
+        `signet_pledge_pool`, and every sponsor tool (`<brand>__<tool>`). The `lab` toolset
+        carries `caller_check {target, rules?}` (the Caller Ledger, a Studio read) and the
+        runner tool `lab_item_submit {check_id} | LogItemBody` (the Captain's log; a rig step on
+        our door writes as its runner). `edge_feed_draft`,
         `edge_feed_save`, `interface_set` and `platform_interfaces_get` are founder-only and
         listed to a superadmin alone.         `desk_crew_set` (a signed-in JWT, never an `rk_` key) writes your own
         manual crew `m-<slug>`. An MCP 2026-07-28 `server/discover` probe answers
@@ -7864,6 +7867,292 @@ paths:
         '404': { description: not_found }
         '409': { description: "not_issued — the task is still open or reviewing" }
 
+  /api/callers/check:
+    get:
+      tags: [signals]
+      summary: "The Caller Ledger — check a pump.fun caller or a coin: ?q=<username | user:<id> | wallet:<address> | @x_handle | a Solana CA>, or ?id=<check uuid> for a saved check"
+      description: |
+        Mark Check for callers (2026-10-28). One query in, one audited verdict out, all in code:
+        who the caller is on pump.fun, their last calls, what happened after each call on Rokha's
+        own Windsock tape (priced windows, the trade tape, liquidity today — `not_tracked` when we
+        never saw the coin), the crews around each call (wallets in before, out after; the same crew
+        on two calls is the fingerprint), their own trades on the called coins, the audience — and
+        a deterministic verdict `trusted` · `mixed` · `pattern` · `unknown` with a 0–100 score and
+        the working (`working: [{rule, delta, why}]`, every number carrying `{value, source, at}`;
+        `not_checked` names what could not run). A coin CA (bare, or in a pump.fun / DexScreener /
+        Solscan link) instead returns the loudest callers already on it, the CALL VERDICT
+        (`go` / `no`, why, major flags), the ranked priority + outlook, the callout or flag draft,
+        a `rokha_app` stage, and `check_id` for the runner tool `lab_item_submit`.
+        Caller data: pump.fun, read at request time, cached ≤ 24 h — without `PUMPFUN_API_KEY` on
+        the server the pump.fun half answers `needs_runtime` and the tape half still answers.
+        Attribute pump.fun when you quote it; usernames are third-party text. A read of public
+        data, not advice. `?q=` is a Studio read counted per caller per UTC day (anonymous and
+        signed-in free accounts are refused with both doors); `?id=` serves a saved check to
+        anyone, free. Every check carries `share_url` (`/callers/<id>`) and `card_url` (its OG
+        card). Same builder as the MCP tool `caller_check {target, rules?}`.
+      operationId: getCallerCheck
+      security: [ {}, { bearerAuth: [] } ]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 200 }, description: "A pump.fun username · user:<id> · wallet:<address> · @x_handle or x.com link · a Solana CA or a pump.fun / DexScreener / Solscan link naming one" }
+        - { name: id, in: query, required: false, schema: { type: string, format: uuid }, description: "A saved check — free, the audit link" }
+      responses:
+        '200':
+          description: The check, or `ok:false` with an `error` code (and the stale prior check when one exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  error: { type: string, enum: [bad_query, daily_limit, daily_ceiling, not_cached, nothing_answered, store_failed] }
+                  message: { type: string }
+                  query: { type: string }
+                  kind: { type: string, enum: [user, wallet, x, coin] }
+                  from_ledger: { type: boolean, description: "Served from the ledger inside its 24 h" }
+                  stale: { type: boolean }
+                  needs_runtime: { type: string, description: "`PUMPFUN_API_KEY` when the pump.fun half could not run" }
+                  check_id: { type: string, format: uuid, description: "A coin check with a callout or a flag to log" }
+                  item: { type: object, additionalProperties: true, description: "The LogItemBody a coin check would write (kind callout | flag)" }
+                  check:
+                    type: object
+                    additionalProperties: true
+                    properties:
+                      check_id: { type: string, format: uuid }
+                      kind: { type: string }
+                      query: { type: string }
+                      username: { type: string, nullable: true }
+                      verdict: { type: string, enum: [trusted, mixed, pattern, unknown, go, "no"] }
+                      score: { type: integer, minimum: 0, maximum: 100 }
+                      facts: { type: object, additionalProperties: true }
+                      working: { type: array, items: { type: object, additionalProperties: true } }
+                      not_checked: { type: array, items: { type: object, additionalProperties: true } }
+                      composed: { type: string, nullable: true }
+                      verified: { type: boolean }
+                      audit_url: { type: string }
+                      share_url: { type: string, description: "`/callers/<id>` — the saved check's page" }
+                      card_url: { type: string, description: "The 1200×630 OG card (`/api/callers/check/<id>/card.png`)" }
+                      checked_at: { type: string, format: date-time }
+                      pumpfun_expires_at: { type: string, format: date-time, nullable: true }
+                      pumpfun_expired: { type: boolean }
+                  attribution: { type: string }
+                  disclaimer: { type: string }
+        '401': { description: "`daily_limit` with `per_day: 0` — anonymous; a check is a Studio read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`daily_limit` with `per_day: 0` — a signed-in free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no saved check has that id", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/callers/check/{id}/card.png:
+    get:
+      tags: [signals]
+      summary: "A saved check's share card (1200×630 PNG) — the OG image of /callers/<id>"
+      operationId: getCallerCheckCard
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The card (PNG; SVG when the rasterizer cannot)
+          content:
+            image/png: { schema: { type: string, format: binary } }
+            image/svg+xml: { schema: { type: string } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/callers/board:
+    get:
+      tags: [signals]
+      summary: "The Caller Ledger's public board — verified callers Rokha has checked, our scores, our tape"
+      description: |
+        Up to 50 verified callers with our fields only: verdict, score, calls, tracked, alive,
+        crew-dump and self-dump counts, when checked, the audit link. Never a feed of pump.fun's
+        raw data (their terms); pump.fun is attributed. Public.
+      operationId: getCallersBoard
+      responses:
+        '200':
+          description: The board
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  callers:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                      properties:
+                        check_id: { type: string, format: uuid }
+                        username: { type: string }
+                        verdict: { type: string }
+                        score: { type: integer }
+                        calls: { type: integer, nullable: true }
+                        tracked: { type: integer, nullable: true }
+                        alive: { type: object, additionalProperties: true, nullable: true }
+                        crew_dump_calls: { type: integer, nullable: true }
+                        self_dump_calls: { type: integer, nullable: true }
+                        checked_at: { type: string, format: date-time }
+                        audit_url: { type: string }
+                  verdicts: { type: object, additionalProperties: true }
+                  attribution: { type: string }
+                  disclaimer: { type: string }
+
+  /api/lab/items:
+    get:
+      tags: [desk]
+      summary: "The Captain's log — your Lab's log items (callouts · flags · notes), ready first by priority"
+      description: |
+        A generic Lab lane any rig may write to (2026-10-27): `callout` (a `go` call waiting for
+        the operator's in-app tap), `flag` (a major red flag the agent's X rail posts), `note`.
+        Your own items; `scope=house` is a superadmin's view of every owner. The stored per-user
+        filter (`user.preferences.lab_log`: `{kinds, tags, rigs, harness_kinds}`, null = everything)
+        applies by default; a comma list on the query replaces one dimension; `all=1` ignores the
+        stored filter. JWT or an `rk_` key; no token = 401 `sign_in`; anyone else's item = 404.
+      operationId: listLabItems
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: kind, in: query, required: false, schema: { type: string, enum: [callout, flag, note] } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [ready, done, skipped, posted] } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+        - { name: kinds, in: query, required: false, schema: { type: string }, description: "Comma list — replaces the stored filter's kinds" }
+        - { name: tags, in: query, required: false, schema: { type: string }, description: "Comma list — replaces the stored filter's tags" }
+        - { name: rigs, in: query, required: false, schema: { type: string }, description: "Comma list of rig ids or slugs" }
+        - { name: harness_kinds, in: query, required: false, schema: { type: string }, description: "Comma list: skill · instruction · rig · data" }
+        - { name: all, in: query, required: false, schema: { type: string, enum: ["1"] }, description: "Ignore the stored filter" }
+        - { name: scope, in: query, required: false, schema: { type: string, enum: [mine, house] } }
+      responses:
+        '200':
+          description: The items, the filter in force, the stored filter, the kinds and their verbs
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  items: { type: array, items: { $ref: '#/components/schemas/LabItem' } }
+                  filter: { type: object, additionalProperties: true }
+                  stored_filter: { type: object, additionalProperties: true }
+                  scope: { type: string, enum: [mine, house] }
+                  kinds: { type: array, items: { type: object, properties: { kind: { type: string }, verbs: { type: array, items: { type: string } } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`forbidden` — `scope=house` is a superadmin's", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    post:
+      tags: [desk]
+      summary: "Write one log item (MCP lab_item_submit — a rig step on our door writes as its runner)"
+      operationId: createLabItem
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LabItemBody' }
+      responses:
+        '200':
+          description: "`{ok, id, item}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { ok: { type: boolean }, id: { type: string, format: uuid }, item: { $ref: '#/components/schemas/LabItem' } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '422': { description: "`bad_kind` · `bad_title` · `bad_body` · `bad_facts`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/items/{id}/{verb}:
+    post:
+      tags: [desk]
+      summary: "Act on a log item — callout: posted (optional callout_id) · skip; flag: skip; note: done · skip"
+      operationId: actLabItem
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: verb, in: path, required: true, schema: { type: string, enum: [posted, skip, done] } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { type: object, properties: { callout_id: { type: string, description: "The pump.fun callout id, when known, so the ledger can read it back" } } }
+      responses:
+        '200':
+          description: "`{ok, item}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { ok: { type: boolean }, item: { $ref: '#/components/schemas/LabItem' } } }
+        '404': { description: "`not_found` — not yours, or no such item", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`bad_verb` · `bad_state`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/mint/board:
+    get:
+      tags: [signals]
+      summary: "Rokha's own mints — the tokens she launched (pump.fun today), newest first"
+      description: |
+        Launched mints only (≤ 50): name, `$SYMBOL`, kind (`meme` | `tool`), the standalone page
+        (`/@rokha_agent/mint-<symbol>`), the launch and explorer links, the mint address, the
+        launchpad, the image. No price, no promise. Public.
+      operationId: getMintBoard
+      responses:
+        '200':
+          description: The mints
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mints:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                      properties:
+                        id: { type: string, format: uuid }
+                        name: { type: string }
+                        symbol: { type: string }
+                        kind: { type: string, enum: [meme, tool] }
+                        page_url: { type: string }
+                        launch_url: { type: string, nullable: true }
+                        explorer_url: { type: string, nullable: true }
+                        mint: { type: string, nullable: true }
+                        launchpad: { type: string }
+                        image_url: { type: string }
+                        launched_at: { type: string, format: date-time, nullable: true }
+
+  /api/mint/launchpads:
+    get:
+      tags: [signals]
+      summary: "The launchpad registry — which launchpads can really launch, and what each planned one still needs"
+      operationId: getMintLaunchpads
+      responses:
+        '200':
+          description: The registry (pump.fun live; Meteora, Bags and the EVM deployer planned, each naming its needs)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  launchpads:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        chain: { type: string }
+                        chain_id: { type: integer }
+                        status: { type: string, enum: [live, planned] }
+                        action_type: { type: string }
+                        needs: { type: array, items: { type: string } }
+
+  /api/mint/{id}/image.png:
+    get:
+      tags: [signals]
+      summary: "A mint's 512×512 token image"
+      operationId: getMintImage
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The image (PNG; SVG when the rasterizer cannot)
+          content:
+            image/png: { schema: { type: string, format: binary } }
+            image/svg+xml: { schema: { type: string } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -7964,6 +8253,45 @@ components:
             required: [error]
 
   schemas:
+
+    LabItemBody:
+      type: object
+      required: [kind, title, body]
+      additionalProperties: true
+      properties:
+        kind: { type: string, enum: [callout, flag, note] }
+        title: { type: string, maxLength: 200 }
+        body: { type: string, maxLength: 4000 }
+        priority: { type: integer, minimum: 0, maximum: 100, description: "Computed from `facts` for a callout or a flag when absent" }
+        outlook: { type: string, enum: [strong, fair, weak], nullable: true }
+        facts: { type: object, additionalProperties: true }
+        links: { type: object, additionalProperties: { type: string } }
+        tags: { type: array, items: { type: string } }
+        rig_id: { type: string, format: uuid }
+        run_id: { type: string, format: uuid }
+        source: { type: object, additionalProperties: true }
+    LabItem:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [callout, flag, note] }
+        verbs: { type: array, items: { type: string } }
+        rig_id: { type: string, format: uuid, nullable: true }
+        run_id: { type: string, format: uuid, nullable: true }
+        title: { type: string }
+        body: { type: string }
+        priority: { type: integer }
+        outlook: { type: string, nullable: true }
+        facts: { type: object, additionalProperties: true }
+        links: { type: object, additionalProperties: true, description: "`audit`, `pumpfun`, `explorer`, `dexscreener`; `x_post` once the agent's X rail posted a flag" }
+        tags: { type: array, items: { type: string } }
+        source: { type: object, additionalProperties: true }
+        status: { type: string, enum: [ready, done, skipped, posted] }
+        posted_x: { type: boolean }
+        action_log: { type: array, items: { type: object, additionalProperties: true } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
     Erc8004Registration:
       type: object
       description: "An ERC-8004 registration-v1 file (https://eips.ethereum.org/EIPS/eip-8004#registration-v1)"

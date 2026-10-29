@@ -6,6 +6,28 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-29 — the Caller Ledger, the Captain's log, Rokha's mints, share cards
+
+**What changed**
+
+- **The Caller Ledger.** `GET /api/callers/check?q=` checks a pump.fun caller (username, `user:<id>`,
+  `wallet:<address>`, `@x_handle`) or a coin (a Solana CA, or a pump.fun / DexScreener / Solscan link)
+  — a deterministic verdict with the working, every number carrying its source and time. A coin
+  answers the loudest callers on it plus the call verdict and a draft. A Studio read, counted per
+  caller per UTC day; `?id=` serves a saved check free. `GET /api/callers/board` is the public board
+  of verified callers (our fields only; pump.fun attributed). Every check carries `share_url`
+  (`/callers/<id>`) and `card_url` (`GET /api/callers/check/{id}/card.png`, 1200×630).
+- **The Captain's log.** `GET /api/lab/items` lists your Lab's log items (callouts · flags · notes),
+  ready first by priority, under your stored filter; `POST /api/lab/items` writes one;
+  `POST /api/lab/items/{id}/{verb}` acts on one. MCP: `caller_check {target, rules?}` and the runner
+  tool `lab_item_submit {check_id} | LogItemBody`, both in the `lab` toolset.
+- **Rokha's mints.** `GET /api/mint/board` (her launched tokens), `GET /api/mint/launchpads` (what
+  can really launch — pump.fun — and what each planned launchpad still needs), `GET /api/mint/{id}/image.png`.
+- The desk gains the crew exit clock: `crews.sells_5m`, `crews.sell_wallets_5m`, `crews.exit_share_5m`,
+  `crews.first_sell_mins`, `crews.hold_median_mins`, `crews.holders`, `crews.lead`, `crews.callout_live`
+  (a pump.fun callout on the coin inside the last 30 min — absent without a key), `competition.live`
+  and `competition.deadline_mins` (absent without a key).
+
 ## 2026-10-27 — The MCP shelf: a 28-tool door, toolsets, `tools_catalog`
 
 **What changed**
