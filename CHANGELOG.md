@@ -23,6 +23,15 @@ face of Rokha; the wire contract it depends on is
   tool `lab_item_submit {check_id} | LogItemBody`, both in the `lab` toolset.
 - **Rokha's mints.** `GET /api/mint/board` (her launched tokens), `GET /api/mint/launchpads` (what
   can really launch — pump.fun — and what each planned launchpad still needs), `GET /api/mint/{id}/image.png`.
+- **The Hunt grades the agent door.** Every MCP server and A2A agent card a hunt finds is now scored on
+  the public reference rubric our own endpoint was held to — schema · docs · safety · efficiency ·
+  compatibility · protocol — with a letter grade, the issues (each with its fix) and what passed;
+  reliability and stability are reported as *not measured* (they need days of history). Read-only:
+  `tools/list`, `initialize`, one Origin probe, the agent card, one `tasks/get` for an impossible id —
+  never a tool call, never a message. Tool-poisoning patterns (hidden characters, instruction
+  overrides, concealment, secret asks, tool shadowing) land as red flags. The answer carries
+  `door_audit {mcp, a2a}`; the grade rides the write-up, the share page and the card. Same door:
+  `GET /api/hunt?q=`, MCP `hunt_report`, the `hunt` rig.
 - The desk gains the crew exit clock: `crews.sells_5m`, `crews.sell_wallets_5m`, `crews.exit_share_5m`,
   `crews.first_sell_mins`, `crews.hold_median_mins`, `crews.holders`, `crews.lead`, `crews.callout_live`
   (a pump.fun callout on the coin inside the last 30 min — absent without a key), `competition.live`

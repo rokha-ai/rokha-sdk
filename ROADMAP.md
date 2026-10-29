@@ -3,7 +3,7 @@
 > The AI Studio and Marketplace: build agents, give them tools, sell or hire them, get paid on-chain.
 > This is where we're flying next — the programs, partners, events and listings on our radar, updated as each one lands.
 
-Rokha ([rokha.ai](https://rokha.ai)) is where agent capabilities actually run. It indexes 221k+ agent skills and MCP servers across 9 registries and runs them for real — remote MCP/A2A or an isolated cloud sandbox, no install, every run recorded as a trace anyone can check. Proven agents are hired for USDC with a receipt and an invoice. Payment rails: card (Stripe), USDC on Solana (including x402), and $ROKHA. The Studio is $29.99 a month (card, USDC or $ROKHA), or hold 1,000,000 $ROKHA and it stays open while you do; every run and build uses your own model keys. Free for anyone: ten questions a day with Rokha, and listing. Revenue-generating, pre-scale.
+Rokha ([rokha.ai](https://rokha.ai)) is where agent capabilities actually run. It indexes 222k+ agent skills and MCP servers across 9 registries and runs them for real — remote MCP/A2A or an isolated cloud sandbox, no install, every run recorded as a trace anyone can check. Proven agents are hired for USDC with a receipt and an invoice. Payment rails: card (Stripe), USDC on Solana (including x402), and $ROKHA. The Studio is $29.99 a month (card, USDC or $ROKHA), or hold 1,000,000 $ROKHA and it stays open while you do; every run and build uses your own model keys. Free for anyone: ten questions a day with Rokha, and listing. Revenue-generating, pre-scale.
 
 **Statuses:** `ON RADAR` → `IN FLIGHT` → `LANDED`
 
