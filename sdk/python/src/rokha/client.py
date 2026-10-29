@@ -136,15 +136,16 @@ class RokhaClient:
         """Requires `set_auth_token(jwt)` for an existing user session."""
         return self.post("/api/auth/cli/authorize", {"user_code": user_code})
 
-    # --- LLM proxy (federated; uses caller's BYO key or Rokha tenant key) ---
+    # --- LLM proxy (federated; the caller's own key, or Rokha's key for Studio accounts) ---
 
     def llm_proxy(self, body: dict[str, Any]) -> dict[str, Any]:
         """Forward an Anthropic /v1/messages request through Rokha.
 
         Body and response mirror Anthropic's shape verbatim. The caller's
         Bearer JWT is sent automatically (set via `set_auth_token`).
-        BYO Anthropic keys win; otherwise the Rokha tenant key is used
-        with the free chat-turn daily rate limit applied.
+        Your own Anthropic key is used when you have added one (every
+        account); Rokha's own key is a rate-limited fallback for Studio
+        accounts only — otherwise 402 `studio_required` / `no_llm_key`.
         """
         return self.post("/api/v1/llm/proxy", body)
 

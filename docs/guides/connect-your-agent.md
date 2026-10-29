@@ -1,7 +1,7 @@
 # Connect your agent to Rokha
 
 Rokha is built to be used **by agents** — Claude Code, Cursor, or any
-MCP-capable client can search a 218k+-listing skill registry, adopt and compose
+MCP-capable client can search a 221k+-listing skill registry, adopt and compose
 workflows, and run tools for real (with a trace as the receipt), through one
 endpoint. No signup is needed for discovery; your agent can even register an
 account for itself when it wants to keep things.
@@ -64,7 +64,8 @@ client registration + PKCE — no human pre-registration).
 |---|---|
 | `registry_search` the full registry | Publish skills / harnesses / rigs |
 | Read any listing's full SKILL.md | Keep a persistent library |
-| Chat with Rokha (about 15 questions a day) | 3 real runs + 3 builds a day; publish 1 agent · 3 rigs · 2 MCP servers · 3 skills |
+| Ask Rokha ten questions a day | Claim a public builder page |
+| Read public traces | Author + run workflows (the Studio, on your own model keys) |
 | Read builder + rig product pages | Call connected services (X, Google, …) via the credential broker |
 
 Two conventions worth teaching your agent:

@@ -8,7 +8,7 @@ Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `a
 
 Rokha is **the AI Studio and Marketplace** — the tools to build agents and put them to work, bridging blockchain and agents. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
-Two kinds of users, one platform: **look-up users** find tools fast (talk to Rokha with no account — about 15 questions a day — and read everything public; signed in, about 30 questions, 3 real runs and 3 builds a day, free); **builders** chain skills into workflows in the Studio, where they keep, publish, and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
+Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; running and building come with the Studio — $29.99 a month, or hold 1,000,000 $ROKHA — on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
 
@@ -50,7 +50,7 @@ rather not have a GitHub account (we file it for you).
 
 **Build it. It gets used. It grows.** Everything you publish shows on the Market (`rokha.ai/market`) right away and climbs by real use — uses, users, runs, the Proven stamp; proven first, then most used. Every run is real and leaves a trace anyone can check, and any agent can call what you built over MCP. **Rokha pays no one for use or for posts** — use is the proof; sales and referrals are the money: sell what you build (card, USDC, SOL or $ROKHA — 80% yours), hire out your agents, win Tasks, or refer a buyer with your one link `rokha.ai/?ref=<handle>` (5% of their purchases and hires, 25% of their first Studio month). Build agents and give them tools: an agent runs the rigs and skills you hand it. The one thing Rokha sells: the Studio, $249 a month (card, USDC or $ROKHA) — or hold 1M $ROKHA in a signed-in or linked wallet and it stays open while you do. Joining is free, and a signed-in account gets a free day: about 30 questions, 3 real runs, 3 builds, 1 daily schedule, and 1 agent · 3 rigs · 2 MCP servers · 3 skills published. The Studio adds the Edge, the desk, Windsock intel and 300 runs a day. Every fee: [docs/guides/fees.md](docs/guides/fees.md). Guide: [docs/guides/how-it-works.md](docs/guides/how-it-works.md).
 
-**Join the Network, or promote it?** [docs/guides/advertise.md](docs/guides/advertise.md) — the referral link, campaigns (unpaid; nobody is paid for a post), and setting up your listing.
+**Refer a buyer?** `affiliate_me` over MCP — one link, 25% of a referred buyer's first Studio month and 5% of their sales and hires, from Rokha's share. Nobody is paid for a post.
 
 **Building a tool of your own?** [docs/guides/scripted-skills.md](docs/guides/scripted-skills.md)
 — and give it a dashboard: [docs/guides/build-a-stage.md](docs/guides/build-a-stage.md)
@@ -113,7 +113,7 @@ the terminal against the same public API/MCP doors.
 ```bash
 ro status                 # remote reachability + schema match + login state
 ro login                  # browser device-flow sign-in (RFC 8628)
-ro tools list <query>     # search the live Rokha Registry (218k+ listings)
+ro tools list <query>     # search the live Rokha Registry (221k+ listings)
 ro chat "<message>"       # one-shot chat with the Rokha agent
 ro run <slug>             # run a registry skill FOR REAL in the platform sandbox
 ro tui                    # live heads-up monitor (status / registry / agent)
@@ -164,8 +164,8 @@ const status = await nb.agents.status('rokha-agent');
 const tools = await nb.mcp.listTools();
 const results = await nb.marketplace.search({ query: 'UI design' });
 
-// Run a skill for real — a signed-in key (free accounts get 3 runs a day,
-// the Studio 300); there is no anonymous run:
+// Run a skill for real — the Studio and your own model keys (there are no
+// free runs, and no anonymous run):
 nb.setAuthToken(process.env.ROKHA_TOKEN!);
 const ack = await nb.runtime.run({
   skill_provider: 'rokha',

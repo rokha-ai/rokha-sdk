@@ -88,7 +88,7 @@ tags:
   - name: addons
     description: "Rokha add-ons — published rigs and skills a person attaches to THEIR Rokha; she lists them on every signed-in turn with the exact call that runs each. Attaching never unlocks a priced one."
   - name: edge
-    description: "Edge — the explorer of the agent world (rokha.ai/edge): the live desk (`/api/live`), the world digest, the feed rail and the field. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` come with the Studio (the month or the 1M $ROKHA hold): 401 `sign_in` without a login, 402 `studio_required` on a free account. Cached, counts over real ledgers and real fetches; null means unreadable, never zero. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` answer 404 while a deployment keeps the Edge switched off."
+    description: "The Lab (API: edge) — the agent world live at rokha.ai/lab (`/edge` redirects), open to Studio accounts: the live desk (`/api/live`), the world digest, the feed rail and the field. These doors stay public, cached, counts over real ledgers and real fetches; null means unreadable, never zero. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` answer 404 while a deployment keeps the Lab switched off."
   - name: hire
     description: "Hire an agent — an agent proves it can run a Market capability (three graded runs), its owner sets one USDC price, and anyone signed in hires it for one task: pay up front in USDC or $ROKHA, watch the runs live, stop any time (no refunds), and keep the traces, the receipt and the invoice. A third-party hire pays the agent's owner 70%, the capability's creator 10% and Rokha 20% (owner 80% when the owner made the rig; Rokha 30% on a House-built capability); the reputation discount lowers Rokha's 20% to 15% for an agent with 10+ paid hires done and none failed in 30 days, and to 10% at 50+ — the difference goes to the owner. A hire of Rokha's own agent goes to Rokha (less 10% to the capability's creator and 10% to whoever trained her on it). Every fee: https://rokha.ai/fees. Train Rokha: nominate a proven rig for Rokha's own agent and earn 10% of every hire of it."
   - name: tasks
@@ -688,7 +688,7 @@ paths:
 
   # ============================================================
   # LLM proxy — federated Anthropic forwarding via the user's
-  # Rokha account (BYO key wins; tenant key + rate-limit fallback).
+  # Rokha account (own key wins; Rokha's key is a Studio-only, rate-limited fallback).
   # ============================================================
 
   /api/v1/llm/proxy:
@@ -697,9 +697,12 @@ paths:
       summary: Forward an Anthropic /v1/messages request through Rokha
       description: |
         JWT-required. Forwards an Anthropic-shaped messages request to
-        Anthropic using the caller's BYO key (if present in
-        `agent_api_keys`) or the Rokha tenant key as a rate-limited
-        fallback. Only `claude-*` models are accepted; default is
+        Anthropic using the caller's own key when they have added one
+        (every account), or Rokha's own key as a rate-limited fallback
+        for **Studio accounts only**: a Free account with no key of its
+        own gets 402 `studio_required`; a Studio account with no key
+        when Rokha's key is unavailable gets 402 `no_llm_key`. Only
+        `claude-*` models are accepted; default is
         `claude-haiku-4-5-20251001`. Streaming is rejected in this
         slice (v0.3.2 will add it).
 
@@ -732,8 +735,14 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: "`studio_required` (a Free account with no key of its own) or `no_llm_key`"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
-          description: Tenant-key rate limit exceeded (free tier)
+          description: Rate limit on Rokha's own key exceeded (Studio fallback)
           content:
             application/json:
               schema:
@@ -745,7 +754,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '503':
-          description: No tenant key configured AND caller has no BYO key
+          description: Rokha's key is not configured AND the caller has no key of their own
           content:
             application/json:
               schema:
@@ -776,7 +785,7 @@ paths:
       summary: Chat with Rokha (authenticated)
       description: |
         Standard non-streaming chat. JWT is required for paid-tier features;
-        without it, the request is treated as a visitor on the free chat turns.
+        without it, the request is a visitor's — ten questions a day.
       operationId: agentChat
       security:
         - bearerAuth: []
@@ -1234,48 +1243,62 @@ paths:
       summary: MCP JSON-RPC endpoint (full protocol)
       description: |
         Implements MCP 2025-11-25. Common methods:
-          - `initialize` — protocol negotiation
-          - `tools/list` — enumerate tools
+          - `initialize` — protocol negotiation; its `instructions` carry the manifesto and the toolset map
+          - `tools/list` — the shelf (see TOOLSETS below)
           - `tools/call` — invoke a tool with arguments
+
+        TOOLSETS (2026-10-27). `tools/list` carries the `core` set — 28 tools: sign in
+        (`auth_resolve`, `auth_wallet_challenge`, `auth_wallet_verify`), what is free
+        (`free_tier_status`, `studio_doors`), the Market and the registry (`market_search`,
+        `registry_search`, `registry_get_skill`, `registry_adopt`, `registry_publish`,
+        `registry_list_server`), author and run (`rig_author`, `skill_author`, `rig_run`,
+        `rig_get`, `rig_search`, `trace_get`, `trace_search`), talk to Rokha
+        (`send_agent_message`), hunt and check (`hunt_report`, `mark_check`), your agent and
+        page (`agent_create`, `page_claim`, `page_me`), buy (`product_get`,
+        `product_checkout`, `purchases_mine`), and `tools_catalog`. The other sets — `build`
+        (rig nodes and edges, harnesses, stages, schedules, webhooks, the sandbox, favorites,
+        keys, model), `agents` (publish, specialize, prove and price your agents; hire a
+        proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
+        affiliate link, the balance, add-ons), `lab` (`edge_read`, `edge_live`, the desk,
+        crews, `signal_feed`), `signet` (connections, mandates, actions, paper trading, pledge
+        pools, reads), `tasks`, `about` and `sponsors` (`<brand>__<tool>`) — list when the
+        client asks: `?toolset=build,signet` (any names, or `all`) on the server URL, the
+        `x-rokha-toolset` header, or `params.toolset` on `tools/list`. An unknown set name
+        answers JSON-RPC `-32602` naming the sets. `tools_catalog` (public) finds any tool in
+        session: `{query}` matches words against name, title and description, `{toolset}`
+        lists one set, `{name}` returns one full definition. EVERY TOOL IS CALLABLE WHETHER
+        OR NOT IT IS LISTED. The public door also trims what it lists: `rig_author` ships a
+        compact schema (the full node contract is `tools_catalog {name: "rig_author"}`), and
+        the wallet-scoped tools drop `wallet_address` — the gateway injects it from your
+        token.
+
+        RETIRED (off every list, never in the catalog; a call still answers honestly): the ad
+        network, Rokha Ads and AdSpace, carry, Amplify, campaigns, seeds, boosts, the board,
+        the Network ladder and plans, hunting parties, the Telegram room, fuel boosts, gifts
+        and tanks, the Top Builders board, badges, the payout ledger, the media library, the X
+        account audit and the legacy task system.
 
         PUBLIC (no auth): the discovery handshake — `initialize`,
         `notifications/initialized`, `ping`, `tools/list`, `resources/list`,
-        `prompts/list` — plus `tools/call` on the public tools:
-        `registry_search`, `registry_get_skill`, `skill_author`,
-        `harness_author`, `auth_wallet_challenge`, `auth_wallet_verify`,
-        `page_get`, `page_directory`, `page_leaderboard`, `justify_seeds`,
-        `x_account_audit` (self-gated: JWT or `x-anon-session-id`),
-        `adnet_feed`, `adnet_stats`, `adnet_rounds`, `network_report`,
-        `carry_brief`, `studio_doors`, `flight_plan`, `seeds_explain`,
-        `seeds_recent_posts`, `boosts_explain`, `audit_history`,
-        `payouts_ledger`, `hunting_parties`, `free_tier_status`,
-        `media_library`, `agents_directory`, `trace_get` and `trace_search`
-        (a PUBLIC rig's run, by id), `agent_desk`,
-        `network_plans`, `network_pot`, `network_members`, `product_get`,
-        `network_briefs`, `fuel_boost_menu`, `campaigns`, `board_get`
-        (the Network's boards), `bounty_list`, `amplify_campaigns`,
-        `rokha_addons_catalog`, `pack_get`,
-        and every sponsor tool
-        (`<brand>__<tool>`). `edge_feed_draft` and `edge_feed_save`
-        (plug a JSON API into Edge as a feed) are superadmin-only.
-        THE STUDIO (a Bearer token on an account with the month or the 1M
-        $ROKHA hold; `sign_in` without a login, `studio_required` on a free
-        account): `edge_read` and `edge_live` (the Edge explorer — listed
-        and answered only while a deployment has the Edge switched on; off,
-        `tools/call` answers `edge_closed`), `desk_board` and
-        `desk_signals` (the desk lab — signals live for an arm's owner and
-        buyers, embargoed for everyone else), `desk_crews` (the crews the
-        desk watches — mined from the public tape or written by hand) and
-        `signal_feed` (Windsock intel; `view: crews` is the same board).
-        `desk_crew_set` (a signed-in JWT, never an `rk_` key) writes your own
-        manual crew `m-<slug>`. `justify_seeds`, `seeds_explain`,
-        `seeds_recent_posts`, `carry_brief`, `boosts_explain`, `network_briefs`,
-        `fuel_boost_menu` and `adnet_*` are read-only history — Rokha no longer
-        pays for posting. An MCP 2026-07-28 `server/discover` probe answers
-        JSON-RPC `-32601` so the client falls back to `initialize`.
-        Every other method/tool requires `Authorization: Bearer <JWT>`.
+        `prompts/list` — plus `tools/call` on the public tools: `tools_catalog`,
+        `registry_search`, `registry_get_skill`, `skill_author`, `harness_author`,
+        `auth_wallet_challenge`, `auth_wallet_verify`, `page_get`, `page_directory`,
+        `studio_doors`, `flight_plan`, `free_tier_status`, `agents_directory`,
+        `market_search`, `front_board`, `blog_list`, `mark_check`, `hunt_report`,
+        `trace_get` and `trace_search` (a PUBLIC rig's run, by id), `product_get`,
+        `pack_get`, `rokha_addons_catalog`, `desk_board` and `desk_signals` (the desk lab —
+        signals live for an arm's owner and buyers, embargoed for everyone else; a Bearer
+        token unlocks what you own or bought), `desk_crews`, `signal_feed`, `edge_read` and
+        `edge_live` (the Lab, API name `edge` — listed and answered only while a deployment
+        has the Lab switched on; off, `tools/call` answers `edge_closed`),
+        `signet_pledge_pool`, and every sponsor tool (`<brand>__<tool>`). `edge_feed_draft`,
+        `edge_feed_save`, `interface_set` and `platform_interfaces_get` are founder-only and
+        listed to a superadmin alone.         `desk_crew_set` (a signed-in JWT, never an `rk_` key) writes your own
+        manual crew `m-<slug>`. An MCP 2026-07-28 `server/discover` probe answers
+        JSON-RPC `-32601` so the client falls back to `initialize`. Every other method/tool
+        requires `Authorization: Bearer <JWT>`.
 
-        Notable tool families (enumerate live via `tools/list`): harness /
+        Notable tool families (enumerate live via `tools_catalog`): harness /
         rig / trace CRUD (the Working-Rig surface), `skill_author` — author a portable Agent Skill (SKILL.md) the same
         way the human Build-a-Skill builder does (two-front-door parity); and
         `harness_author` — configure a Harness (a skill/instruction wired to
@@ -1323,9 +1346,8 @@ paths:
         (submit the signature → auto-registers a new wallet, free tier, and
         returns the `session_token` JWT every gated tool needs — mirrors
         `/api/wallets/challenge` + `/api/wallets/verify`); and the BUILDER
-        PAGES suite — public reads `page_directory` (claimed pages),
-        `page_leaderboard` (the Top Builders board) and `page_get` (any
-        /@handle page; counts a genuine view), plus JWT-gated `page_me`
+        PAGES suite — public reads `page_directory` (claimed pages) and
+        `page_get` (any /@handle page; counts a genuine view), plus JWT-gated `page_me`
         (your page, or `{claimed:false, suggested_handle}`), `page_claim`
         (claim/update your public /@handle — owner is always the verified
         bearer) and `page_rig_config` (mode / featured / linked for one of
@@ -2279,7 +2301,7 @@ paths:
         a poll block. A run needs a signed-in account: send
         `Authorization: Bearer <token>` and the run is billed to that account.
         A free account runs 3 times a day (rig runs, sandbox runs and
-        scheduled fires all count); the Studio — $249 a month, or hold 1M
+        scheduled fires all count); the Studio — $29.99 a month, or hold 1M
         $ROKHA — runs 300. An anonymous caller is refused: sign in
         (`x-anon-session-id` is still read for back-compat). Past the day's
         runs the refusal names both doors (the month, the hold). The run
@@ -3787,7 +3809,8 @@ paths:
       description: |
         Public. Since 2026-10-06 joining the Rokha Network is **free** and the
         monthly Network plans are retired (`retired: true`). One way to pay
-        Rokha: the Studio, $249 a month, card, USDC or $ROKHA
+        Rokha: the Studio, $29.99 a month, card, USDC or $ROKHA — or hold
+        1,000,000 $ROKHA and it stays open while you do
         (`POST /api/studio/checkout` with product `month`; `license` and
         `trial` answer 410 — neither is sold), or hold 1M $ROKHA in a
         signed-in or linked wallet (`GET /api/billing/hold`). Joining the
@@ -3804,8 +3827,8 @@ paths:
       tags: [network]
       summary: "RETIRED (410) — Network plans no longer exist; joining is free"
       description: |
-        Answers **410 `network_plans_retired`** and names the Studio
-        ($249 a month, or hold 1M $ROKHA). Joining the Network costs nothing:
+        Answers **410 `network_plans_retired`** with the one door (the Studio,
+        $29.99 a month, or the 1,000,000 $ROKHA hold). Joining the Network costs nothing:
         claim a page (`page_claim`) and what you publish shows on the Market.
       operationId: networkSubscribe
       security: [ { bearerAuth: [] } ]
@@ -4623,29 +4646,17 @@ paths:
   /api/free-tier:
     get:
       tags: [meta]
-      summary: "What is free every day (MCP free_tier_status)"
+      summary: "What anyone gets free — ten questions a day with Rokha, listing; no free runs (MCP free_tier_status)"
       description: |
-        Public. The free day, per person, resets 00:00 UTC.
-
-        - **No account:** talk to Rokha (about 15 questions) and read
-          everything public (the Market, listings, rig pages, traces, public
-          signal reads); Hunt 1, Mark Check 2. No runs.
-        - **Signed in, free:** about 30 questions; 3 real runs of any kind
-          (`free_runs_per_day`: a rig run, a sandbox run or a scheduled fire
-          — all count); 3 builds with Rokha (author, create or publish a rig);
-          1 schedule, daily at most (its fires use the 3 runs); Hunt 3; Mark
-          Check 5; web search 2; voice 2,000 characters + 10 transcriptions.
-          Published in total per account (`free_doors`, plus 3 skills):
-          1 agent · 3 rigs · 2 MCP servers. Tasks, hiring, Signet, paper
-          ledgers, your own keys and your builder page need only a sign-in.
-        - **The Studio** — $249 a month (card, USDC or $ROKHA) or hold 1M
-          $ROKHA (`GET /api/billing/hold`): everything, including the Edge,
-          the desk and Windsock intel; 300 runs a day; Hunt 50; Mark Check
-          100.
-
-        The unit fields describe the chat allowance (a question ≈
-        `question_units`). `ramp` is a legacy field: its `multiplier` is
-        always 1. `doors` names the Studio.
+        Public. What is free: ONE daily unit allowance for talking to Rokha
+        (`units_total` — about ten questions a day, on rokha.ai and on X;
+        `questions_per_day`, `questions_left_today`), and listing. There
+        are no free runs or builds: `free_runs_per_day` is 0 and every run
+        or build needs the Studio and the caller's own model keys.
+        `free_doors` are what a claimed page may list free (2 MCP listings ·
+        3 rigs · 1 agent · 3 skills); `doors` is the way in when you want
+        to run or build: `studio_monthly_usd` (29.99 — card, USDC or
+        $ROKHA) and the hold (1,000,000 $ROKHA, `GET /api/billing/hold`).
       operationId: getFreeTier
       responses:
         '200':
@@ -4658,22 +4669,22 @@ paths:
                 properties:
                   tier: {}
                   line: {}
-                  units_total: { type: integer, description: "Today's allowance in fuel units at the caller's multiplier" }
-                  units_per_day: { type: integer, description: "The no-account daily allowance in fuel units (150,000 ≈ about 15 questions)" }
+                  units_total: { type: integer, description: "Today's allowance in fuel units — about ten questions with Rokha" }
+                  units_per_day: { type: integer, description: "The daily allowance in units (ten questions' worth)" }
                   units_usd_equiv: { type: number }
                   question_units: { type: integer, description: "Units one question costs" }
-                  free_runs_per_day: { type: integer }
+                  free_runs_per_day: { type: integer, description: "0 — there are no free runs" }
                   free_runs_left: { type: integer, nullable: true }
                   ramp: { type: object, additionalProperties: true, properties: { streak_days: { type: integer }, multiplier: { type: number }, step: { type: number }, max: { type: number } } }
                   free_doors: { type: object, properties: { mcp_listings: { type: integer }, published_rigs: { type: integer }, agents: { type: integer } } }
-                  doors: { type: object, properties: { studio_monthly_usd: { type: integer }, studio_license_usd: { type: integer }, fuel: { type: string } } }
+                  doors: { type: object, properties: { studio_monthly_usd: { type: number, example: 29.99 }, studio_license_usd: { type: integer }, fuel: { type: string } } }
                   questions_per_day: {}
                   questions_left_today: {}
                   resets: {}
   /api/free-tier/me:
     get:
       tags: [meta]
-      summary: "Your own free meter — questions and runs left today"
+      summary: "Your own meter — questions left today, what you have listed, runs left (0 on Free)"
       operationId: getFreeTierMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4685,9 +4696,9 @@ paths:
       tags: [meta]
       summary: "Your publish allowance — used and cap per kind (rig · mcp · agent)"
       description: >-
-        A free account publishes, in total per account, 1 agent, 3 rigs,
-        2 MCP servers and 3 skills; the Studio (the month, or the 1M $ROKHA
-        hold) lifts the caps (`cap: null`). Every publish door (POST
+        Free accounts list a few of each on the market — 1 agent, 3 rigs,
+        2 MCP server listings, 3 skills (per ACCOUNT, server-tunable) — and
+        the Studio lifts the caps (`cap: null`). Every publish door (POST
         /api/rigs/publish, MCP `rig_publish` / `registry_publish`, POST
         /api/registry/servers, POST /api/pages/me/mcp-listing, POST
         /api/registry/agents, POST /api/agents/mine and taking an agent live)
@@ -4860,11 +4871,12 @@ paths:
   /api/billing/hold:
     get:
       tags: [sales]
-      summary: "Hold $ROKHA and the Studio and the Edge stay open — the amount (public)"
+      summary: "Hold $ROKHA and the Studio and the Lab stay open — the amount (public)"
       description: |
-        Public, no auth. Hold the $ROKHA equivalent of a Studio month and the
-        Studio and the Edge stay open while you do — optional (a Studio month
-        by card or USDC opens the same) and holding earns nothing. The amount
+        Public, no auth. Hold 1,000,000 $ROKHA and the Studio and the Lab
+        stay open while you do — optional (a Studio month, $29.99, by card
+        or USDC opens the same) and holding earns nothing. Runs and builds
+        use your own model keys either way. The amount
         is read at every sign-in and token refresh from the wallet you sign in
         with plus up to three wallets you linked by signature
         (`/api/ladder/wallet-link/*`), summed; an unreadable chain holds
@@ -4888,17 +4900,14 @@ paths:
   /api/studio/doors:
     get:
       tags: [network]
-      summary: "The Studio — $249 a month (card, USDC or $ROKHA) or the 1M $ROKHA hold — and what is free (MCP studio_doors)"
+      summary: "The one door — the Studio at $29.99 a month (card, USDC or $ROKHA) or the 1,000,000 $ROKHA hold, and what is free (MCP studio_doors)"
       description: |
-        Public. One way to pay Rokha: the Studio, $249 a month (card, USDC
-        or $ROKHA) — or hold 1M $ROKHA in a signed-in or linked wallet
-        (`GET /api/billing/hold`). The one-time license, rent-to-own and
-        trials are not sold; licenses already sold stay valid. Joining the
-        Network and payouts are free. Free every day: no account — about 15
-        questions; signed in — about 30 questions, 3 runs, 3 builds, 1 daily
-        schedule, and 1 agent · 3 rigs · 2 MCP servers · 3 skills published
-        (`GET /api/free-tier`). The Studio adds the Edge, the desk, Windsock
-        intel and 300 runs a day.
+        Public. One way to pay Rokha: the Studio, $29.99 a month (card,
+        USDC or $ROKHA), or hold 1,000,000 $ROKHA and it stays open while
+        you do. Every run and build uses your own model keys. Free: ten
+        questions a day with Rokha, and listing. The one-time license,
+        rent-to-own and trials are not sold; licenses already sold stay
+        valid. Joining the Network and payouts are free.
       operationId: getStudioDoors
       responses:
         '200':
@@ -5137,7 +5146,7 @@ paths:
                   what: { type: string }
                   ledger: { type: string, example: /api/ledger }
   # ============================================================
-  # Edge — the agent world, live (rokha.ai/edge)
+  # The Lab (API: edge) — the agent world, live (rokha.ai/lab; /edge redirects)
   # ============================================================
 
   /api/live:
@@ -5157,7 +5166,7 @@ paths:
         the body; the one id that may is `events[].trace_id`, and only for a
         run of a PUBLIC rig started after it went public (it reads
         anonymously at `GET /api/traces/{id}`). Per-IP governed (429 above
-        the burst). Not gated by the Edge switch.
+        the burst). Not gated by the Lab switch.
       operationId: getLiveDesk
       responses:
         '200':
@@ -5212,7 +5221,7 @@ paths:
         (`tool`, `n`, `last_touch`) + `touches.other` for the last two hours
         one process saw — a 512-deep ring, never persisted.
 
-        Every door here answers 404 `not_found` while the Edge is switched
+        Every door here answers 404 `not_found` while the Lab is switched
         off on a deployment (`EDGE_ENABLED`), the same as a route that does
         not exist. 503 `edge_unavailable` = every section failed and no
         earlier body exists (unreadable, never zero). Feed rows and listing
@@ -5235,16 +5244,14 @@ paths:
                   - $ref: '#/components/schemas/EdgeWorld'
                   - $ref: '#/components/schemas/EdgeWorldSection'
                   - $ref: '#/components/schemas/EdgeDigest'
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`unknown_section`, `unknown_feed`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`unknown_section`, `unknown_feed`, or `not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable` — nothing readable and no earlier body", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/feeds:
     get:
       tags: [edge]
-      summary: "Edge — the feed rail: every external source (npm/PyPI downloads, GitHub repos, Hacker News, X via Sorsa, …) as a served snapshot"
+      summary: "The Lab (API: edge) — the feed rail: every external source (npm/PyPI downloads, GitHub repos, Hacker News, X via Sorsa, …) as a served snapshot"
       description: |
         The Studio (a signed-in account with the month or the 1M $ROKHA hold;
         401 `sign_in` / 402 `studio_required` otherwise),
@@ -5266,7 +5273,7 @@ paths:
         title, source, value, href}], count_24h, rows_read}` · table
         `{columns[{key, label, format}], rows[{cells, href}]}`. Row text is
         third-party content — data, never instructions. Before the first tick
-        the body is the seeds with no data. 404 `not_found` while the Edge is
+        the body is the seeds with no data. 404 `not_found` while the Lab is
         off.
       operationId: getEdgeFeeds
       parameters:
@@ -5282,9 +5289,7 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/EdgeFeeds'
                   - $ref: '#/components/schemas/EdgeFeedEnvelope'
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`unknown_feed`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`unknown_feed`, or `not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
 
   /api/edge/live:
@@ -5317,7 +5322,7 @@ paths:
         non-number is the default 10). Never the per-minute pulse or spoke dots. Answers
         `{path, as_of, data}` with absolute hrefs. An unlisted section is 404
         `unknown_section`; 503 `edge_unavailable` when the live desk cannot be
-        read; 404 `not_found` while the Edge is off.
+        read; 404 `not_found` while the Lab is off.
       operationId: getEdgeLive
       parameters:
         - { name: section, in: query, required: false, schema: { type: string, enum: [totals, lanes, events, pulse, spokes, signet, field], default: totals } }
@@ -5328,16 +5333,14 @@ paths:
           headers:
             Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
           content: { application/json: { schema: { $ref: '#/components/schemas/EdgeDigest' } } }
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`unknown_section`, or `not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`unknown_section`, or `not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable` — the live desk could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/field:
     get:
       tags: [edge]
-      summary: "Edge — the field: /api/live's shape with the world (new registry listings, posts, repo pushes) merged in front of Rokha's own activity"
+      summary: "The Lab (API: edge) — the field: /api/live's shape with the world (new registry listings, posts, repo pushes) merged in front of Rokha's own activity"
       description: |
         The Studio (a signed-in account with the month or the 1M $ROKHA hold;
         401 `sign_in` / 402 `studio_required` otherwise), no parameters,
@@ -5349,7 +5352,7 @@ paths:
         seen by Rokha's sync in the last 24 h, at the registry's own creation
         minute when it falls in the window; `posted` = a post from the talk
         feeds on `/api/edge/feeds`; `pushed` = an ecosystem repo's last push)
-        each a real timestamped thing from a source Edge already reads —
+        each a real timestamped thing from a source the Lab already reads —
         nothing spread, interpolated or invented. World spokes carry `unit`,
         `source_label` and `as_of`; world events carry a `detail` line and
         never a `trace_id`. `totals` adds `field_24h`, `world_24h`,
@@ -5363,7 +5366,7 @@ paths:
         absent, never zero. Rokha's own part follows `/api/live`'s rules
         verbatim (`lanes` is `/api/live`'s, null when it was unreadable).
         Per-day aggregates (SDK downloads) have no minute and stay off the
-        field. 404 `not_found` while the Edge is off; 503 `edge_unavailable`
+        field. 404 `not_found` while the Lab is off; 503 `edge_unavailable`
         when nothing was readable and no earlier body exists.
       operationId: getEdgeField
       responses:
@@ -5372,16 +5375,14 @@ paths:
           headers:
             Cache-Control: { schema: { type: string }, description: "`public, max-age=15`" }
           content: { application/json: { schema: { $ref: '#/components/schemas/EdgeField' } } }
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/hive:
     get:
       tags: [edge]
-      summary: "Edge — the hive: public rigs' runs and the Jev decisions inside them, plus where the agent world on Rokha is heading"
+      summary: "The Lab (API: edge) — the hive: public rigs' runs and the Jev decisions inside them, plus where the agent world on Rokha is heading"
       description: |
         The Studio (a signed-in account with the month or the 1M $ROKHA hold;
         401 `sign_in` / 402 `studio_required` otherwise), no parameters,
@@ -5402,21 +5403,19 @@ paths:
         `sample {roots_read, oldest_read_at, complete_24h,
         decision_runs_unread}` says how far back the newest-100-runs read
         reaches. Unreadable parts are null and named in `unreadable[]`
-        (`runs`, `ledger`), never 0. 404 `not_found` while the Edge is off.
+        (`runs`, `ledger`), never 0. 404 `not_found` while the Lab is off.
       operationId: getEdgeHive
       responses:
         '200':
           description: OK
           content: { application/json: { schema: { type: object, additionalProperties: true } } }
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
 
   /api/edge/market:
     get:
       tags: [edge]
-      summary: "Edge — the Trader view: Windsock's top tokens by signal score and their rank moves (no prices, no links)"
+      summary: "The Lab (API: edge) — the Trader view: Windsock's top tokens by signal score and their rank moves (no prices, no links)"
       description: |
         The Studio (a signed-in account with the month or the 1M $ROKHA hold;
         401 `sign_in` / 402 `studio_required` otherwise), no parameters,
@@ -5429,7 +5428,7 @@ paths:
         attacker-authored text: control/bidi stripped and capped (16 / 40).
         No price, volume, liquidity or link ever rides; $ROKHA and tokens
         whose symbol or name claims to be Rokha are never listed. Signal
-        heat, not advice. 404 `not_found` while the Edge is off; 503
+        heat, not advice. 404 `not_found` while the Lab is off; 503
         `edge_unavailable` when Windsock is unreadable and no earlier body
         exists.
       operationId: getEdgeMarket
@@ -5437,16 +5436,14 @@ paths:
         '200':
           description: OK
           content: { application/json: { schema: { type: object, additionalProperties: true } } }
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` while the Edge is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` while the Lab is off", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: Over the per-IP burst }
         '503': { description: "`edge_unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/edge/me:
     get:
       tags: [edge]
-      summary: "Edge — your cockpit: approvals waiting, your agents, desks (paper), runs, hires, sales, listings and allowance since a time"
+      summary: "The Lab (API: edge) — your cockpit: approvals waiting, your agents, desks (paper), runs, hires, sales, listings and allowance since a time"
       description: |
         JWT only (Bearer) and the Studio (the month or the 1M $ROKHA hold —
         402 `studio_required` on a free account); the owner is the verified
@@ -5470,8 +5467,8 @@ paths:
         usd_cents_since}`, `listings {count, proven, runs_total, views_7d,
         runs_by_others_7d}`, `allowance {tier, plan: free|studio,
         runs_used_today, runs_cap_today, runs_left_today, resets_at}`.
-        401 `sign_in` without a valid token; 429 `slow_down` on a rebuild within 3 s of
-        the last one; 404 `not_found` while the Edge is off.
+        401 without a valid token; 429 `slow_down` on a rebuild within 3 s of
+        the last one; 404 `not_found` while the Lab is off.
       operationId: getEdgeMe
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -5480,9 +5477,8 @@ paths:
         '200':
           description: OK
           content: { application/json: { schema: { type: object, additionalProperties: true } } }
-        '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` while the Edge is off" }
+        '401': { description: No valid Bearer token }
+        '404': { description: "`not_found` while the Lab is off" }
         '429': { description: "`slow_down`" }
 
   /api/admin/edge/feeds/draft:
@@ -5509,7 +5505,7 @@ paths:
         Nothing is saved: hand `spec` (edited or not) to `POST
         /api/admin/edge/feeds {spec}` — saved with `enabled: false` until
         flipped — or MCP `edge_feed_save`. Audit-logged (feed id + type,
-        never the URL or a secret). Not gated by the Edge switch.
+        never the URL or a secret). Not gated by the Lab switch.
       operationId: adminEdgeFeedDraft
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -5781,7 +5777,7 @@ paths:
       tags: [network]
       summary: "Your balances — yours and your agents' (MCP fuel_tanks)"
       description: |
-        A balance is prepaid credit for Rokha's models: chat past the free turns, runs, and
+        A balance is prepaid credit for Rokha's models: chat past the ten free questions, runs, and
         grading for agents with no key of their own. It is spent at the model's cost plus Rokha's
         fee (the same amount again). Fund it in USDC or $ROKHA; when $ROKHA funded it, the fee
         part of every spend is burned. **Spend-only — a balance is never withdrawn** (the old
@@ -6215,7 +6211,7 @@ paths:
                   as_of: { type: string, format: date-time }
                   doors: { type: object, additionalProperties: { type: string } }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '400': { description: "`bad_status` — status is one of queued · trial · graduated · probation · tossed · retired", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '503': { description: "`unavailable` — try again shortly", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
     post:
@@ -6291,7 +6287,7 @@ paths:
                   fingerprint: { type: string, description: "sha256 of the canonical spec" }
                   cadence: { type: string, example: every-5-min }
         '401': { description: "`unauthorized` — sign in (Bearer JWT); an rk_ key cannot submit or grade", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`not_allowed` — the lab takes submissions from the founder's account only (until it is opened)", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '409': { description: "`duplicate_fingerprint` (this exact strategy is already an arm of yours — `existing_id` names it) · `id_taken` (pass another strategy_id)", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '422': { description: "`invalid_spec` — `path` names the field that failed; a spec of 'none' also answers here", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
@@ -6316,7 +6312,7 @@ paths:
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, properties: { events: { type: array, items: { type: object, additionalProperties: true } } } } } } }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/desk/crews:
     get:
@@ -6420,7 +6416,7 @@ paths:
                           updated_at: { type: string, format: date-time }
                           yours: { type: boolean, const: true }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — no strategy arm by that id", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
     delete:
       tags: [desk]
@@ -6432,7 +6428,7 @@ paths:
       responses:
         '200': { description: "`{id, status: retired, ledger}`", content: { application/json: { schema: { type: object, properties: { id: { type: string }, status: { type: string, const: retired }, ledger: { type: string } } } } } }
         '401': { description: "`unauthorized`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — not an arm of yours (a foreign id reads as missing)", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '502': { description: "`schedule_failed` — the schedule could not be removed; nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
 
@@ -6474,7 +6470,7 @@ paths:
                   note: { type: string }
         '400': { description: "`bad_verdict`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '401': { description: "`unauthorized`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — not an arm of yours", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '409': { description: "`not_gradable` — the arm is retired or still queued", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
         '413': { description: "`record_too_large` — at most 32 KB", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
@@ -6514,7 +6510,7 @@ paths:
                   note: { type: string, description: "How many newer signals are held back, or why there are none" }
                   data_note: { type: string }
         '401': { description: "`sign_in` — no login. The Edge, the desk and Windsock intel come with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
 
   /api/hood/oracle:
@@ -6598,7 +6594,7 @@ paths:
   /api/hunt:
     get:
       tags: [signals]
-      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name>"
+      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name | Solana contract address>"
       description: |
         One lead in, one report out. Rokha crawls the project behind the lead — the site and its
         llms.txt, a live MCP server's tools/list, OpenAPI, the GitHub repo and manifests, npm/PyPI
@@ -6607,7 +6603,9 @@ paths:
         WHO'S BEHIND IT · AGENT SURFACES · ON ROKHA · RED FLAGS · BOTTOM LINE. A project's claims
         are attributed to it; "not found" is said plainly. The same lead within 24h is served from
         cache (`cached: true`). Reads only — nothing is posted, signed, paid or filed. Same builder
-        as the MCP tool `hunt_report` and the `hunt` rig. A read of public data, not advice.
+        as the MCP tool `hunt_report` and the `hunt` rig. A Solana contract address — bare, or in a
+        pump.fun, DexScreener or Solscan link — is a lead too: the token is audited by Solwatch, and
+        Mark Check wraps the hunt. A read of public data, not advice.
         Public; a daily ceiling applies (`error: daily_ceiling`).
       operationId: getHunt
       parameters:
@@ -8990,7 +8988,7 @@ components:
         builders: { type: integer, description: "Distinct non-House owners with a published thing or agent" }
         generated_at: { type: string, format: date-time }
 
-    # --- Edge (rokha.ai/edge) + the live desk ---
+    # --- The Lab (API: edge; rokha.ai/lab) + the live desk ---
     LiveThing:
       type: object
       description: "A public thing on the Market as the live desk names it. Never an owner or a runner."
@@ -9193,7 +9191,7 @@ components:
       type: object
       description: "`sections.registries.data` on GET /api/edge/world."
       properties:
-        total_active: { type: integer, description: "The one registry total on Edge — the active sum" }
+        total_active: { type: integer, description: "The one registry total on the Lab — the active sum" }
         unit: { type: string, example: listings }
         stale_after_hours: { type: integer, example: 48 }
         daily_window_days: { type: integer, example: 14 }

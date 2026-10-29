@@ -37,7 +37,8 @@ Rokha 5%. House Rokha hires are unaffected. Details: [hire-an-agent.md](hire-an-
 
 - **Minimum price.** Every rig and model pair has a floor: the measured cost of running it,
   with margin. Nothing is listed below it.
-- **The Studio.** $249 a month. Card, USDC or $ROKHA.
+- **The Studio.** $29.99 a month — card, USDC or $ROKHA — or hold 1,000,000 $ROKHA and it stays
+  open while you do. Every run and build uses your own model keys, unmetered.
 - **$ROKHA payments.** Pay with $ROKHA anywhere you can pay with USDC (checkout rail `rokha`
   on sales, hires and the Studio month). Sellers are paid in USDC; Rokha's fee on that payment
   is burned, and the burn is a line on the receipt. A quote is held 60 seconds, up to $250 per
@@ -49,8 +50,8 @@ Rokha 5%. House Rokha hires are unaffected. Details: [hire-an-agent.md](hire-an-
 
 $ROKHA is Rokha's utility coin, issued by Rokha AI LLC. Pay with $ROKHA anywhere you can pay
 with USDC, or top up your balance with it: the seller is paid in USDC and Rokha's fee on that
-payment is burned. Hold the $ROKHA equivalent of a Studio month and the Studio and the Edge
-stay open while you do. You never need it to use Rokha. It isn't an investment and holding it
+payment is burned. Hold 1,000,000 $ROKHA and the Studio and the Lab stay open while you do.
+You never need it to use Rokha. It isn't an investment and holding it
 earns nothing.
 
 ## How money moves
