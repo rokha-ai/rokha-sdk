@@ -6609,6 +6609,12 @@ paths:
         as the MCP tool `hunt_report` and the `hunt` rig. A Solana contract address — bare, or in a
         pump.fun, DexScreener or Solscan link — is a lead too: the token is audited by Solwatch, and
         Mark Check wraps the hunt. A read of public data, not advice.
+        Since 2026-10-29 the agent door is audited too: the MCP server and the A2A agent card the
+        hunt finds are each scored on the public reference rubric — schema · docs · safety ·
+        efficiency · compatibility · protocol — with a letter grade, the issues (each with a fix)
+        and what passed; reliability and stability are reported as not measured (they need days of
+        history). Read-only: tools/list, initialize, one Origin probe, the agent card, one
+        tasks/get for an impossible id. Tool-poisoning patterns become red flags.
         Public; a daily ceiling applies (`error: daily_ceiling`).
       operationId: getHunt
       parameters:
@@ -6649,7 +6655,44 @@ paths:
                   read: { type: string, description: "One sentence: can they trust and use it, and what to verify first" }
                   share_url: { type: string, format: uri, description: "The public page for this hunt (unfurls on X with the card)" }
                   card_url: { type: string, format: uri, description: "The 1200×630 PNG share card" }
-                  stage: { type: object, additionalProperties: true, description: "A rokha_app block — title, verdict, metrics, sections (prose + the flag/surface tables), a Hunt-another action" }
+                  stage: { type: object, additionalProperties: true, description: "A rokha_app block — title, verdict, metrics (incl. the door grade tile), sections (prose + the door-audit, flag and surface tables), a Hunt-another action" }
+                  door_audit:
+                    type: object
+                    description: "The agent-door audit — `mcp` and `a2a` are each null when no such door was found"
+                    properties:
+                      mcp:
+                        type: object
+                        nullable: true
+                        additionalProperties: true
+                        properties:
+                          url: { type: string, format: uri }
+                          grade: { type: string, enum: [A, B, C, D, F] }
+                          score: { type: integer, minimum: 0, maximum: 100 }
+                          tool_count: { type: integer }
+                          tokens: { type: object, properties: { total: { type: integer }, per_tool_median: { type: integer }, heaviest: { type: array, items: { type: object, properties: { name: { type: string }, tokens: { type: integer } } } }, estimate: { type: string } } }
+                          categories: { type: object, additionalProperties: { type: object, properties: { score: { type: integer }, weight: { type: number } } }, description: "schema · docs · safety · efficiency · compatibility · protocol" }
+                          not_measured: { type: array, items: { type: string }, description: "reliability, stability" }
+                          safety_level: { type: string, enum: [clear, review, danger] }
+                          protocol_version: { type: string, nullable: true }
+                          origin_check: { type: string, enum: [accepted, refused, not_probed] }
+                          issues: { type: array, items: { type: object, properties: { id: { type: string }, severity: { type: string, enum: [error, warning, info] }, category: { type: string }, message: { type: string }, fix: { type: string } } } }
+                          passed: { type: array, items: { type: string } }
+                          summary: { type: string, description: "e.g. `MCP door B (89/100): 0 error(s), 1 warning(s) across 28 tool(s); …`" }
+                      a2a:
+                        type: object
+                        nullable: true
+                        additionalProperties: true
+                        properties:
+                          card_url: { type: string, format: uri }
+                          url: { type: string, description: "The card's JSON-RPC url" }
+                          name: { type: string }
+                          grade: { type: string, enum: [A, B, C, D, F] }
+                          score: { type: integer, minimum: 0, maximum: 100 }
+                          skills: { type: integer }
+                          live: { type: string, nullable: true, enum: [answered, gated, silent], description: "gated = the door answered 401/403 to the impossible-id probe, i.e. live behind credentials" }
+                          issues: { type: array, items: { type: object, properties: { id: { type: string }, severity: { type: string }, category: { type: string }, message: { type: string }, fix: { type: string } } } }
+                          passed: { type: array, items: { type: string } }
+                          summary: { type: string }
                   cached: { type: boolean }
                   generated_at: { type: string, format: date-time }
                   note: { type: string }
