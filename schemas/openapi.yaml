@@ -6012,7 +6012,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SignalCrewsBoard' }
         '401': { description: "`sign_in` — no login. Windsock intel comes with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($249 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`store_unavailable` — the crews could not be read; try again shortly", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/signals/early:
