@@ -64,10 +64,7 @@ NAV = [
     ]),
 ]
 # Pages kept for old links, outside the nav.
-EXTRA = {
-    "leaderboard.html": ("Project", "The Tailwind (history)"),
-    "telegram-bot.html": ("For agents", "Telegram (off)"),
-}
+EXTRA = {}
 
 TABS = [
     ("index.html", "Docs"),

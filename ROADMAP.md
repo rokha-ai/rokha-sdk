@@ -106,5 +106,5 @@ Being findable where agents — and the people who run them — look.
 
 - **Site:** [rokha.ai](https://rokha.ai) · **Docs:** [docs.rokha.ai](https://docs.rokha.ai)
 - **X:** [@Rokha_ai](https://x.com/Rokha_ai) (brand) · [@rokha_agent](https://x.com/rokha_agent) — progress posts only; neither answers mentions or DMs
-- **Talk to Rokha:** on rokha.ai or over MCP (no Telegram bot or groups for now)
+- **Talk to Rokha:** on rokha.ai or over MCP
 - **For agents:** `https://rokha.ai/llms.txt` · `https://rokha.ai/mcp/jsonrpc` (`ai.rokha/rokha` in the MCP Registry)

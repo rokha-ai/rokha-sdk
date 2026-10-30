@@ -6,6 +6,45 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-30 — retired programs leave the contract
+
+**What changed**
+
+- `schemas/openapi.yaml` drops the doors of programs Rokha no longer runs. Each was checked against
+  the live server first: the doors below are no longer routed, or answer 410.
+  - Campaigns, support campaigns and Amplify: `GET /api/campaigns`, `POST /api/campaigns/{id}/support`,
+    `GET /api/campaigns/me`, `GET|POST /api/admin/campaigns`, `POST /api/admin/campaigns/{id}/end`,
+    `GET|POST /api/amplify/campaigns`, `POST /api/amplify/campaigns/{id}/optin`,
+    `POST /api/amplify/roster/join`, `POST /api/admin/amplify/roster/{handle}/approve`.
+  - The Network plans and ladder: `GET /api/network/plans`, `POST /api/network/subscribe`,
+    `GET /api/network/me`, `GET /api/network/me/report`, `GET /api/network/members`,
+    `GET /api/network/members/{handle}`, `GET /api/network/members/{handle}/report`.
+  - The attention board and the Tailwind: `GET /api/board/incubation`, `GET /api/board/members`,
+    `GET /api/board/me`, `GET /api/board/justify/{handle}`, `GET /api/tailwind`,
+    `GET /api/pages/leaderboard`.
+  - Paid promotion: `GET /api/ads/packages`, `POST /api/carry/orders` (410).
+  - Playground bounties: `GET|POST /api/bounties`, `POST /api/bounties/{id}/attempts`,
+    `POST /api/bounties/{id}/entries`, and `bounty_attempt` on the `POST /api/rigs/run` body (a run
+    that sends it answers 410).
+  - Schemas no longer referenced: `NetworkReport`, `AttentionBoard`, `AttentionRow`,
+    `PromoterSection`. The page payload's `promoter` block, the `focus` roster gate wording,
+    `campaign_id` on `POST /api/ladder/ref`, and the Lab's `telegram_answers_today` and
+    `daily_only` fields are gone with them.
+- The `sponsors` toolset and the `<brand>__<tool>` sponsor doors are gone from the MCP
+  description; `?toolset=sponsors` is ignored. MCP twins that now answer retired are no longer
+  named beside doors that still answer (the network briefs and picks, hunting-party tools, the
+  ad-network reads, fuel boosts, the payout ledger, the media library, `referrals_me` —
+  use `affiliate_me`).
+- Docs: the Tailwind history page (`leaderboard.html`) and the Telegram page (`telegram-bot.html`)
+  are removed; the Campaigns section leaves `guides/how-it-works.md`; the `rokha-network` skill
+  drops campaigns, `network_plans` and the `sponsors` toolset. Telegram is retired for good.
+
+**Breaking:** yes, for any client still calling the doors above — they answer 404 (or 410) on
+the live server already; this change only stops documenting them. A rig run that sends
+`bounty_attempt` is refused with 410. Affiliates and referrals, creator sales, hires, Tasks,
+$ROKHA pay and the balance, Signet, the Lab, Hunt, Mark Check, the Caller Ledger and mints are
+unchanged. Versions stay 1.0.0.
+
 ## 2026-10-29 — the Caller Ledger, the Captain's log, Rokha's mints, share cards
 
 **What changed**
