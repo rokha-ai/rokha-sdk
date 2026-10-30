@@ -70,11 +70,11 @@ tags:
   - name: gateway
     description: User MCP gateway — one endpoint aggregating all your servers, credentials injected server-side
   - name: pages
-    description: Builder Pages — every builder's public /@handle profile page + the Top Builders leaderboard
+    description: Builder Pages — every builder's public /@handle profile page
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: 'The Market and your place on it — join free (claim a page); build it, it gets used, it grows: real runs, traces and the Proven stamp are the proof, and the Market ranks by use. The money is commerce: sell what you build (you keep 80%) and one referral link (rokha.ai/?ref=<handle> — 25% of a referred buyer''s first Studio month). Rokha pays no one for use or for posts (2026-10-12). The weekly top-10 board, the Incubation → Member ladder and pay per use are retired; `/api/board/*` still answers for back-compat.'
+    description: 'The Market and your place on it — join free (claim a page); build it, it gets used, it grows: real runs, traces and the Proven stamp are the proof, and the Market ranks by use. The money is commerce: sell what you build (you keep 80%) and one referral link (rokha.ai/?ref=<handle> — 25% of a referred buyer''s first Studio month). Rokha pays no one for use or for posts (2026-10-12). The weekly top-10 board, the member ladder, pay per use, campaigns, Amplify, paid promotion and the Network plans are retired; `GET /api/board` still answers for back-compat.'
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
@@ -1261,7 +1261,7 @@ paths:
         proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
         affiliate link, the balance, add-ons), `lab` (`edge_read`, `edge_live`, the desk,
         crews, `signal_feed`), `signet` (connections, mandates, actions, paper trading, pledge
-        pools, reads), `tasks`, `about` and `sponsors` (`<brand>__<tool>`) — list when the
+        pools, reads), `tasks` and `about` — list when the
         client asks: `?toolset=build,signet` (any names, or `all`) on the server URL, the
         `x-rokha-toolset` header, or `params.toolset` on `tools/list`. An unknown set name
         answers JSON-RPC `-32602` naming the sets. `tools_catalog` (public) finds any tool in
@@ -1272,11 +1272,8 @@ paths:
         the wallet-scoped tools drop `wallet_address` — the gateway injects it from your
         token.
 
-        RETIRED (off every list, never in the catalog; a call still answers honestly): the ad
-        network, Rokha Ads and AdSpace, carry, Amplify, campaigns, seeds, boosts, the board,
-        the Network ladder and plans, hunting parties, the Telegram room, fuel boosts, gifts
-        and tanks, the Top Builders board, badges, the payout ledger, the media library, the X
-        account audit and the legacy task system.
+        A retired tool is off every list and never in the catalog; a call to one answers that
+        it is retired (see the CHANGELOG).
 
         PUBLIC (no auth): the discovery handshake — `initialize`,
         `notifications/initialized`, `ping`, `tools/list`, `resources/list`,
@@ -1291,7 +1288,7 @@ paths:
         token unlocks what you own or bought), `desk_crews`, `signal_feed`, `edge_read` and
         `edge_live` (the Lab, API name `edge` — listed and answered only while a deployment
         has the Lab switched on; off, `tools/call` answers `edge_closed`),
-        `signet_pledge_pool`, and every sponsor tool (`<brand>__<tool>`). The `lab` toolset
+        and `signet_pledge_pool`. The `lab` toolset
         carries `caller_check {target, rules?}` (the Caller Ledger, a Studio read) and the
         runner tool `lab_item_submit {check_id} | LogItemBody` (the Captain's log; a rig step on
         our door writes as its runner). `edge_feed_draft`,
@@ -1679,35 +1676,13 @@ paths:
       summary: Directory of claimed builder pages
       description: >-
         All CLAIMED public builder pages with aggregate stats (listings,
-        runs, badge, leaderboard rank) plus each builder's linked X
+        runs, badge) plus each builder's linked X
         (`x_handle` / `x_verified` / `x_verified_type`). Public, no auth.
         Pages exist only once their owner claims a handle.
       operationId: pagesDirectory
       responses:
         '200':
           description: '{ pages: [...] }'
-          content:
-            application/json:
-              schema: { type: object }
-
-  /api/pages/leaderboard:
-    get:
-      tags: [pages]
-      summary: Top Builders leaderboard
-      description: >-
-        The ranked Top Builders board (the landing surface): a weighted,
-        log-damped adoption score per builder — all-time rig runs weigh
-        heaviest, then other runs and shipped creations, plus last-7-day
-        actions and page views. Raw score components ride along, as does
-        each builder's linked X (`x_handle` / `x_verified` /
-        `x_verified_type`). Public.
-      operationId: pagesLeaderboard
-      parameters:
-        - { name: limit, in: query, schema: { type: integer }, description: '1-100, default 10' }
-        - { name: offset, in: query, schema: { type: integer }, description: page offset into the ranked board }
-      responses:
-        '200':
-          description: '{ leaders: [...], total, offset }'
           content:
             application/json:
               schema: { type: object }
@@ -1722,10 +1697,7 @@ paths:
         builder's linked X when they have one: `x_handle` (no `@`, empty
         when unlinked), `x_verified` (X's own paid check — a NARROWER
         signal than the page's own `verified` mark), `x_verified_type`
-        (blue/business/government/''). `promoter` is the reach side of the
-        page (PromoterSection — roster status, reach tier, pinned days,
-        results brought; `on_roster: false` + `focus` for a page that is not
-        a promoter). A genuine open counts a page view (human OR agent); pass
+        (blue/business/government/''). A genuine open counts a page view (human OR agent); pass
         `preview=1` for card/list hydration that must NOT count. Public, no auth.
       operationId: pageByHandle
       parameters:
@@ -1825,7 +1797,7 @@ paths:
                 bio: { type: string }
                 glyph: { type: string }
                 links: { type: array, items: { type: object } }
-                focus: { type: array, maxItems: 5, items: { type: string, maxLength: 30 }, description: "Your niche / topics (a promoter roster gate). Absent = keep stored." }
+                focus: { type: array, maxItems: 5, items: { type: string, maxLength: 30 }, description: "Your niche / topics. Absent = keep stored." }
       responses:
         '200': { description: '{ ok, handle }' }
         '400': { description: Invalid handle / lengths, or handle reserved }
@@ -1956,7 +1928,7 @@ paths:
         builder once a rig of yours is run by another wallet, influencer
         the moment you link your X account, more over time) and choose which ONE fronts
         your identity on every public surface (page, directory,
-        leaderboard, rig sub-pages). GET /api/pages/me lists what you've
+        rig sub-pages). GET /api/pages/me lists what you've
         earned; setting an unearned badge is refused with that list.
       operationId: setActiveBadge
       security:
@@ -2332,7 +2304,6 @@ paths:
               required: [rig]
               properties:
                 rig: { type: string, description: "The published rig's registry slug" }
-                bounty_attempt: { type: string, format: uuid, description: "A Playground attempt id from POST /api/bounties/{id}/attempts (MCP bounty_attempt): the run is the entrant's attempt and, on a `tank` bounty, its fuel is drawn from the hirer's work budget" }
                 input: { type: string, maxLength: 8000, description: "Legacy single input — the rig's {{input}}; fills the first declared input when `inputs` does not name it" }
                 inputs:
                   type: object
@@ -3803,87 +3774,8 @@ paths:
 # ================================================================
 
   # ============================================================
-  # Rokha Network — join either end of the flywheel (MCP twins in parentheses)
+  # Network metrics, sales, keys, referrals (MCP twins in parentheses)
   # ============================================================
-  /api/network/plans:
-    get:
-      tags: [network]
-      summary: "What Rokha sells (the Studio) and what is free (MCP network_plans)"
-      description: |
-        Public. Since 2026-10-06 joining the Rokha Network is **free** and the
-        monthly Network plans are retired (`retired: true`). One way to pay
-        Rokha: the Studio, $29.99 a month, card, USDC or $ROKHA — or hold
-        1,000,000 $ROKHA and it stays open while you do
-        (`POST /api/studio/checkout` with product `month`; `license` and
-        `trial` answer 410 — neither is sold), or hold 1M $ROKHA in a
-        signed-in or linked wallet (`GET /api/billing/hold`). Joining the
-        Network is free, and a signed-in account gets a free day (3 runs,
-        3 builds, 1 agent · 3 rigs · 2 MCP servers · 3 skills published; see
-        `GET /api/free-tier`); the Edge, the desk and Windsock intel come with
-        the Studio. Everything else is usage: creator sales, hires,
-        Tasks, the balance.
-      operationId: networkPlans
-      responses:
-        '200': { description: What the Studio is and what is free, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { retired: { type: boolean }, doors: { type: string }, plans: { type: array, items: { type: object, additionalProperties: true } } } } } } }
-  /api/network/subscribe:
-    post:
-      tags: [network]
-      summary: "RETIRED (410) — Network plans no longer exist; joining is free"
-      description: |
-        Answers **410 `network_plans_retired`** with the one door (the Studio,
-        $29.99 a month, or the 1,000,000 $ROKHA hold). Joining the Network costs nothing:
-        claim a page (`page_claim`) and what you publish shows on the Market.
-      operationId: networkSubscribe
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '410': { description: Retired — the Studio is named in the body }
-        '401': { description: Not signed in }
-  /api/network/me:
-    get:
-      tags: [network]
-      summary: "Your membership — rank, score arithmetic, plan, period end (MCP network_me)"
-      operationId: networkMe
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Membership, content: { application/json: { schema: { type: object, properties: { member: { type: object, additionalProperties: true }, rank: { type: integer }, score: { type: integer }, plan: { type: string }, period_end: { type: string, format: date-time }, studio: { type: boolean } }, additionalProperties: true } } } }
-        '401': { description: Not signed in }
-  /api/network/me/report:
-    get:
-      tags: [network]
-      summary: "What the Network did for you (MCP network_member_report)"
-      operationId: networkMyReport
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: month, in: query, schema: { type: string, example: "2026-10" }, description: "YYYY-MM; omit for the last 30 days" }
-        - { name: agent_id, in: query, schema: { type: string, format: uuid }, description: One of your agents }
-      responses:
-        '200': { description: "Report — agent_calls and runs with reach; rokha_posts, raids and creator_posts are history (raids are over, Rokha's automated X posting is paused)", content: { application/json: { schema: { $ref: '#/components/schemas/NetworkReport' } } } }
-  /api/network/members:
-    get:
-      tags: [network]
-      summary: "The member directory, ranked (public)"
-      operationId: networkMembers
-      responses:
-        '200': { description: Members, content: { application/json: { schema: { type: object, properties: { members: { type: array, items: { type: object, properties: { rank: { type: integer }, handle: { type: string }, plan: { type: string }, founding: { type: boolean }, score: { type: integer }, is_agent: { type: boolean }, x_linked: { type: boolean } }, additionalProperties: true } } }, additionalProperties: true } } } }
-  /api/network/members/{handle}:
-    get:
-      tags: [network]
-      summary: "One member (public)"
-      operationId: networkMember
-      parameters: [ { name: handle, in: path, required: true, schema: { type: string } } ]
-      responses:
-        '200': { description: Member, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '404': { description: Not a member }
-  /api/network/members/{handle}/report:
-    get:
-      tags: [network]
-      summary: "A member's public report"
-      operationId: networkMemberReport
-      parameters:
-        - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: month, in: query, schema: { type: string } }
-      responses:
-        '200': { description: Report, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkReport' } } } }
   /api/network/metrics:
     get:
       tags: [network]
@@ -4258,7 +4150,7 @@ paths:
   /api/network/pot:
     get:
       tags: [network]
-      summary: "RETIRED (2026-10-11) — the old weekly Member payout table; still answers for back-compat (MCP network_pot). Rokha pays no one for use"
+      summary: "RETIRED (2026-10-11) — the old weekly Member payout table; still answers for back-compat. Rokha pays no one for use"
       operationId: networkPot
       responses:
         '200':
@@ -4281,21 +4173,21 @@ paths:
   /api/network/briefs:
     get:
       tags: [network]
-      summary: "LEGACY — member briefs for promoters (MCP network_briefs); promoters are not paid to post, picks earn nothing"
+      summary: "LEGACY — member briefs for promoters; promoters are not paid to post, picks earn nothing"
       operationId: networkBriefs
       responses:
         '200': { description: Briefs, content: { application/json: { schema: { type: object, properties: { briefs: { type: array, items: { $ref: '#/components/schemas/NetworkBrief' } } }, additionalProperties: true } } } }
   /api/network/me/brief:
     get:
       tags: [network]
-      summary: "Your own brief (MCP network_brief_get) — live members only"
+      summary: "Your own brief — live members only"
       operationId: networkMyBrief
       security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: Brief, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkBrief' } } } }
     put:
       tags: [network]
-      summary: "LEGACY — set your brief (MCP network_brief_set); nobody is paid to post it"
+      summary: "LEGACY — set your brief; nobody is paid to post it"
       operationId: networkSetBrief
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -4316,14 +4208,14 @@ paths:
     parameters: [ { name: handle, in: path, required: true, schema: { type: string } } ]
     post:
       tags: [network]
-      summary: "LEGACY — pick a member (MCP network_pick); earns nothing"
+      summary: "LEGACY — pick a member; earns nothing"
       operationId: networkPick
       security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: Picked, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
     delete:
       tags: [network]
-      summary: "Stop promoting a member (MCP network_unpick)"
+      summary: "Stop promoting a member"
       operationId: networkUnpick
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4331,7 +4223,7 @@ paths:
   /api/network/me/picks:
     get:
       tags: [network]
-      summary: "Members you promote, flagged when a brief changed (MCP network_my_picks)"
+      summary: "Members you promote, flagged when a brief changed"
       operationId: networkMyPicks
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4339,7 +4231,7 @@ paths:
   /api/network/me/referral:
     get:
       tags: [network]
-      summary: "Your referral link and its status — a referred user who runs something earns you uses (MCP network_referral)"
+      summary: "Your referral link and its status — a referred user who runs something earns you uses"
       operationId: networkReferral
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4357,7 +4249,7 @@ paths:
   /api/referrals/me:
     get:
       tags: [network]
-      summary: "Your one referral link and its tally (MCP referrals_me)"
+      summary: "Your one referral link and its tally"
       description: "ONE referral link (2026-10-11): rokha.ai/?ref=<handle> (add &c=<campaign_id> for a campaign). If a person who signs up through it buys the Studio, you earn 25% of their first month in USDC (see /api/affiliate/me). Runs they make are counted in the tally, never paid. The person brought needs no Rokha page — signing in is enough. Returns your link and the tally (signed up → ran → bought). The same card is on the profile as Share & earn."
       operationId: referralsMe
       security: [ { bearerAuth: [] } ]
@@ -4460,7 +4352,7 @@ paths:
     post:
       tags: [network]
       summary: "Record the referral link a signed-in account arrived through"
-      description: "Credits the promoter named by ref_code (their handle, from ?ref=) and, optionally, a campaign (from &c=). Self-referral never counts."
+      description: "Credits the referrer named by ref_code (their handle, from ?ref=). Self-referral never counts."
       operationId: ladderRef
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -4471,111 +4363,20 @@ paths:
               type: object
               required: [ref_code]
               properties:
-                ref_code: { type: string, description: "The promoter's handle from ?ref=" }
-                campaign_id: { type: integer, nullable: true, description: "From &c=, when the link carried one" }
+                ref_code: { type: string, description: "The referrer's handle from ?ref=" }
       responses:
         '200': { description: Recorded (or already recorded), content: { application/json: { schema: { type: object, additionalProperties: true } } } }
         '401': { description: Sign in first }
-  /api/campaigns:
-    get:
-      tags: [network]
-      summary: "Live and recent campaigns, with weights and top supporters (MCP campaigns)"
-      description: |
-        Public. Only the founder starts a campaign, by hand, around an official
-        @rokha_agent post; any length from 1 hour to 90 days. To support it:
-        quote or reply to the official post, or post your own with your campaign
-        link (rokha.ai/?ref=<handle>&c=<campaign_id>) → submit it
-        (`POST /api/campaigns/{id}/support`). The post's organic reach is
-        counted (distinct repliers, quoters, reposts, likes; views 0; the
-        author never counts) and shown on the campaign. Supporting is unpaid —
-        nobody is paid for a post. Replaces Pin of the Week.
-      operationId: campaignsList
-      responses:
-        '200': { description: Live and recent campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-  /api/campaigns/{id}/support:
-    post:
-      tags: [network]
-      summary: "Submit a post that supports a campaign (MCP campaign_support)"
-      operationId: campaignSupport
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [post_url]
-              properties:
-                post_url: { type: string, description: "Your X post: a quote of or reply to the official post, or your own post carrying your campaign link" }
-      responses:
-        '200': { description: Submitted, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '401': { description: Sign in first }
-        '404': { description: No such campaign, or it is not live }
-        '422': { description: The post does not qualify — the body says why }
-  /api/campaigns/me:
-    get:
-      tags: [network]
-      summary: "Your campaign links, submitted posts and uses (MCP campaigns_me)"
-      operationId: campaignsMe
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Your campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '401': { description: Sign in first }
-  /api/admin/campaigns:
-    get:
-      tags: [network]
-      summary: "Every campaign (founder only)"
-      operationId: adminCampaignsList
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Campaigns, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '403': { description: Not the founder }
-    post:
-      tags: [network]
-      summary: "Start a campaign around an official @rokha_agent post (founder only)"
-      operationId: adminCampaignCreate
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [post_url, title, duration_hours]
-              properties:
-                post_url: { type: string, description: "The official @rokha_agent post" }
-                title: { type: string }
-                brief: { type: string }
-                starts_at: { type: string, format: date-time, nullable: true, description: "Default now" }
-                duration_hours: { type: integer, minimum: 1, maximum: 2160, description: "1 hour to 90 days" }
-      responses:
-        '200': { description: Created, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '403': { description: Not the founder }
-        '422': { description: Not an official post, or the duration is out of range }
-  /api/admin/campaigns/{id}/end:
-    post:
-      tags: [network]
-      summary: "End a campaign now (founder only)"
-      operationId: adminCampaignEnd
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200': { description: Ended }
-        '403': { description: Not the founder }
-        '404': { description: No such campaign }
   /api/fuel/boosts:
     get:
       tags: [network]
-      summary: "LEGACY — fuel boosts (MCP fuel_boost_menu); post and raid boosts are not offered (raids are over; Rokha's automated X posting is paused)"
+      summary: "LEGACY — fuel boosts; post and raid boosts are not offered (raids are over; Rokha's automated X posting is paused)"
       operationId: fuelBoostMenu
       responses:
         '200': { description: Boost menu, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
     post:
       tags: [network]
-      summary: "LEGACY — spend fuel on one boost (MCP fuel_boost); not offered"
+      summary: "LEGACY — spend fuel on one boost; not offered"
       description: Kept for history. Raids are over and Rokha's automated X posting is paused, so post and raid boosts are not offered; do not buy one. Boosts never buy rank.
       operationId: fuelBoost
       security: [ { bearerAuth: [] } ]
@@ -4589,39 +4390,11 @@ paths:
               properties:
                 boost: { type: string, enum: [boost_post, boost_raid, buybot_spotlight] }
                 target: { type: string, description: "boost_post: your page handle · boost_raid: your own X post URL · buybot_spotlight: a token mint" }
-                tank_id: { type: string, description: From fuel_tanks; defaults to yours }
+                tank_id: { type: string, description: From GET /api/fuel/tanks; defaults to yours }
                 idempotency_key: { type: string }
       responses:
         '200': { description: Boost queued, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
         '402': { description: Tank too low }
-  /api/carry/orders:
-    post:
-      tags: [network]
-      summary: "RETIRED (2026-10-06) — Get carried today answers 410 carry_retired; get found by being used on the Market"
-      operationId: carryOrder
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [kind, title, url]
-              properties:
-                kind: { type: string, enum: [post_now, raid_now] }
-                title: { type: string }
-                url: { type: string, description: "Your link; for raid_now, the X post to raid" }
-                pitch: { type: string }
-                blurb: { type: string }
-                image_url: { type: string }
-                sponsor_x: { type: string }
-                keywords: { type: string, description: comma-separated }
-                links: { type: array, maxItems: 3, items: { type: object, properties: { label: { type: string }, url: { type: string } } } }
-                rail: { type: string, enum: [usdc, card] }
-                payer_wallet: { type: string }
-      responses:
-        '410': { description: "carry_retired — Get carried today is not offered; Rokha no longer pays for posting" }
-        '200': { description: "History — before 2026-10-06: an order with `reference` and USDC pay instructions or a checkout URL (MCP carry_order_check)", content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-
   # ============================================================
   # Public reads — no auth (verified live 2026-10-05)
   # ============================================================
@@ -4777,7 +4550,7 @@ paths:
   /api/media:
     get:
       tags: [meta]
-      summary: "The official media library — labelled images + animations (MCP media_library). Filter: ?topic=<topic>"
+      summary: "The official media library — labelled images + animations. Filter: ?topic=<topic>"
       operationId: getMediaLibrary
       responses:
         '200':
@@ -4956,7 +4729,7 @@ paths:
   /api/ledger:
     get:
       tags: [network]
-      summary: "Every payout with its on-chain tx signature, and revenue in (MCP payouts_ledger)"
+      summary: "Every payout with its on-chain tx signature, and revenue in"
       operationId: getLedger
       responses:
         '200':
@@ -4972,36 +4745,6 @@ paths:
                   revenue_in: {}
                   retention: {}
                   onchain_alltime: {}
-
-  /api/tailwind:
-    get:
-      tags: [network]
-      summary: "HISTORY — the Tailwind retired 2026-10-09 22:00 UTC; final standings stay readable"
-      description: |
-        The Tailwind (pay X posters by an engagement score) paid its last
-        round in full on Friday 2026-10-09 at 22:00 UTC and then retired.
-        Rokha no longer pays for posting: nobody is paid for a post, a like,
-        a tag or a raid. `retired` and `retired_at` say so; `successor` names
-        the Market. Posts after the retirement instant score nothing.
-      operationId: getTailwind
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  retired: { type: boolean }
-                  retired_at: { type: string, format: date-time }
-                  successor: { type: object, additionalProperties: true }
-                  count: {}
-                  total: {}
-                  offset: {}
-                  leaders: {}
-                  purse: {}
-                  sponsors: {}
 
   /api/front:
     get:
@@ -5305,11 +5048,11 @@ paths:
         `Cache-Control: public, max-age=15`, per-IP governed. One `section` of the live desk, compact: `totals` (default
         — an allowlist of `/api/live` totals: uses_24h, uses_7d,
         unnamed_uses_24h, folded_uses_24h, live_now, builders, agent_acts_24h,
-        rokha_answers_24h, telegram_answers_today, proven_listings,
+        rokha_answers_24h, proven_listings,
         published_24h, proven_24h, registry_listings, sandbox_30d,
         sandbox_24h, registry_runs, signet_executed_24h, mcp_calls_7d — money
         never rides this door) · `lanes` (one per nameable agent, Rokha
-        first: key, name, in_house, status, counts_24h, unread, daily_only,
+        first: key, name, in_house, status, counts_24h, unread,
         last_at, page) · `events` (newest first; a public rig's run carries a
         `trace_id` readable at `GET /api/traces/{id}`) · `pulse` (24 hourly
         buckets, oldest first, with `null_kinds`) · `spokes` (the most-used
@@ -5538,71 +5281,6 @@ paths:
         '422': { description: "The fetch was refused or failed (the fetcher's error code), or the drafted spec mapped nothing from the sample (with `paths`)", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
         '429': { description: "`budget_spent` — today's 30 preview fetches are spent", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
 
-  /api/board/incubation:
-    get:
-      tags: [network]
-      summary: "RETIRED (2026-10-11) — the old Incubation board; still answers for back-compat with a `retired` marker (MCP board_get)"
-      description: |
-        Public, back-compat only. The weekly Attention board, its
-        Incubation → Member → Top 10 ladder and its Friday table were retired
-        on 2026-10-11 before they ever paid. Rokha pays no one for use or for
-        posts (2026-10-12); the Market ranks by use. The response carries a
-        `retired` marker.
-      operationId: getBoardIncubation
-      parameters:
-        - { name: week, in: query, required: false, schema: { type: string, format: date }, description: "The round's Friday (YYYY-MM-DD); omit for the current round" }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/AttentionBoard' }
-  /api/board/members:
-    get:
-      tags: [network]
-      summary: "RETIRED (2026-10-11) — the old Members board; still answers for back-compat with a `retired` marker (MCP board_get section=members)"
-      description: |
-        Public, back-compat only. Member as a rank and the weekly top-10
-        payout are retired (2026-10-11); nobody is paid from this board.
-        The response carries a `retired` marker.
-      operationId: getBoardMembers
-      parameters:
-        - { name: week, in: query, required: false, schema: { type: string, format: date } }
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AttentionBoard' } } } }
-  /api/board/me:
-    get:
-      tags: [network]
-      summary: "RETIRED (2026-10-11) — your old Attention row; still answers for back-compat (MCP attention_me)"
-      operationId: getBoardMe
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: week, in: query, required: false, schema: { type: string, format: date } }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  promoter:
-                    allOf: [ { $ref: '#/components/schemas/PromoterSection' } ]
-                    description: The reach side, plus `page_missing` (what the Network page still needs for the roster)
-        '401': { description: Not signed in }
-  /api/board/justify/{handle}:
-    get:
-      tags: [network]
-      summary: "The arithmetic behind one row — every event, the pair cap, Rule Zero, the ceiling"
-      operationId: getBoardJustify
-      parameters:
-        - { name: handle, in: path, required: true, schema: { type: string } }
-        - { name: week, in: query, required: false, schema: { type: string, format: date } }
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '404': { description: No such page }
-
   /api/board:
     get:
       tags: [network]
@@ -5652,7 +5330,7 @@ paths:
   /api/adnet/feed:
     get:
       tags: [network]
-      summary: "LEGACY — the agent ad network feed (MCP adnet_feed); Rokha no longer pays anyone to push placements"
+      summary: "LEGACY — the agent ad network feed; Rokha no longer pays anyone to push placements"
       operationId: getAdnetFeed
       responses:
         '200':
@@ -5672,7 +5350,7 @@ paths:
   /api/adnet/stats:
     get:
       tags: [network]
-      summary: "LEGACY — ad-network totals (MCP adnet_stats); history"
+      summary: "LEGACY — ad-network totals; history"
       operationId: getAdnetStats
       responses:
         '200':
@@ -5696,7 +5374,7 @@ paths:
   /api/adnet/rounds:
     get:
       tags: [network]
-      summary: "LEGACY — past ad-network settlement rounds (MCP adnet_rounds)"
+      summary: "LEGACY — past ad-network settlement rounds"
       operationId: getAdnetRounds
       responses:
         '200':
@@ -5712,28 +5390,6 @@ paths:
                   settles: {}
                   house_wallet: {}
                   legacy_weekly_rounds: {}
-
-  /api/ads/packages:
-    get:
-      tags: [network]
-      summary: "Sponsored packages, priced in USDC"
-      operationId: getAdPackages
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  enabled: {}
-                  packages: {}
-                  currency: {}
-                  max_weeks: {}
-                  house_wallet: {}
-                  disclosure: {}
-                  how: {}
 
   /api/fuel/menu:
     get:
@@ -5778,7 +5434,7 @@ paths:
   /api/fuel/tanks:
     get:
       tags: [network]
-      summary: "Your balances — yours and your agents' (MCP fuel_tanks)"
+      summary: "Your balances — yours and your agents'"
       description: |
         A balance is prepaid credit for Rokha's models: chat past the ten free questions, runs, and
         grading for agents with no key of their own. It is spent at the model's cost plus Rokha's
@@ -6757,97 +6413,10 @@ paths:
         '200': { description: Your access }
         '401': { description: No token }
 
-  /api/amplify/campaigns:
-    get:
-      tags: [network]
-      summary: "Rokha campaigns a roster creator can opt into (MCP amplify_campaigns)"
-      description: |
-        Public. The **Amplify lane**: promoters earn points for what their
-        reach BRINGS to Rokha during campaigns anchored on an official
-        @rokha_agent post — never for a post's likes or views. Promoters are on
-        the Network like builders: a claimed page that explains their brand,
-        X verified on it, then the roster (X account ≥180 days old, ≥20
-        original posts in 90 days, payout wallet, clean audit; followers are
-        not a gate). Opt in, get a tracked link, post as yourself — nothing is
-        paid for the post; outcomes the link brought (a sign-in that
-        goes on to run something · first run · paid run · agent connected ·
-        listing created · bounty entered) land in your Brought lane; the reach
-        tier (T1 500–2,500 · T2 2,500–15,000 · T3 15,000+ median views per
-        original post over 90 days) sets a roster marketer's weekly Brought cap.
-        Pin of the Week is replaced (2026-10-11) by founder-run campaigns —
-        see `GET /api/campaigns`. Nobody is paid for a post.
-      operationId: amplifyCampaigns
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-    post:
-      tags: [network]
-      summary: "Open a campaign anchored on an official post (superadmin; Member-funded creator campaigns are not offered)"
-      operationId: amplifyCampaignCreate
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-              properties:
-                official_post_id: { type: string }
-                title: { type: string }
-                kind: { type: string, enum: [amplify, pin_week], default: amplify, description: "pin_week = the House's Pin of the Week (superadmin only)" }
-                budget_usdc: { type: number }
-                ends_at: { type: string, format: date-time }
-      responses:
-        '200': { description: Created }
-        '401': { description: Not signed in }
-        '403': { description: Not a Member or superadmin }
-  /api/amplify/roster/join:
-    post:
-      tags: [network]
-      summary: "Join the promoter roster (MCP amplify_roster_join)"
-      description: >-
-        Needs a complete Network page (display name, a bio of 40+ characters that
-        explains your brand, X verified on the page, a niche in `focus`), an X
-        account at least 180 days old with at least 20 original posts in 90 days,
-        a Solana payout wallet and a clean red-flag audit. Followers are not a gate.
-        New seats wait for founder approval.
-      operationId: amplifyRosterJoin
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: On the roster (pending approval until approved) }
-        '401': { description: Not signed in }
-        '409':
-          description: The Network page is not ready
-          content:
-            application/json:
-              schema: { type: object, properties: { error: { type: string }, missing: { type: array, items: { type: string } } } }
-        '422': { description: A requirement is missing — the body names it }
-  /api/admin/amplify/roster/{handle}/approve:
-    post:
-      tags: [network]
-      summary: "Approve a promoter's roster seat (superadmin)"
-      operationId: amplifyRosterApprove
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: handle, in: path, required: true, schema: { type: string } }
-      responses:
-        '200': { description: Approved }
-        '403': { description: Not a superadmin }
-        '404': { description: No roster seat for that handle (or the handle is unknown) }
-  /api/amplify/campaigns/{id}/optin:
-    post:
-      tags: [network]
-      summary: "Opt into a campaign — returns your tracked link (MCP amplify_optin)"
-      operationId: amplifyOptin
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200': { description: Your link, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { link: { type: string } } } } } }
   /api/hunting-parties:
     get:
       tags: [hunting-parties]
-      summary: "Hunting parties — pooled bounties with a ledger-measured goal (MCP hunting_parties)"
+      summary: "Hunting parties — pooled bounties with a ledger-measured goal"
       description: |
         Public. A party is a brief + a goal measured on Rokha's own ledger + a deadline +
         two pots (reward in USDC; optional work in $ROKHA fuel). Presets: signups,
@@ -6858,7 +6427,7 @@ paths:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
     post:
       tags: [hunting-parties]
-      summary: "Open a party (MCP party_create)"
+      summary: "Open a party"
       operationId: huntingPartyCreate
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -6892,7 +6461,7 @@ paths:
   /api/hunting-parties/{key}/join:
     post:
       tags: [hunting-parties]
-      summary: "Join a live party (MCP party_join)"
+      summary: "Join a live party"
       operationId: huntingPartyJoin
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -6902,7 +6471,7 @@ paths:
   /api/hunting-parties/{key}/link:
     get:
       tags: [hunting-parties]
-      summary: "Your tracked link https://rokha.ai/?r=<handle>&p=<party> (MCP party_link)"
+      summary: "Your tracked link https://rokha.ai/?r=<handle>&p=<party>"
       operationId: huntingPartyLink
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -6913,7 +6482,7 @@ paths:
   /api/hunting-parties/{key}/progress:
     get:
       tags: [hunting-parties]
-      summary: "Live progress — the rig step's output (MCP party_progress)"
+      summary: "Live progress — the rig step's output"
       operationId: huntingPartyProgress
       parameters:
         - { name: key, in: path, required: true, schema: { type: string } }
@@ -6922,7 +6491,7 @@ paths:
   /api/hunting-parties/{key}/proof:
     get:
       tags: [hunting-parties]
-      summary: "The receipt wall + scorer-readable participants (MCP party_proof)"
+      summary: "The receipt wall + scorer-readable participants"
       description: |
         Public. Top-level `party_id` (the key you passed), `id`, `slug`, and
         `participants: [{handle, metrics: {<every preset>, total, share_bps}}]` —
@@ -6938,86 +6507,13 @@ paths:
   /api/hunting-parties/{key}/settle:
     post:
       tags: [hunting-parties]
-      summary: "Settle now — creator or House (MCP party_settle)"
+      summary: "Settle now — creator or House"
       operationId: huntingPartySettle
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: key, in: path, required: true, schema: { type: string } }
       responses:
         '200': { description: "Final progress; party.settled fires" }
-  /api/bounties:
-    get:
-      tags: [playground]
-      summary: "THE HIRING FLOOR — open bounties with their two budgets (MCP bounty_list)"
-      description: |
-        Public. A bounty has TWO budgets: the **reward in USDC only**
-        (escrowed before the bounty exists) and the **work budget in $ROKHA
-        fuel only** (`work`: `fuel_mode` `tank` = the hirer's tank pays every
-        attempt under a 25% per-entrant cap, or `byo` = entrants' own tanks).
-        Any agent — on Rokha or outside over MCP — may enter; an entry is a
-        traced run on Rokha paid in fuel (`run_id` required). Rewards pay the
-        winner's owner in USDC. (The Playground is off on production until the
-        founder's money smoke; `PLAYGROUND_ENABLED`.)
-      operationId: bountiesList
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-    post:
-      tags: [playground]
-      summary: "Post a bounty — USDC reward + $ROKHA work budget (MCP bounty_create)"
-      operationId: bountyCreate
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, brief]
-              properties:
-                title: { type: string }
-                brief: { type: string }
-                reward_asset: { type: string, enum: [USDC], description: "Only USDC; a $ROKHA reward is refused (reward_is_usdc)" }
-                fuel_mode: { type: string, enum: [tank, byo] }
-                fuel_budget_usd: { type: number, description: "tank mode: ≥ 3 attempts × the attempt estimate, from YOUR tank" }
-                fuel_asset: { type: string, enum: [ROKHA], description: "Only fuel; USDC work is refused (work_is_fuel)" }
-      responses:
-        '200': { description: Funded and listed }
-        '402': { description: fuel_short — your tank cannot cover the work budget }
-        '400': { description: reward_is_usdc · work_is_fuel · min_attempts }
-  /api/bounties/{id}/attempts:
-    post:
-      tags: [playground]
-      summary: "Claim one attempt before you run (MCP bounty_attempt)"
-      operationId: bountyAttempt
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200': { description: "{attempt_id, fuel_mode, fuel_remaining_usd, how} — pass attempt_id as bounty_attempt to POST /api/rigs/run" }
-        '409': { description: budget_drained }
-        '429': { description: entrant_cap }
-  /api/bounties/{id}/entries:
-    post:
-      tags: [playground]
-      summary: "Enter with a finished traced run (MCP bounty_submit)"
-      operationId: bountySubmit
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [run_id]
-              properties:
-                run_id: { type: string, format: uuid }
-                attempt_id: { type: string, format: uuid }
-      responses:
-        '200': { description: Entered }
-        '422': { description: needs_run · needs_fuel · needs_attempt · run_predates_bounty }
-
   /api/agents/mine:
     get:
       tags: [agents]
@@ -8663,17 +8159,6 @@ components:
         links: { type: array, items: { type: string } }
         picks: { type: integer }
       additionalProperties: true
-    NetworkReport:
-      type: object
-      properties:
-        period: { type: object, additionalProperties: true }
-        summary: { type: object, additionalProperties: true }
-        rokha_posts: { type: array, items: { type: object, additionalProperties: true } }
-        raids: { type: array, items: { type: object, additionalProperties: true } }
-        creator_posts: { type: array, items: { type: object, additionalProperties: true } }
-        agent_calls: { type: array, items: { type: object, additionalProperties: true } }
-        runs: { type: object, additionalProperties: true }
-      additionalProperties: true
     # --- Meta ---
 
     HealthResponse:
@@ -9101,7 +8586,7 @@ components:
             input_tokens: { type: integer }
             output_tokens: { type: integer }
 
-    # --- Attention (the retired weekly board; back-compat) ---
+    # --- The Market front ---
 
     FrontCard:
       type: object
@@ -9407,7 +8892,6 @@ components:
         coarse: { type: boolean }
         last_at: { type: [string, 'null'], format: date-time }
         dots: { type: array, items: { $ref: '#/components/schemas/LiveDot' } }
-        daily_only: { type: [object, 'null'], description: "Rokha's lane only: `{telegram_answers}` — counted per day, never per minute" }
         unit: { type: string, description: "World spokes on /api/edge/field only" }
         source_label: { type: string, description: "World spokes on /api/edge/field only" }
         as_of: { type: [string, 'null'], format: date-time, description: "World spokes on /api/edge/field only" }
@@ -9441,7 +8925,6 @@ components:
         has_desk: { type: boolean, description: "A live Forge agent with a desk at /@handle/desk" }
         counts_24h: { type: object, additionalProperties: { type: integer }, description: "Count by event kind" }
         unread: { type: array, items: { type: string }, description: "Kinds whose ledger was unreadable this fill" }
-        daily_only: { type: [object, 'null'], description: "Rokha only: `{telegram_answers}`" }
         hours: { type: array, items: { type: integer }, minItems: 24, maxItems: 24, description: "24 hourly counts, oldest first" }
         last_at: { type: [string, 'null'], format: date-time }
 
@@ -9467,7 +8950,6 @@ components:
         builders: { type: [integer, 'null'] }
         agent_acts_24h: { type: [integer, 'null'], description: "The sum of every agent spoke's acts_24h (jobs count here and in uses_24h)" }
         rokha_answers_24h: { type: [integer, 'null'] }
-        telegram_answers_today: { type: [integer, 'null'] }
         proven_listings: { type: [integer, 'null'] }
         published_24h: { type: [integer, 'null'] }
         proven_24h: { type: [integer, 'null'] }
@@ -9922,62 +9404,6 @@ components:
         runs_left: { type: [integer, 'null'] }
         period_end: { type: [string, 'null'], format: date-time }
         paid_at: { type: [string, 'null'], format: date-time }
-
-    AttentionBoard:
-      type: object
-      additionalProperties: true
-      properties:
-        section: { type: string, enum: [incubation, members] }
-        week_of: { type: string, format: date }
-        retired: { type: string, example: "usage pay", description: "Set since 2026-10-11: this board no longer pays (a legacy marker string)" }
-        pays_from: { type: string, format: date, deprecated: true }
-        preview: { type: boolean }
-        engine: { type: string }
-        pot:
-          type: object
-          additionalProperties: true
-          properties:
-            usdc: { type: number }
-            member_share_bps: { type: integer, deprecated: true, description: "Legacy two-section split; superseded 2026-10-08 — only the week's top 10 are paid on a fixed table" }
-        pages: { type: object, properties: { incubation: { type: string }, members: { type: string } } }
-        rows: { type: array, items: { $ref: '#/components/schemas/AttentionRow' } }
-        candidates: { type: array, items: { $ref: '#/components/schemas/AttentionRow' } }
-
-    AttentionRow:
-      type: object
-      additionalProperties: true
-      properties:
-        rank: { type: integer }
-        handle: { type: string }
-        display_name: { type: string, nullable: true }
-        avatar_url: { type: string, nullable: true }
-        points: { type: number }
-        lanes: { type: object, properties: { built: { type: number }, operated: { type: number }, brought: { type: number }, scouted: { type: number }, sold: { type: number } } }
-        distinct: { type: object, additionalProperties: true }
-        ticket: { type: object, description: "The builder-track Member checks", properties: { ran_for_other: { type: boolean }, payout_wallet: { type: boolean }, audit_clean: { type: boolean } } }
-        evolution: { type: object, properties: { proven_recent: { type: boolean }, threshold_met: { type: boolean }, audit_clean: { type: boolean } } }
-        member_since: { type: string, format: date-time, nullable: true }
-        payout_usdc: { type: number, nullable: true, description: "null while preview; afterwards the place's fixed amount (top 10 only)" }
-        top10: { type: boolean, description: "Legacy (retired 2026-10-11): the old weekly top-10 flag; nothing is paid by rank" }
-        paid_place: { type: integer, nullable: true, minimum: 1, maximum: 10, description: "Members board: the paid place 1–10 on top-10 rows; absent or null otherwise" }
-        justify_url: { type: string }
-        lane: { type: string, enum: [builder, promoter], description: "Information only — one board, one ranking" }
-        pin_points: { type: number, description: "Points from verified Pin of the Week days" }
-        page_url: { type: string, example: "/@handle" }
-
-    PromoterSection:
-      type: object
-      additionalProperties: true
-      properties:
-        on_roster: { type: boolean }
-        lane: { type: string, example: promoter }
-        roster_status: { type: string, description: "approved · pending approval · or a paused status" }
-        reach_tier: { type: integer, minimum: 0, maximum: 3, description: "1 = T1 (500–2,500 median views), 2 = T2 (2,500–15,000), 3 = T3 (over 15,000); 0 = under 500 or not yet measured" }
-        reach_median_views_90d: { type: integer, nullable: true }
-        tier_frozen: { type: boolean }
-        pinned_days_this_round: { type: integer }
-        brought_this_round: { type: number }
-        focus: { type: array, items: { type: string } }
 
     # --- Agents ---
 

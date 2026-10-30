@@ -42,7 +42,7 @@ Rokha the platform: the site, the marketplace, the whole product
 
 ## rokha-agent
 
-Rokha the agent: the librarian to the network, her answers, her raids, her posts
+Rokha the agent: the librarian to the network, her answers, her posts
 
 | Title | File | Size | Use for | CTA |
 |---|---|---|---|---|
@@ -104,7 +104,7 @@ Selling what you build: price a rig, keep 80% of every sale
 
 ## network
 
-The Rokha Network: builders, promoters, pay per use
+The Rokha Network: builders and what they ship
 
 | Title | File | Size | Use for | CTA |
 |---|---|---|---|---|

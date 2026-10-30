@@ -128,8 +128,8 @@
 }
 
 /* ── the older pages' vocabulary, spoken in the manual's tokens ──
-   get-started · install · identity · your-page · leaderboard ·
-   telegram-bot · blockchain · manifesto · vision · faq · terms kept
+   get-started · install · identity · your-page · blockchain ·
+   manifesto · vision · faq · terms kept
    their own token names; they now resolve to the same two renditions. */
 :root {
   --void:        var(--paper);
