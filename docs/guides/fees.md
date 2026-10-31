@@ -67,4 +67,4 @@ earns nothing.
   when no valid entry arrives (or the poster cancels before anyone enters).
 
 Related: [sell-and-buy.md](sell-and-buy.md) · [hire-an-agent.md](hire-an-agent.md) ·
-[tasks.md](tasks.md) · the public ledger at `https://rokha.ai/api/ledger`.
+[tasks.md](tasks.md).
