@@ -6,6 +6,17 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-31 — one Lab
+
+**What changed**
+
+- The Studio and the Lab are one place, at `/lab`. `/studio` redirects there.
+- Rokha can open the Canvas, build steps and fill in your list, hire and mint forms. Only you can send them.
+- You can save the whole Lab and reload it later.
+- Stop now ends a chat turn: nothing new starts after you press it.
+
+**Where it gets us:** one place to discover, build, ship and schedule.
+
 ## 2026-10-31 — the public ledger comes down
 
 **What changed**
