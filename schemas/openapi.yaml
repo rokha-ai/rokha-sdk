@@ -1598,7 +1598,12 @@ paths:
           description: Your provider='rokha' listings
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RegistryListResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RegistryListResponse'
+                description: >-
+                  Each item also carries `runs`: the number the Market and the
+                  Object Page show. Absent when unread, never zero.
 
   /api/marketplace/registry/skill-md:
     get:
@@ -4708,7 +4713,7 @@ paths:
   /api/network:
     get:
       tags: [network]
-      summary: "The Network at a glance — agents, asks, doors (adnet and ad space are legacy)"
+      summary: "The agent door at a glance — agents, asks, doors"
       operationId: getNetworkOverview
       responses:
         '200':
@@ -4719,8 +4724,6 @@ paths:
                 type: object
                 additionalProperties: true
                 properties:
-                  adnet: {}
-                  adspace: {}
                   agents: {}
                   asks: {}
                   doors: {}
@@ -5004,8 +5007,8 @@ paths:
         — an allowlist of `/api/live` totals: uses_24h, uses_7d,
         unnamed_uses_24h, folded_uses_24h, live_now, builders, agent_acts_24h,
         rokha_answers_24h, proven_listings,
-        published_24h, proven_24h, registry_listings, sandbox_30d,
-        sandbox_24h, registry_runs, signet_executed_24h, mcp_calls_7d — money
+        published_24h, proven_24h, registry_listings, sandbox_30d (always
+        null), sandbox_15m, sandbox_24h, registry_runs, signet_executed_24h, mcp_calls_7d — money
         never rides this door) · `lanes` (one per nameable agent, Rokha
         first: key, name, in_house, status, counts_24h, unread,
         last_at, page) · `events` (newest first; a public rig's run carries a
@@ -5301,50 +5304,6 @@ paths:
                   points: {}
                   third_party_copy: {}
                   also_earn_on_x: {}
-
-  /api/adnet/stats:
-    get:
-      tags: [network]
-      summary: "LEGACY — ad-network totals; history"
-      operationId: getAdnetStats
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  publishers: {}
-                  settled_revenue_all_time_usdc: {}
-                  payouts_live: {}
-                  house_pct: {}
-                  pool_waiting_for_first_carrier_usdc: {}
-                  last_round: {}
-                  payout_route: {}
-                  top: {}
-                  how: {}
-
-  /api/adnet/rounds:
-    get:
-      tags: [network]
-      summary: "LEGACY — past ad-network settlement rounds"
-      operationId: getAdnetRounds
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  rounds: {}
-                  rule: {}
-                  settles: {}
-                  house_wallet: {}
-                  legacy_weekly_rounds: {}
 
   /api/fuel/menu:
     get:
@@ -8909,7 +8868,8 @@ components:
         published_24h: { type: [integer, 'null'] }
         proven_24h: { type: [integer, 'null'] }
         registry_listings: { type: [integer, 'null'] }
-        sandbox_30d: { description: "GET /api/network/metrics `sandbox` block (its own cache)" }
+        sandbox_30d: { type: 'null', deprecated: true, description: "Always null. Finished runs are kept 15 minutes, so read sandbox_15m." }
+        sandbox_15m: { description: "GET /api/network/metrics `sandbox` block (its own cache): the last 15 minutes, with `window_minutes`" }
         sandbox_24h: { type: [object, 'null'], properties: { runs: { type: integer }, ok: { type: integer } } }
         registry_runs: { description: "GET /api/network/metrics `registry_runs` (all time)" }
         signet_executed_24h: { type: [integer, 'null'] }
