@@ -6,6 +6,15 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-10-31 — the public ledger comes down
+
+**What changed**
+
+- `GET /api/ledger` and `GET /api/front/paid` leave the contract and the docs.
+  Rokha runs no platform payouts, so the money record is internal now.
+- **Breaking** for anything reading those two doors. Each sale, hire and Task
+  still has its own receipt with its on-chain signature.
+
 ## 2026-10-30 — retired programs leave the contract
 
 **What changed**
