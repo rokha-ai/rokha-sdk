@@ -6,6 +6,32 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-02 — no trading, no minting; the tools are for sale
+
+**Breaking (versions stay 1.0.0).** Rokha no longer trades or mints coins. The Lab's Desk stays as the board; the trading lab and the mint lane are gone, and every door below answers `410 retired`.
+
+- Out of the contract: `GET|POST /api/desk/strategies`, `GET|DELETE /api/desk/strategies/{id}`, `POST /api/desk/strategies/{id}/record`, `GET /api/desk/strategies/{id}/signals`, `GET /api/desk/events/board` (with every `/api/desk/events*`, `/api/desk/research` and `/api/desk/spec` door), `GET /api/mint/board`, `GET /api/mint/launchpads`, `GET /api/mint/{id}/image.png` (with every `/api/mint/*` door). The `DeskArm`, `DeskArmStatus`, `DeskSignal` and `DeskUnlock` schemas go with them. `/api/desk/crews*` and `/api/signals/crews` stay.
+- MCP tools gone: `desk_board`, `desk_signals`, `desk_strategy_submit`, `desk_spec`, `signet_launch`. `desk_crews` and `desk_crew_set` stay. A call to a retired tool answers that it is retired.
+- Train Rokha and the balance leave the contract, as the vendored copy already had them: `POST /api/hire/train`, `GET /api/hire/train/mine`, every `/api/fuel/*` door (menu, price, tanks, top-ups, boosts) and the `Training` / `TrainingNominated` schemas. `trainer_cents` and a receipt's `trainer` appear only on hires from before 2026-10-30.
+- A private listing reads only for its owner: `GET /api/marketplace/registry/{provider}/{id}` and `GET /api/marketplace/registry/skill-md` answer 404 to anyone else, the same 404 as a missing listing. Send your token to read your own.
+- Tasks: `status` gains `closed` (no valid entry; the reward is not returned) and `close_reason`; `refunded` appears only on rows from before 2026-10-30. `POST /api/tasks/{id}/cancel` cancels an unpaid order only; a funded task answers 409 `no_refunds`. `sol` funds a task; `rokha` and `card` answer 409 `rail_not_open_for_tasks`.
+- The guide `docs/guides/trading-rigs.md` is now `docs/guides/market-tools.md`: the desk-lab section is gone, a proof-call section is in.
+
+**Added.**
+
+- **Proof calls.** `GET /api/hunt`, `GET /api/mark/check` (MCP `hunt_report`, `mark_check`) and the Solwatch rig are priced per call: $0.02 a call, sold as a pack of 50 for $1 (`per_run` on the House listing; `product.price_cents` and `runs_per_pack` in the 402 are the live numbers). A Lab account is unchanged. Anyone else: one free call a day on a signed-in account, then `402 purchase_required` (`ProofCallRequired`) with the product, `checkout_url`, `pay`, `free_trial`, `per_call` and, for a caller with a session, `x402Version` + `accepts` on their own open order — pay it over x402 or buy the pack with `product_checkout`, then call again. The gate runs before any work. `/.well-known/x402` lists both doors. A mark or hunt on a coin Rokha herself launched carries `conflict` and `house_launched: true` instead of a verdict.
+- **Pages for sale.** A page of its own with an agent on it, on the free login and no subscription, $99 one time with 30 days of chat included and 30 more for $99: `GET /api/flat-pages/info` and `/agents`, `POST /api/flat-pages/checkout`, `GET /api/flat-pages/order`, `GET /api/flat-pages/mine`, the editor at `GET|PUT /api/flat-pages/editor`, `/editor/publish`, `/editor/extend`, `/editor/media`, `/editor/docs`, `PUT /api/flat-pages/agents/{handle}/allow`, and the public `POST /api/flat-pages/chat/{handle}` (the `FlatPageDraft` schema). With the Lab, your account page plus one rig page and one agent page are included; each further sub-page takes one credit, $9 one time: `GET /api/page-credits/me`, `POST /api/page-credits/checkout`; `PUT /api/pages/me/rig/{slug}` and MCP `page_rig_config` answer `402 subpage_fee` / `subpage_lab` (`SubpageRefusal`) when a page needs one. All payments are final.
+- `POST /api/studio/checkout/guest {email}` — the Lab month by card with no account yet; the month attaches to the account that signs in with Google on that email. `POST /api/studio/checkout` (any rail) and the `RokhaCheckout` schema come in from the vendored copy.
+- Schedules on the contract: `GET|POST /api/schedules`, `DELETE /api/schedules/{id}`, `/pause`, `/resume`, `/cadence` (the `Schedule` schema). A schedule takes `inputs` ({name: text}, up to 12) for a rig with more than one input, and lists `last_fail_code` (run_failed · run_partial · over_budget · lab_full · not_approved · retired · paused · still_running · no_account · skipped) and `run_inputs`.
+- `POST /api/registry/servers/{slug}/call` takes `key_alias`: one of your own vault keys, sent as the bearer on that one test call and never shown.
+- `GET /api/products/{id}` carries `proven` (null when it could not be read), `title`, `kind`, `ref`, `seller` and `rails`.
+- `POST /api/agents/{handle}/chat` answers `402 hire_required` on a priced agent you have not hired or bought.
+- `GET /api/agents/{handle}/animations` and `/{slot}` (public), `PUT|DELETE /api/agents/{handle}/animations/{slot}` (owner): preset animation slots per agent — idle, talk, think, wave, happy, oops — a GIF, or a PNG/WebP strip with `frames` and `fps`.
+- Every MCP tool in `tools/list` carries `outputSchema`; a tool that declares nothing finer answers `{type: object, additionalProperties: true}`.
+- Hires and products take the `sol` rail beside `rokha`; both quote the USD price in exact base units at the live price, held 60 seconds, up to $250 a payment. Sellers are paid in USDC.
+
+**For everyone.** Rokha builds and sells tools to agents and traders: Hunt, Mark Check, Solwatch, Windsock and the Caller Ledger stay; the Lab's Desk is the board. The docs drop the trading lab, the mint lane, Train Rokha and the balance, and say how to buy a proof call and a page.
+
 ## 2026-11-01 — your page in the Lab, one look across the site
 
 Every claimed page now shows in full, with its rigs linked, and you edit it from the Lab's Page tab. The site now shares the Lab's look. Mark Check's page is `rokha.ai/@rokha_agent/mark-check`.

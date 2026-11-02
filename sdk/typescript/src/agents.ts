@@ -20,6 +20,12 @@ export class AgentsClient {
 
   // --- Chat ---
 
+  /**
+   * Chat with Rokha (`rokha-agent`) or a named agent. A priced agent is hired
+   * or bought, not chatted with for free: the door answers 402 `hire_required`
+   * (a `RokhaError` with status 402) naming its page unless you own it or hold
+   * it; a private agent answers 403 `agent_private`.
+   */
   async chat(agent: string, request: ChatRequest): Promise<ChatResponse> {
     return this.client.post(`/api/agents/${agent}/chat`, request);
   }

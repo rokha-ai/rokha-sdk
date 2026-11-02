@@ -85,7 +85,9 @@ class RokhaClient:
         Fetched from its source registry, parsed, and classified
         server-side. ``classification`` answers "can a model execute this
         faithfully?" — ``prompt`` yes; ``scripted``/``mcp`` need a runtime.
-        No auth.
+        No auth to read a public listing; a PRIVATE listing answers 404 to
+        anyone but its owner (the same 404 as a missing one) — call
+        ``set_auth_token`` first to read your own.
         """
         return self.get("/api/marketplace/registry/skill-md", provider=provider, slug=slug)
 
@@ -152,6 +154,13 @@ class RokhaClient:
     # --- Agents ---
 
     def agent_chat(self, agent: str, message: str, **kwargs: Any) -> dict[str, Any]:
+        """Chat with Rokha (``rokha-agent``) or a named agent.
+
+        A priced agent is hired or bought, not chatted with for free: the
+        door answers 402 ``hire_required`` (a ``RokhaError`` with status 402)
+        naming its page unless you own it or hold it; a private agent answers
+        403 ``agent_private``.
+        """
         return self.post(f"/api/agents/{agent}/chat", {"message": message, **kwargs})
 
     def agent_status(self, agent: str = "rokha-agent") -> dict[str, Any]:
