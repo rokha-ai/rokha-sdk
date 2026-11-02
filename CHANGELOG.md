@@ -6,6 +6,10 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-01 — your page in the Lab, one look across the site
+
+Every claimed page now shows in full, with its rigs linked, and you edit it from the Lab's Page tab. The site now shares the Lab's look. Mark Check's page is `rokha.ai/@rokha_agent/mark-check`.
+
 ## 2026-11-01 — manual approvals, a truthful network read
 
 **Breaking (versions stay 1.0.0).**
