@@ -50,4 +50,10 @@ export type {
   LLMCompletionRequest,
   LLMCompletionResponse,
   DiscoveryResult,
+  RunPack,
+  RunLadder,
+  BudgetRefusal,
+  BudgetRefusalCode,
+  SubscribeRequest,
+  StudioAccess,
 } from './types.js';

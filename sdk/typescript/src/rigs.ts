@@ -114,8 +114,9 @@ export class RigsClient {
   /**
    * Run a published rig by slug — the one-call run door. Answers 202 at once
    * with `run_id`, `stage_url` and a `poll` block; a 409 `needs_secret` names
-   * a key the rig needs that you have not saved; a 402 names the Lab (the
-   * month, or the 1M $ROKHA hold) — runs use your own model key.
+   * a key the rig needs that you have not saved. A free account runs 5 a
+   * day; past them a 429 `RokhaError` whose `budget.ladder` names the run
+   * pack (100 runs for $1) and the Lab. Model steps use your own model key.
    */
   async run(req: RigRunRequest): Promise<RigRunAck> {
     return this.req('POST', '/rigs/run', req);

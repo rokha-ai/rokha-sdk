@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 HarnessType = Literal["persona", "preference", "strategy", "knowledge", "compliance"]
 
@@ -74,3 +74,48 @@ class User:
     wallet_address: str
     username: str | None = None
     created_at: str = ""
+
+
+class RunPack(TypedDict, total=False):
+    """The House run pack — pay per run after the free day (live values)."""
+
+    product_id: str | None
+    runs: int
+    price_cents: int
+    price: str
+    per_run: str
+    buy: str
+    rails: list[str]
+    spent: str
+    no_refunds: bool
+
+
+class RunLadder(TypedDict, total=False):
+    """The three rungs as data: free (signed in), a run pack, the Lab."""
+
+    free: dict[str, Any]
+    run_pack: RunPack
+    lab: dict[str, Any]
+
+
+class BudgetRefusal(TypedDict, total=False):
+    """The 429 a run door answers. ``code``: sign_in_required ·
+    free_runs_spent · free_runs_ceiling · budget_unavailable; ``ladder`` rides
+    free_runs_spent and free_runs_ceiling."""
+
+    ok: bool
+    error: str
+    code: str
+    message: str
+    upgrade: str
+    relay: dict[str, Any]
+    ladder: RunLadder
+
+
+class StudioAccess(TypedDict, total=False):
+    """``GET /api/studio/access`` — your own Lab entitlement."""
+
+    studio: bool
+    access: str
+    current_period_end: str
+    tokens: float

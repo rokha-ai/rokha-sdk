@@ -55,7 +55,7 @@ tags:
   - name: rigs
     description: Rigs (workflows of configured harnesses) + run traces — the Working Rig surface
   - name: runtime
-    description: Run for real — execute a skill in the isolated sandbox (the Lab — the month, or the 1M $ROKHA hold — on your own model key, 300 runs a day; a free account has no runs; anonymous runs are refused)
+    description: "Run for real — execute a skill in the isolated sandbox: 5 runs a day on a free signed-in account, then a run pack (100 runs for $1), or the Lab (the month, or the 1M $ROKHA hold) for 300 a day; model steps on your own model key; anonymous runs are refused (429 `BudgetRefusal`)"
   - name: analytics
     description: Privacy-safe product-analytics capture — anon-session-keyed, fire-and-forget
   - name: sales
@@ -1252,7 +1252,7 @@ paths:
             `{type: object, additionalProperties: true}` — JSON text either way
           - `tools/call` — invoke a tool with arguments
 
-        TOOLSETS (2026-10-27). `tools/list` carries the `core` set — 28 tools: sign in
+        TOOLSETS (2026-10-27). `tools/list` carries the `core` set — 30 tools: sign in
         (`auth_resolve`, `auth_wallet_challenge`, `auth_wallet_verify`), what is free
         (`free_tier_status`, `studio_doors`), the Market and the registry (`market_search`,
         `registry_search`, `registry_get_skill`, `registry_adopt`, `registry_publish`,
@@ -1260,7 +1260,9 @@ paths:
         `rig_get`, `rig_search`, `trace_get`, `trace_search`), talk to Rokha
         (`send_agent_message`), hunt and check (`hunt_report`, `mark_check`), your agent and
         page (`agent_create`, `page_claim`, `page_me`), buy (`product_get`,
-        `product_checkout`, `purchases_mine`), and `tools_catalog`. The other sets — `build`
+        `product_checkout`, `purchases_mine`), start and read your own Lab month
+        (`subscribe {rail: usdc | sol | rokha | card, payer_wallet?}`, `subscription_status {}` —
+        both need a JWT or an `rk_` key and act only for the caller), and `tools_catalog`. The other sets — `build`
         (rig nodes and edges, harnesses, stages, schedules, webhooks, the sandbox, favorites,
         keys, model), `agents` (publish, specialize, prove and price your agents; hire a
         proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
@@ -2294,13 +2296,16 @@ paths:
       description: >-
         Starts a run of a published rig and answers at once with a run id and
         a poll block. A run needs a signed-in account: send
-        `Authorization: Bearer <token>` and the run is billed to that account.
-        A free account has no runs; the Lab — $29.99 a month, or hold 1M
-        $ROKHA — runs 300 a day (rig runs, sandbox runs and scheduled fires
-        all count), on your own model key. An anonymous caller is refused: sign in
-        (`x-anon-session-id` is still read for back-compat). Past the day's
-        runs the refusal names both doors (the month, the hold). The run
-        finishes whether or not the caller stays.
+        `Authorization: Bearer <token>` and the run is billed to that account
+        (an agent signs in with `auth_wallet_challenge` → `auth_wallet_verify`).
+        Free to start, pay for scale: a free account runs 5 a day (one rig run
+        is one run, whatever its steps; tool steps run on Rokha's sandbox,
+        model steps on your own model key); then a run pack (100 runs for $1,
+        `product_checkout`); the Lab — $29.99 a month, or hold 1M $ROKHA —
+        runs 300 a day. An anonymous caller is refused: sign in
+        (`x-anon-session-id` is still read for back-compat). Past the free
+        day with no pack left the answer is 429 `BudgetRefusal` carrying the
+        `ladder`. The run finishes whether or not the caller stays.
 
 
         Inputs are checked against the rig's published contract BEFORE
@@ -2406,7 +2411,11 @@ paths:
                         host: { type: string, description: "The one host this key is sent to (author-declared keys)" }
                         hint: { type: string, description: "Where to add it — Profile → Keys" }
                       required: [alias, hint]
-        '429': { description: Anonymous daily run cap reached }
+        '429':
+          description: "`free_runs_spent` · `free_runs_ceiling` (with `ladder`) · `sign_in_required` · `budget_unavailable` — see `BudgetRefusal`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BudgetRefusal' }
         '503':
           description: "`secret_check_unavailable` — saved keys could not be checked; try again"
           content:
@@ -3423,8 +3432,9 @@ paths:
         The anonymous taste is CLOSED: an anonymous caller has no runs, and
         this door answers a refusal. Kept for back-compat with callers that
         still send an `anon_session_id`. Sign in and use `POST /api/runtime/run`
-        or `POST /api/rigs/run` with a Bearer JWT and the Lab (the month, or
-        the 1M $ROKHA hold): 300 runs a day; a free account has no runs.
+        or `POST /api/rigs/run` with a Bearer JWT: 5 runs a day free, then a
+        run pack (100 for $1), or the Lab (the month, or the 1M $ROKHA hold)
+        for 300 a day.
       operationId: runtimeTaste
       requestBody:
         required: true
@@ -3447,7 +3457,11 @@ paths:
             application/json:
               schema: { type: object, additionalProperties: true }
         '400': { description: Bad input (non-UUID id, invalid params) }
-        '429': { description: "Refused — anonymous callers have no runs; sign in" }
+        '429':
+          description: "`sign_in_required` — anonymous callers have no runs; sign in"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BudgetRefusal' }
 
   /api/runtime/run:
     post:
@@ -3455,10 +3469,11 @@ paths:
       summary: "Run for real (signed in, daily runs)"
       description: |
         The authenticated run door — the run draws from the account's daily
-        runs (3 on a free account, 300 with the Studio), still under the
-        global token ceiling. Owner
-        is derived from the verified JWT. Writes a trace anchored to
-        `harness_id`.
+        runs (5 on a free account, then its run packs; 300 with the Lab),
+        still under the global token ceiling. A step that runs no model (a
+        scripted skill) needs no model key; a step that runs the model needs
+        your own. Owner is derived from the verified JWT. Writes a trace
+        anchored to `harness_id`.
       operationId: runtimeRun
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -3482,7 +3497,11 @@ paths:
             application/json:
               schema: { type: object, additionalProperties: true }
         '401': { description: Not authenticated }
-        '429': { description: "The day's runs are spent — the refusal names both doors (the Studio month, the 1M $ROKHA hold)" }
+        '429':
+          description: "`free_runs_spent` · `free_runs_ceiling` (with `ladder`) · `budget_unavailable` — `BudgetRefusal` with `error: quota`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BudgetRefusal' }
 
   /api/runtime/runs/{run_id}/progress:
     get:
@@ -3800,10 +3819,16 @@ paths:
     get:
       tags: [sales]
       summary: "The price on an item (public; MCP product_get)"
+      description: >-
+        `kind=runs&ref=rokha-runs` reads the House run pack: 100 runs for $1 (`model: per_run`,
+        `runs_per_pack`), spent one run at a time after a signed-in account's 5 free runs a
+        day. Buy it with `POST /api/products/{id}/checkout` (MCP `product_checkout`) on any
+        rail; the pack's `product_id` also rides every `BudgetRefusal.ladder`, `GET
+        /api/free-tier` and `GET /api/studio/doors`. All payments are final.
       operationId: productFor
       parameters:
-        - { name: kind, in: query, required: true, schema: { type: string, enum: [rig, skill, harness, agent, pack] } }
-        - { name: ref, in: query, required: true, schema: { type: string }, description: "The listing id (rig/skill/harness), the agent id, or the pack id" }
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [rig, skill, harness, agent, pack, runs] } }
+        - { name: ref, in: query, required: true, schema: { type: string }, description: "The listing id (rig/skill/harness), the agent id, the pack id, or `rokha-runs` for the run pack" }
       responses:
         '200': { description: The product, content: { application/json: { schema: { type: object, properties: { product: { $ref: '#/components/schemas/Product' } } } } } }
         '404': { description: Not priced — the item is free }
@@ -4314,17 +4339,19 @@ paths:
   /api/free-tier:
     get:
       tags: [meta]
-      summary: "What anyone gets free — ten questions a day with Rokha, listing (MCP free_tier_status)"
+      summary: "What is free — ten questions a day with Rokha, listing, 5 runs a day signed in (MCP free_tier_status)"
       description: |
         Public. What is free: ONE daily unit allowance for talking to Rokha
         (`units_total` — about ten questions a day, on rokha.ai and on X;
-        `questions_per_day`, `questions_left_today`), and listing. Everything is bring your own keys, with small free tiers for exploration:
-        `free_runs_per_day` is 0 and every run or build needs the Studio and
-        the caller's own model keys.
+        `questions_per_day`, `questions_left_today`), listing, and — signed
+        in — `signed_in_free.runs_per_day` (5) runs a day; anonymous callers
+        run nothing. Model steps always run on the caller's own model key.
         `free_doors` are what a claimed page may list free (2 MCP listings ·
-        3 rigs · 1 agent · 3 skills); `doors` is the way in when you want
-        to run or build: `studio_monthly_usd` (29.99 — card or
-        USDC) and the hold (1,000,000 $ROKHA, `GET /api/billing/hold`).
+        3 rigs · 1 agent · 3 skills). `run_pack` is the pay-per-run rung (100
+        runs for $1, its `product_id` and how to buy it); `ladder` is the
+        three rungs as data (`RunLadder`); `doors` is the Lab:
+        `studio_monthly_usd` (29.99) and the hold (1,000,000 $ROKHA,
+        `GET /api/billing/hold`).
       operationId: getFreeTier
       responses:
         '200':
@@ -4341,8 +4368,12 @@ paths:
                   units_per_day: { type: integer, description: "The daily allowance in units (ten questions' worth)" }
                   units_usd_equiv: { type: number }
                   question_units: { type: integer, description: "Units one question costs" }
-                  free_runs_per_day: { type: integer, description: "0 — runs come with the Studio" }
+                  free_runs_per_day: { type: integer, description: "This caller's free runs a day (5 signed in, 0 anonymous)" }
                   free_runs_left: { type: integer, nullable: true }
+                  studio_runs_per_day: { type: integer, example: 300 }
+                  signed_in_free: { type: object, additionalProperties: true, properties: { runs_per_day: { type: integer, example: 5 }, runs_count: { type: string }, runs_global_ceiling: { type: integer, description: "Every free account's runs together, a UTC day; paid runs never count" } } }
+                  run_pack: { $ref: '#/components/schemas/RunPack' }
+                  ladder: { $ref: '#/components/schemas/RunLadder' }
                   ramp: { type: object, additionalProperties: true, properties: { streak_days: { type: integer }, multiplier: { type: number }, step: { type: number }, max: { type: number } } }
                   free_doors: { type: object, properties: { mcp_listings: { type: integer }, published_rigs: { type: integer }, agents: { type: integer } } }
                   doors: { type: object, properties: { studio_monthly_usd: { type: number, example: 29.99 }, studio_license_usd: { type: integer } } }
@@ -4352,7 +4383,7 @@ paths:
   /api/free-tier/me:
     get:
       tags: [meta]
-      summary: "Your own meter — questions left today, what you have listed, runs left (0 on Free)"
+      summary: "Your own meter — questions left today, what you have listed, runs left today"
       operationId: getFreeTierMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4568,9 +4599,13 @@ paths:
   /api/studio/checkout:
     post:
       tags: [network]
-      summary: "Start the Studio month on any rail"
+      summary: "Start the Lab month on any rail (MCP subscribe)"
       description: >-
-        `card` → a Stripe `checkout_url`. `usdc` + `payer_wallet` → exact pay instructions. `sol`
+        The REST twin of MCP `subscribe {rail, payer_wallet?}`, which starts the caller's own
+        month (`product: month`) and adds `no_refunds`, `expires`, `month_usd` and `gives` to
+        the same answer. The month is full access to everything — the runtime, the Lab,
+        publishing, schedules, Hunt, Mark Check, voice — on your own model keys. All payments
+        are final. `card` → a Stripe `checkout_url`. `usdc` + `payer_wallet` → exact pay instructions. `sol`
         or `rokha` + `payer_wallet` → the $29.99 quoted in exact base units at the live price,
         held 60 seconds (`SolCheckout` · `RokhaCheckout`, with `product: "month"`); send exactly
         that from `payer_wallet` and the month starts when it confirms. `price_stale` /
@@ -4634,14 +4669,16 @@ paths:
   /api/studio/doors:
     get:
       tags: [network]
-      summary: "The one door — the Studio at $29.99 a month (card, USDC, SOL or $ROKHA) or the 1,000,000 $ROKHA hold, and what is free (MCP studio_doors)"
+      summary: "What Rokha costs — free runs, the run pack, the Lab at $29.99 a month or the 1,000,000 $ROKHA hold (MCP studio_doors)"
       description: |
-        Public. One way to pay Rokha: the Studio, $29.99 a month (card,
-        USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA. Everything is bring your own keys,
-        with small free tiers for exploration: ten questions a day with Rokha,
-        and listing. The one-time license,
-        rent-to-own and trials are not sold; licenses already sold stay
-        valid. Joining the Network and payouts are free.
+        Public. Free to start, pay for scale. Free, signed in: 5 runs a day
+        (model steps on your own model key), ten questions a day with Rokha,
+        and listing. Pay per run: `run_pack`, 100 runs for $1. The Lab,
+        $29.99 a month (card, USDC, SOL or $ROKHA) or hold 1,000,000 $ROKHA:
+        full access to everything — an agent starts it with MCP `subscribe`.
+        `ladder` is the three rungs as data (`RunLadder`). The one-time
+        license, rent-to-own and trials are not sold; licenses already sold
+        stay valid.
       operationId: getStudioDoors
       responses:
         '200':
@@ -4662,6 +4699,8 @@ paths:
                   free_window_terms: {}
                   retired_tiers: {}
                   docs: {}
+                  run_pack: { $ref: '#/components/schemas/RunPack' }
+                  ladder: { $ref: '#/components/schemas/RunLadder' }
 
   /api/front:
     get:
@@ -5851,12 +5890,24 @@ paths:
   /api/studio/access:
     get:
       tags: [network]
-      summary: "Your Studio entitlement and the limits your calls run on"
+      summary: "Your Lab entitlement (MCP subscription_status adds `tier`, `full_access` and `ladder`)"
       operationId: getStudioAccess
       security:
         - bearerAuth: []
       responses:
-        '200': { description: Your access }
+        '200':
+          description: Your access
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  studio: { type: boolean, description: "true = full access" }
+                  access: { type: string, enum: [licensed, rent, trialing, free_window, holder, house, none] }
+                  current_period_end: { type: string, format: date-time, description: "rent — when the paid month ends" }
+                  tokens: { type: number, description: "holder — the $ROKHA counted" }
+                  doors: { type: object, additionalProperties: true }
         '401': { description: No token }
 
   /api/agents/mine:
@@ -7737,11 +7788,62 @@ components:
         id: { type: string, format: uuid }
         handle: { type: string }
         status: { type: string }
+    RunPack:
+      type: object
+      description: "The House run pack — pay per run after the free day. Live values; never hardcode the id."
+      properties:
+        product_id: { type: [string, 'null'], format: uuid, description: "Buy with POST /api/products/{product_id}/checkout (MCP product_checkout); null until this deployment has read it — then GET /api/products?kind=runs&ref=rokha-runs" }
+        runs: { type: integer, example: 100 }
+        price_cents: { type: integer, example: 100 }
+        price: { type: string, example: "$1" }
+        per_run: { type: string, example: "$0.01" }
+        buy: { type: string }
+        rails: { type: array, items: { type: string, enum: [x402, usdc, sol, rokha, signet, card] } }
+        spent: { type: string, description: "One run at a time, after the day's free runs" }
+        no_refunds: { type: boolean, const: true }
+    RunLadder:
+      type: object
+      description: "The three rungs as data: free (signed in), a run pack, the Lab."
+      properties:
+        free:
+          type: object
+          properties:
+            runs_per_day: { type: integer, example: 5 }
+            who: { type: string, description: "A signed-in account; anonymous callers run nothing" }
+            models: { type: string, description: "Model steps on your own model key; tool steps on Rokha's sandbox" }
+            resets: { type: string, example: "00:00 UTC" }
+        run_pack: { $ref: '#/components/schemas/RunPack' }
+        lab:
+          type: object
+          properties:
+            month_usd: { type: number, example: 29.99 }
+            hold_rokha: { type: integer, example: 1000000 }
+            start: { type: string, description: "MCP subscribe {rail: usdc | sol | rokha | card, payer_wallet}" }
+            gives: { type: string }
+            no_refunds: { type: boolean, const: true }
+    BudgetRefusal:
+      type: object
+      description: >-
+        429 from a run door. `code`: `sign_in_required` (anonymous — sign in with a wallet:
+        auth_wallet_challenge → auth_wallet_verify), `free_runs_spent` (this account's free runs
+        are used and no run pack is left), `free_runs_ceiling` (today's free runs are used for
+        everyone; paid runs keep going), `budget_unavailable` (the budget could not be read —
+        refused, try again). `ladder` rides `free_runs_spent` and `free_runs_ceiling`: buy the
+        run pack or start the Lab, then call again.
+      required: [error, code, message]
+      properties:
+        ok: { type: boolean, const: false, description: "Present on POST /api/rigs/run" }
+        error: { type: string, enum: [budget, quota], description: "`quota` on POST /api/runtime/run, `budget` elsewhere" }
+        code: { type: string, enum: [sign_in_required, free_runs_spent, free_runs_ceiling, budget_unavailable, runtime_ceiling, house_budget_spent] }
+        message: { type: string }
+        upgrade: { type: string, example: /pricing }
+        relay: { type: object, additionalProperties: true }
+        ladder: { $ref: '#/components/schemas/RunLadder' }
     Product:
       type: object
       properties:
         id: { type: string, format: uuid }
-        kind: { type: string, enum: [rig, skill, harness, agent, pack] }
+        kind: { type: string, enum: [rig, skill, harness, agent, pack, hire, runs], description: "`runs` — the House run pack (ref `rokha-runs`)" }
         ref: { type: string }
         title: { type: string }
         model: { type: string, enum: [one_time, monthly, per_run] }
