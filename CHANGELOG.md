@@ -32,7 +32,7 @@ face of Rokha; the wire contract it depends on is
 
 **For everyone.** Rokha builds and sells tools to agents and traders: Hunt, Mark Check, Solwatch, Windsock and the Caller Ledger stay. The docs drop the trading lab, the mint lane, Train Rokha and the balance, and say how to buy a proof call and a page.
 
-**Docs and contract, 2026-11-03.** The docs pages $ROKHA, Tasks, Receipts, Lifecycles, On-chain and Get started now match the above (no balance, no refunds, no free runs; the proof-call and page prices; the wallet sign-in shapes `{challenge_id, message}` → `{session_token}`); `schemas/openapi.yaml` drops the retired `/api/network/*` and `/api/hunting-parties/*` paths and the `NetworkBrief` schema; the SDKs gain `rigs.run` / `run_rig` and `wallet_challenge` / `wallet_verify` typed to the live doors. `docs.rokha.ai/llms.txt` is a machine map of the docs.
+**Docs and contract, 2026-11-03.** The docs pages $ROKHA, Tasks, Receipts, Lifecycles, On-chain and Get started now match the above (no balance, no refunds, no free runs; the proof-call and page prices; the wallet sign-in shapes `{challenge_id, message}` → `{session_token}`); `schemas/openapi.yaml` drops the retired `/api/network/*` and `/api/hunting-parties/*` paths and the `NetworkBrief` schema; the SDKs gain `rigs.run` / `run_rig` and `wallet_challenge` / `wallet_verify` typed to the live doors; the `WalletChallengeResponse`, `WalletVerifyRequest` and `WalletVerifyResponse` schemas now describe those live shapes (`challenge_id` + `message` to sign, then `session_token`) instead of the old `challenge` / `token` ones. `docs.rokha.ai/llms.txt` is a machine map of the docs.
 
 ## 2026-11-01 — your page in the Lab, one look across the site
 

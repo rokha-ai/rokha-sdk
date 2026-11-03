@@ -8172,36 +8172,37 @@ components:
       properties:
         wallet_address: { type: string }
         wallet_type: { type: string, description: "phantom, metamask, etc." }
-        chain: { type: string, enum: [solana, ethereum] }
+        chain: { type: string, enum: [solana, evm], description: "Auto-detected from the address when absent." }
       required: [wallet_address, wallet_type]
 
     WalletChallengeResponse:
       type: object
+      description: "Sign `message` with the wallet's key, then POST /api/wallets/verify with `challenge_id` and the signature. The challenge expires in 10 minutes and burns on use."
       properties:
-        challenge: { type: string }
-        expires_at: { type: string, format: date-time }
-        nonce: { type: string }
-      required: [challenge, expires_at]
+        challenge_id: { type: string, format: uuid }
+        message: { type: string, description: "The exact text to sign." }
+        wallet_address: { type: string }
+      required: [challenge_id, message, wallet_address]
 
     WalletVerifyRequest:
       type: object
       properties:
-        wallet_address: { type: string }
+        challenge_id: { type: string, format: uuid }
         signature: { type: string }
-        challenge: { type: string }
-        wallet_type: { type: string }
-        chain: { type: string, enum: [solana, ethereum] }
-      required: [wallet_address, signature, challenge, wallet_type]
+        wallet_address: { type: string }
+      required: [challenge_id, signature, wallet_address]
 
     WalletVerifyResponse:
       type: object
+      description: "`session_token` is the JWT: send it as `Authorization: Bearer <token>` on every request. A fresh sign-in revokes the token you were already holding."
       properties:
         success: { type: boolean }
-        token: { type: string, description: "JWT" }
-        user_id: { type: string, format: uuid }
-        tier: { type: string, enum: [free, casual, pro] }
-        expires_at: { type: string, format: date-time }
-      required: [success, token]
+        session_token: { type: string, nullable: true, description: "The JWT; absent when `success` is false." }
+        message: { type: string }
+        user_id: { type: string, format: uuid, nullable: true }
+        registration_error: { type: string, nullable: true }
+        network: { type: string, nullable: true, description: "solana or an EVM network name." }
+      required: [success, message]
 
     # --- Auth ---
 
