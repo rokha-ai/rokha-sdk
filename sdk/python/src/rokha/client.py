@@ -138,18 +138,42 @@ class RokhaClient:
         """Requires `set_auth_token(jwt)` for an existing user session."""
         return self.post("/api/auth/cli/authorize", {"user_code": user_code})
 
-    # --- LLM proxy (federated; the caller's own key, or Rokha's key for Studio accounts) ---
+    # --- LLM proxy (the caller's own key; the Lab) ---
 
     def llm_proxy(self, body: dict[str, Any]) -> dict[str, Any]:
         """Forward an Anthropic /v1/messages request through Rokha.
 
         Body and response mirror Anthropic's shape verbatim. The caller's
-        Bearer JWT is sent automatically (set via `set_auth_token`).
-        Your own Anthropic key is used when you have added one (every
-        account); Rokha's own key is a rate-limited fallback for Studio
-        accounts only — otherwise 402 `studio_required` / `no_llm_key`.
+        Bearer JWT is sent automatically (set via `set_auth_token`). Your
+        own Anthropic key is used (add one in Profile → Keys) and the door
+        needs the Lab — otherwise 402 `studio_required` / `no_llm_key`.
         """
         return self.post("/api/v1/llm/proxy", body)
+
+    # --- Wallet sign-in (headless: a keypair is the only prerequisite) ---
+
+    def wallet_challenge(
+        self, wallet_address: str, wallet_type: str = "phantom", chain: str | None = None
+    ) -> dict[str, Any]:
+        """``POST /api/wallets/challenge`` → ``{challenge_id, message, wallet_address}``.
+
+        Sign ``message`` with the wallet key (Ed25519 on Solana, EIP-191 on
+        EVM); the challenge is one-use and short-lived.
+        """
+        body: dict[str, Any] = {"wallet_address": wallet_address, "wallet_type": wallet_type}
+        if chain:
+            body["chain"] = chain
+        return self.post("/api/wallets/challenge", body)
+
+    def wallet_verify(self, wallet_address: str, challenge_id: str, signature: str) -> dict[str, Any]:
+        """``POST /api/wallets/verify`` → ``{session_token}``: a Bearer JWT for
+        24 hours. Pass it to ``set_auth_token``; a fresh sign-in revokes the
+        token before it.
+        """
+        return self.post(
+            "/api/wallets/verify",
+            {"wallet_address": wallet_address, "challenge_id": challenge_id, "signature": signature},
+        )
 
     # --- Agents ---
 
@@ -278,6 +302,36 @@ class RokhaClient:
         prefix, headers = self._rig_prefix_headers(anon_session_id)
         return self._request("GET", f"{prefix}/traces/{trace_id}", headers=headers)
 
+    def run_rig(
+        self,
+        rig: str,
+        input: str | None = None,
+        inputs: dict[str, str] | None = None,
+        provider_id: str | None = None,
+    ) -> dict[str, Any]:
+        """``POST /api/rigs/run`` — run a published rig by slug, in one call.
+
+        Answers 202 at once with ``run_id``, ``stage_url`` and a ``poll``
+        block; read the run with ``get_run``. ``input`` fills the first
+        declared input; ``inputs`` names them ({name: text}, up to 12). A
+        409 ``needs_secret`` names a key the rig needs that you have not
+        saved; a 402 names the Lab (the month, or the 1M $ROKHA hold) — runs
+        use your own model key.
+        """
+        body: dict[str, Any] = {"rig": rig}
+        if input is not None:
+            body["input"] = input
+        if inputs:
+            body["inputs"] = inputs
+        if provider_id:
+            body["provider_id"] = provider_id
+        return self.post("/api/rigs/run", body)
+
+    def get_run(self, run_id: str) -> dict[str, Any]:
+        """``GET /api/rigs/runs/{run_id}`` — status, steps, output and traces.
+        A PUBLIC rig's run reads with no token."""
+        return self.get(f"/api/rigs/runs/{run_id}")
+
     # --- Runtime ("run for real") ---
 
     def runtime_taste(
@@ -291,8 +345,9 @@ class RokhaClient:
     ) -> dict[str, Any]:
         """The anonymous taste — CLOSED: an anonymous caller has no runs, and
         the door answers a refusal (sign in). Kept for back-compat. Use
-        `runtime_run` with a signed-in key — free accounts get 3 runs a day,
-        the Studio 300; `harness_id` (a UUID) anchors the trace the run writes.
+        `runtime_run` with a signed-in key and the Lab (300 runs a day; a
+        free account has no runs); `harness_id` (a UUID) anchors the trace
+        the run writes.
         """
         return self.post(
             "/api/runtime/taste",
@@ -316,8 +371,8 @@ class RokhaClient:
         model: str | None = None,
     ) -> dict[str, Any]:
         """The signed-in door: a real run against the caller's daily runs —
-        3 a day on a free account, 300 with the Studio (the month, or the 1M
-        $ROKHA hold).
+        300 a day with the Lab (the month, or the 1M $ROKHA hold), on your own
+        model key; a free account has no runs.
 
         Requires the bearer JWT (set via `set_auth_token`). `harness_id` (a
         UUID) anchors the trace.
