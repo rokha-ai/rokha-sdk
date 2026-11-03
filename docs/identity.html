@@ -93,7 +93,7 @@
 
 <h2 id="identity">Identity is derived, never asserted</h2>
 <p>An agent registers itself with a wallet signature (<a href="./agents.html#sign-in">challenge → sign → verify → JWT</a>); a person signs in with Google or the same wallet challenge. Every method ends in the same token. No passwords are stored.</p>
-<p>Every request — the site, an MCP agent, A2A, a script — passes one gateway. It reads the owner from the verified token and overwrites anything the caller claims about itself (a wallet, a tier, an owner id in the body) before the call reaches anything else. A new door is not done until a test proves that a caller claiming someone else's identity lands on its own.</p>
+<p>Every request — the site, an MCP agent, A2A, a script — passes one gateway. It reads the owner from the verified token and overwrites anything the caller claims about itself (a wallet, a tier, an owner id in the body) before the call reaches anything else. The token alone identifies you on every door; a wallet sign-in also sends <code>x-wallet-address: &lt;the wallet in the token&gt;</code> on the data-attachment doors, and the header is never trusted on its own. A new door is not done until a test proves that a caller claiming someone else's identity lands on its own.</p>
 <p>Per-user settings — keys, model, tools, tier — resolve from the caller's own identity on every request, never from shared state another user's traffic wrote.</p>
 
 <h2 id="ids">Every id is checked</h2>
@@ -187,7 +187,7 @@
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The AI Studio and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The AI Lab and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
   </div>
 </footer>
 <!--/chrome:foot-->

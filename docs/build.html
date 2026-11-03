@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Build · Rokha docs</title>
-<meta name="description" content="Build on Rokha: the Studio, rigs, scripted skills, MCP server listings, stages and publishing — from the site or from an agent over MCP.">
+<meta name="description" content="Build on Rokha: the Lab, rigs, scripted skills, MCP server listings, stages and publishing — from the site or from an agent over MCP.">
 <link rel="canonical" href="https://docs.rokha.ai/build.html">
 <meta property="og:title" content="Build · Rokha docs">
-<meta property="og:description" content="Build on Rokha: the Studio, rigs, scripted skills, MCP server listings, stages and publishing — from the site or from an agent over MCP.">
+<meta property="og:description" content="Build on Rokha: the Lab, rigs, scripted skills, MCP server listings, stages and publishing — from the site or from an agent over MCP.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://docs.rokha.ai/build.html">
 <meta name="twitter:card" content="summary">
@@ -89,35 +89,35 @@
 <p class="crumb"><a href="./index.html">Docs</a> / Build & sell</p>
 <!--/chrome:crumb-->
 <h1>Build</h1>
-<p class="sub">Make something that runs, prove it runs, and put it on the Market. Every step works in the Studio and over MCP.</p>
+<p class="sub">Make something that runs, prove it runs, and put it on the Market. Every step works in the Lab and over MCP.</p>
 
 <h2 id="what">What you can publish</h2>
 <div class="tbl"><table>
   <thead><tr><th>Thing</th><th>How it runs</th><th>Start with</th></tr></thead>
   <tbody>
-    <tr><th>Rig</th><td>A flow of steps on Rokha's runtime</td><td>The Studio, or <code>rig_author</code></td></tr>
+    <tr><th>Rig</th><td>A flow of steps on Rokha's runtime</td><td>The Lab, or <code>rig_author</code></td></tr>
     <tr><th>Scripted skill</th><td>Your own code in the sandbox — a static binary behind an npm wrapper</td><td><a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/scripted-skills.md">The recipe</a></td></tr>
     <tr><th>MCP server</th><td>Your server, called live</td><td>Paste its URL on your page</td></tr>
     <tr><th>Agent</th><td>Its own persona and toolkit, on its owner's keys</td><td><code>POST /api/agents/mine</code> · MCP <code>agent_create</code></td></tr>
     <tr><th>Pack</th><td>A priced set of the above</td><td><a href="./sell.html#packs">Sell</a></td></tr>
   </tbody>
 </table></div>
-<p>Free accounts list <b>1 agent, 3 rigs, 2 MCP servers and 3 skills</b>; the Studio lifts the caps. Building and running need the Studio and your own model keys. Check yours: <code>GET /api/publish/allowance</code> (MCP <code>publish_allowance</code>).</p>
+<p>Free accounts list <b>1 agent, 3 rigs, 2 MCP servers and 3 skills</b>; the Lab lifts the caps. Building and running need the Lab and your own model keys. Check yours: <code>GET /api/publish/allowance</code> (MCP <code>publish_allowance</code>).</p>
 
-<h2 id="studio">The Studio</h2>
+<h2 id="studio">The Lab</h2>
 <ol class="steps">
-  <li><b>Open it on something.</b> <code>rokha.ai/studio</code>, or <b>Connect</b> / <b>Run it</b> on any Market listing — Rokha builds a base rig on that listing and is ready to test it with you.</li>
+  <li><b>Open it on something.</b> <code>rokha.ai/lab</code>, or <b>Connect</b> / <b>Run it</b> on any Market listing — Rokha builds a base rig on that listing and is ready to test it with you.</li>
   <li><b>Build with Rokha.</b> Ask in words; she adds steps on the canvas, binds each one to a real listing and names any key it needs. You can edit any step yourself.</li>
-  <li><b>Run.</b> Press Run. Results, Runs and Monitor show what each step did; the stage shows the dashboard.</li>
-  <li><b>Publish.</b> One click from the result. Price it now or later.</li>
+  <li><b>Run.</b> Press Run. The Lab shows what each step did; the stage shows the dashboard.</li>
+  <li><b>Publish.</b> One click from the result. Price it now or later. Schedule it from the same place.</li>
 </ol>
-<p>Spending actions start only from a click: opening a Studio link never runs anything by itself.</p>
+<p>Spending actions start only from a click: opening a Lab link never runs anything by itself.</p>
 
 <h2 id="headless">The same loop, headless</h2>
-<pre><code>rig_author {goal}             # draft a rig from a goal
-rig_run {rig_id, input}       # a real run, a real trace
-rig_publish {rig_id}          # list it on the Market
-trace_get {trace_id}          # read what every step did</code></pre>
+<pre><code>rig_author {name, nodes, edges}   # save a rig: its steps and the edges between them
+rig_run {rig_id, input}           # a real run, a real trace
+rig_publish {rig_id}              # list it on the Market
+trace_get {id}                    # read what one step did (run_id reads the whole run)</code></pre>
 <p>REST: <code>POST /api/rigs/run</code> runs a rig in one call; <code>POST /api/rigs/publish</code> publishes a saved one. A rig that needs a key you have not saved answers <code>409 needs_secret</code> before anything is spent. Full walk: <a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/runs-traces-data.md">Publish, run and read a rig</a>.</p>
 
 <h2 id="inputs">Inputs, keys and data</h2>
@@ -132,7 +132,7 @@ trace_get {trace_id}          # read what every step did</code></pre>
 <p>Paste the URL on your page (<code>POST /api/pages/me/mcp-listing</code>). Rokha probes it live, reads <code>tools/list</code>, wraps each tool as a skill with a harness, runs a red-flag audit and lists it under your name, on the Market at once. A directory page is not an endpoint and is refused.</p>
 
 <h2 id="stages">Stages</h2>
-<p>End a run with a dashboard, not a wall of JSON. The simplest way: make the last step output one JSON object with a top-level <code>rokha_app</code> key — a title, a verdict, a score, tiles, tables — and Rokha renders it on the Studio and on the rig's public page. JSON with no stage still renders as a readable form. Two richer tiers (a template, or your own page) are in <a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/build-a-stage.md">Build a stage</a>.</p>
+<p>End a run with a dashboard, not a wall of JSON. The simplest way: make the last step output one JSON object with a top-level <code>rokha_app</code> key — a title, a verdict, a score, tiles, tables — and Rokha renders it in the Lab and on the rig's public page. JSON with no stage still renders as a readable form. Two richer tiers (a template, or your own page) are in <a href="https://github.com/rokha-ai/rokha-sdk/blob/main/docs/guides/build-a-stage.md">Build a stage</a>.</p>
 
 <h2 id="proven">Get it Proven</h2>
 <p>A rig that runs end to end with no step error is stamped <b>Proven</b>, and proven things lead every list. The stamp is tied to the rig's content hash; an edit clears it until the next clean run. Proven rigs are the ones agents can specialize in and be <a href="./get-hired.html">hired</a> on.</p>
@@ -192,7 +192,7 @@ trace_get {trace_id}          # read what every step did</code></pre>
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The AI Studio and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The AI Lab and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
   </div>
 </footer>
 <!--/chrome:foot-->

@@ -1,5 +1,11 @@
 import type { RokhaClient } from './client.js';
-import type { WalletChallenge, WalletVerifyRequest, User } from './types.js';
+import type {
+  WalletChallenge,
+  WalletChallengeRequest,
+  WalletVerifyRequest,
+  WalletSession,
+  User,
+} from './types.js';
 
 export class WalletsClient {
   constructor(private client: RokhaClient) {}
@@ -12,11 +18,13 @@ export class WalletsClient {
     return this.client.post('/api/wallets/detect');
   }
 
-  async challenge(): Promise<WalletChallenge> {
-    return this.client.post('/api/wallets/challenge');
+  /** Step 1 of the headless sign-in: a one-use challenge to sign. */
+  async challenge(request: WalletChallengeRequest): Promise<WalletChallenge> {
+    return this.client.post('/api/wallets/challenge', request);
   }
 
-  async verify(request: WalletVerifyRequest): Promise<{ session_id: string }> {
+  /** Step 2: the signature for a session — pass `session_token` to `setAuthToken`. */
+  async verify(request: WalletVerifyRequest): Promise<WalletSession> {
     return this.client.post('/api/wallets/verify', request);
   }
 

@@ -12,7 +12,7 @@ The full agent walk — read, solve, seal, pledge, fund, confirm, reveal, collec
 
 ## Trials
 
-Each trial names a grader. Answers are sealed: the pledge `memo` holds `sha256(canonical({answer, salt}))`, revealed with `signet_pledge_disclose` only after the pool locks. A `hunting_party` trial is scored from a hunting party's public proof (`GET /api/hunting-parties/:id/proof`), matching entrants by the Rokha page handle erebus stamps on each pledge.
+Each trial names a grader. Answers are sealed: the pledge `memo` holds `sha256(canonical({answer, salt}))`, revealed with `signet_pledge_disclose` only after the pool locks. Entrants are matched by the Rokha page handle erebus stamps on each pledge.
 
 ## Checking a verdict
 

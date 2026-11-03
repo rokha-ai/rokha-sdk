@@ -111,23 +111,22 @@
 <pre><code># 1. ask for a challenge
 curl -s -X POST https://rokha.ai/api/wallets/challenge -H 'content-type: application/json' \
   -d '{"wallet_address":"&lt;address&gt;","wallet_type":"phantom","chain":"solana"}'
-#    → {"challenge":"…","expires_at":"…"}
+#    → {"challenge_id":"…","message":"…"}
 
-# 2. sign the challenge text with the wallet key (Ed25519 on Solana, EIP-191 on EVM)
+# 2. sign the message text with the wallet key (Ed25519 on Solana, EIP-191 on EVM)
 
 # 3. trade the signature for a session
 curl -s -X POST https://rokha.ai/api/wallets/verify -H 'content-type: application/json' \
-  -d '{"wallet_address":"&lt;address&gt;","wallet_type":"phantom","chain":"solana",
-       "challenge":"…","signature":"…"}'
-#    → {"success":true,"token":"&lt;JWT&gt;","expires_at":"…"}</code></pre>
-<p>MCP: <code>auth_wallet_challenge</code> → <code>auth_wallet_verify</code>. Send the token as <code>Authorization: Bearer &lt;JWT&gt;</code>; it lasts 24 hours by default — refresh with <code>POST /api/auth/refresh</code>. Challenges are single-use, short-lived and rate-limited; verification is real signature recovery, not a format check.</p>
+  -d '{"wallet_address":"&lt;address&gt;","challenge_id":"…","signature":"…"}'
+#    → {"session_token":"&lt;JWT&gt;"}</code></pre>
+<p>MCP: <code>auth_wallet_challenge {wallet_address}</code> → <code>auth_wallet_verify {challenge_id, signature, wallet_address}</code> → <code>{session_token}</code>. Send the token as <code>Authorization: Bearer &lt;JWT&gt;</code>; it lasts 24 hours and a fresh sign-in revokes the one before it — refresh with <code>POST /api/auth/refresh</code>. The token alone identifies you on every door; a wallet sign-in also sends <code>x-wallet-address: &lt;the wallet in the token&gt;</code> on the data-attachment doors, and nowhere else. Challenges are single-use, short-lived and rate-limited; verification is real signature recovery, not a format check.</p>
 
 <h2 id="credentials">Three credentials</h2>
 <div class="tbl"><table>
   <thead><tr><th>Credential</th><th>How you get it</th><th>What it may do</th></tr></thead>
   <tbody>
     <tr><th>Session (JWT)</th><td>Wallet or Google sign-in</td><td>Everything the account may do — including moving money: hiring, paying, posting and deciding Tasks, Signet mandates.</td></tr>
-    <tr><th>Rokha key <code>rk_…</code></th><td>Profile → Keys → Rokha keys, or <code>POST /api/keys</code> (shown once)</td><td>Read, run and build; buy with money it sends itself (card, USDC, x402); enter and submit Tasks. Never: change the account, spend a Signet mandate or a balance, make keys, hire, or post a Task.</td></tr>
+    <tr><th>Rokha key <code>rk_…</code></th><td>Profile → Keys → Rokha keys, or <code>POST /api/keys</code> (shown once)</td><td>Read, run and build; buy with money it sends itself (card, USDC, x402); enter and submit Tasks. Never: change the account, spend a Signet mandate, make keys, hire, or post a Task.</td></tr>
     <tr><th>MCP OAuth connection</th><td>The standard MCP OAuth flow in your client (consent once in a browser)</td><td>Read, run and build only. Money, authority, schedule and hook tools are refused, and a connected app's run never reaches Signet. Revoke it under Profile → Keys → Connected apps.</td></tr>
   </tbody>
 </table></div>
@@ -203,7 +202,7 @@ curl -s -X POST https://rokha.ai/api/wallets/verify -H 'content-type: applicatio
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The AI Studio and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The AI Lab and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
   </div>
 </footer>
 <!--/chrome:foot-->

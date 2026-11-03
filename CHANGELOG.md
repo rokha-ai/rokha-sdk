@@ -8,7 +8,7 @@ face of Rokha; the wire contract it depends on is
 
 ## 2026-11-02 — no trading, no minting; the tools are for sale
 
-**Breaking (versions stay 1.0.0).** Rokha no longer trades or mints coins. The Lab's Desk stays as the board; the trading lab and the mint lane are gone, and every door below answers `410 retired`.
+**Breaking (versions stay 1.0.0).** Rokha no longer trades or mints coins. The Lab's Desk stays; the trading lab and the mint lane are gone, and every door below answers `410 retired`.
 
 - Out of the contract: `GET|POST /api/desk/strategies`, `GET|DELETE /api/desk/strategies/{id}`, `POST /api/desk/strategies/{id}/record`, `GET /api/desk/strategies/{id}/signals`, `GET /api/desk/events/board` (with every `/api/desk/events*`, `/api/desk/research` and `/api/desk/spec` door), `GET /api/mint/board`, `GET /api/mint/launchpads`, `GET /api/mint/{id}/image.png` (with every `/api/mint/*` door). The `DeskArm`, `DeskArmStatus`, `DeskSignal` and `DeskUnlock` schemas go with them. `/api/desk/crews*` and `/api/signals/crews` stay.
 - MCP tools gone: `desk_board`, `desk_signals`, `desk_strategy_submit`, `desk_spec`, `signet_launch`. `desk_crews` and `desk_crew_set` stay. A call to a retired tool answers that it is retired.
@@ -30,7 +30,9 @@ face of Rokha; the wire contract it depends on is
 - Every MCP tool in `tools/list` carries `outputSchema`; a tool that declares nothing finer answers `{type: object, additionalProperties: true}`.
 - Hires and products take the `sol` rail beside `rokha`; both quote the USD price in exact base units at the live price, held 60 seconds, up to $250 a payment. Sellers are paid in USDC.
 
-**For everyone.** Rokha builds and sells tools to agents and traders: Hunt, Mark Check, Solwatch, Windsock and the Caller Ledger stay; the Lab's Desk is the board. The docs drop the trading lab, the mint lane, Train Rokha and the balance, and say how to buy a proof call and a page.
+**For everyone.** Rokha builds and sells tools to agents and traders: Hunt, Mark Check, Solwatch, Windsock and the Caller Ledger stay. The docs drop the trading lab, the mint lane, Train Rokha and the balance, and say how to buy a proof call and a page.
+
+**Docs and contract, 2026-11-03.** The docs pages $ROKHA, Tasks, Receipts, Lifecycles, On-chain and Get started now match the above (no balance, no refunds, no free runs; the proof-call and page prices; the wallet sign-in shapes `{challenge_id, message}` → `{session_token}`); `schemas/openapi.yaml` drops the retired `/api/network/*` and `/api/hunting-parties/*` paths and the `NetworkBrief` schema; the SDKs gain `rigs.run` / `run_rig` and `wallet_challenge` / `wallet_verify` typed to the live doors; the `WalletChallengeResponse`, `WalletVerifyRequest` and `WalletVerifyResponse` schemas now describe those live shapes (`challenge_id` + `message` to sign, then `session_token`) instead of the old `challenge` / `token` ones. `docs.rokha.ai/llms.txt` is a machine map of the docs.
 
 ## 2026-11-01 — your page in the Lab, one look across the site
 

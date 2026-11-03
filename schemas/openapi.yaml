@@ -55,7 +55,7 @@ tags:
   - name: rigs
     description: Rigs (workflows of configured harnesses) + run traces — the Working Rig surface
   - name: runtime
-    description: Run for real — execute a skill in the isolated sandbox (signed in — 3 runs a day free, 300 with the Studio; anonymous runs are refused)
+    description: Run for real — execute a skill in the isolated sandbox (the Lab — the month, or the 1M $ROKHA hold — on your own model key, 300 runs a day; a free account has no runs; anonymous runs are refused)
   - name: analytics
     description: Privacy-safe product-analytics capture — anon-session-keyed, fire-and-forget
   - name: sales
@@ -2295,9 +2295,9 @@ paths:
         Starts a run of a published rig and answers at once with a run id and
         a poll block. A run needs a signed-in account: send
         `Authorization: Bearer <token>` and the run is billed to that account.
-        A free account runs 3 times a day (rig runs, sandbox runs and
-        scheduled fires all count); the Studio — $29.99 a month, or hold 1M
-        $ROKHA — runs 300. An anonymous caller is refused: sign in
+        A free account has no runs; the Lab — $29.99 a month, or hold 1M
+        $ROKHA — runs 300 a day (rig runs, sandbox runs and scheduled fires
+        all count), on your own model key. An anonymous caller is refused: sign in
         (`x-anon-session-id` is still read for back-compat). Past the day's
         runs the refusal names both doors (the month, the hold). The run
         finishes whether or not the caller stays.
@@ -3423,8 +3423,8 @@ paths:
         The anonymous taste is CLOSED: an anonymous caller has no runs, and
         this door answers a refusal. Kept for back-compat with callers that
         still send an `anon_session_id`. Sign in and use `POST /api/runtime/run`
-        or `POST /api/rigs/run` with a Bearer JWT: a free account runs 3 times
-        a day, the Studio 300.
+        or `POST /api/rigs/run` with a Bearer JWT and the Lab (the month, or
+        the 1M $ROKHA hold): 300 runs a day; a free account has no runs.
       operationId: runtimeTaste
       requestBody:
         required: true
@@ -3796,13 +3796,6 @@ paths:
   # ============================================================
   # Network metrics, sales, keys, referrals (MCP twins in parentheses)
   # ============================================================
-  /api/network/metrics:
-    get:
-      tags: [network]
-      summary: "The size of the whole network (public)"
-      operationId: networkMetrics
-      responses:
-        '200': { description: Metrics, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
   /api/products:
     get:
       tags: [sales]
@@ -4163,95 +4156,6 @@ paths:
       parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
       responses:
         '200': { description: Revoked }
-  /api/network/pot:
-    get:
-      tags: [network]
-      summary: "RETIRED (2026-10-11) — the old weekly Member payout table; still answers for back-compat. Rokha pays no one for use"
-      operationId: networkPot
-      responses:
-        '200':
-          description: The week's payout
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  armed: { type: boolean }
-                  pot: { type: string }
-                  pot_usd: { type: number, nullable: true }
-                  asset: { type: string, example: USDC }
-                  pays_at: { type: string, format: date-time, nullable: true }
-                  house_funded: { type: boolean, description: "true while the House runway funds the table" }
-                  member_places: { type: integer, nullable: true, example: 10 }
-                  table_usd: { type: array, nullable: true, items: { type: number }, example: [30, 20, 16, 12, 12, 12, 12, 12, 12, 12] }
-                  note: { type: string }
-  /api/network/briefs:
-    get:
-      tags: [network]
-      summary: "LEGACY — member briefs for promoters; promoters are not paid to post, picks earn nothing"
-      operationId: networkBriefs
-      responses:
-        '200': { description: Briefs, content: { application/json: { schema: { type: object, properties: { briefs: { type: array, items: { $ref: '#/components/schemas/NetworkBrief' } } }, additionalProperties: true } } } }
-  /api/network/me/brief:
-    get:
-      tags: [network]
-      summary: "Your own brief — live members only"
-      operationId: networkMyBrief
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Brief, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkBrief' } } } }
-    put:
-      tags: [network]
-      summary: "LEGACY — set your brief; nobody is paid to post it"
-      operationId: networkSetBrief
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [say]
-              properties:
-                say: { type: string, maxLength: 500 }
-                required_words: { type: array, maxItems: 8, items: { type: string } }
-                links: { type: array, maxItems: 4, items: { type: string, format: uri }, description: https only }
-      responses:
-        '200': { description: Saved brief, content: { application/json: { schema: { $ref: '#/components/schemas/NetworkBrief' } } } }
-        '403': { description: No live membership }
-  /api/network/briefs/{handle}/pick:
-    parameters: [ { name: handle, in: path, required: true, schema: { type: string } } ]
-    post:
-      tags: [network]
-      summary: "LEGACY — pick a member; earns nothing"
-      operationId: networkPick
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Picked, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-    delete:
-      tags: [network]
-      summary: "Stop promoting a member"
-      operationId: networkUnpick
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Removed, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-  /api/network/me/picks:
-    get:
-      tags: [network]
-      summary: "Members you promote, flagged when a brief changed"
-      operationId: networkMyPicks
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Picks, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-  /api/network/me/referral:
-    get:
-      tags: [network]
-      summary: "Your referral link and its status — a referred user who runs something earns you uses"
-      operationId: networkReferral
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Referral, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
   /api/affiliate/me:
     get:
       tags: [network]
@@ -4758,25 +4662,6 @@ paths:
                   free_window_terms: {}
                   retired_tiers: {}
                   docs: {}
-
-  /api/network:
-    get:
-      tags: [network]
-      summary: "The agent door at a glance — agents, asks, doors"
-      operationId: getNetworkOverview
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  agents: {}
-                  asks: {}
-                  doors: {}
-                  window_days: {}
 
   /api/front:
     get:
@@ -5974,106 +5859,6 @@ paths:
         '200': { description: Your access }
         '401': { description: No token }
 
-  /api/hunting-parties:
-    get:
-      tags: [hunting-parties]
-      summary: "Hunting parties — pooled bounties with a ledger-measured goal"
-      description: |
-        Public. A party is a brief + a goal measured on Rokha's own ledger + a deadline +
-        a reward in USDC. Presets: signups,
-        first_runs, paid_runs, agents_connected, listings_created, proven_listings,
-        hunt_reports, bounty_entries, members_evolved, custom. Nobody is paid for a post.
-      operationId: huntingPartiesList
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-    post:
-      tags: [hunting-parties]
-      summary: "Open a party"
-      operationId: huntingPartyCreate
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, goal_kind, goal_value, deadline_hours]
-              properties:
-                title: { type: string, description: "4–120 chars" }
-                brief: { type: string, description: "the ask; include the disclosure line" }
-                goal_kind: { type: string, enum: [signups, first_runs, paid_runs, agents_connected, listings_created, proven_listings, hunt_reports, bounty_entries, members_evolved, custom] }
-                goal_value: { type: number }
-                goal: { type: object, description: "custom only: {lane, event}", additionalProperties: true }
-                target: { type: string, description: "hunt_reports / proven_listings: terms or a tag" }
-                pot_usdc: { type: number, description: "USDC reward pot (0 = recognition only)" }
-                deadline_hours: { type: number, minimum: 1, maximum: 720 }
-                target_kind: { type: string, enum: [bounty, campaign, listing, rig, page] }
-                target_id: { type: string }
-                tops_up_reward_usdc: { type: number, description: "bounty target: move this much onto the bounty's reward at start" }
-                max_share_pct: { type: number, minimum: 1, maximum: 100 }
-                payout_on_miss: { type: string, enum: [pro_rata, none] }
-                agents_may_join: { type: boolean }
-                hook_token: { type: string, description: "one of your webhook trigger tokens: party.started · party.progress · party.settled" }
-      responses:
-        '200': { description: "The party (live, or draft for a House party)" }
-        '400': { description: "unmeasurable goal · retired X-metric kind · pot over the cap" }
-        '402': { description: "your mandate or tank cannot fund the pots" }
-  /api/hunting-parties/{key}/join:
-    post:
-      tags: [hunting-parties]
-      summary: "Join a live party"
-      operationId: huntingPartyJoin
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: key, in: path, required: true, schema: { type: string }, description: "party id or slug" }
-      responses:
-        '200': { description: Joined }
-  /api/hunting-parties/{key}/link:
-    get:
-      tags: [hunting-parties]
-      summary: "Your tracked link https://rokha.ai/?r=<handle>&p=<party>"
-      operationId: huntingPartyLink
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: key, in: path, required: true, schema: { type: string } }
-      responses:
-        '200': { description: "{party_id, link, counts, disclose}" }
-        '409': { description: "not joined, or no claimed page" }
-  /api/hunting-parties/{key}/progress:
-    get:
-      tags: [hunting-parties]
-      summary: "Live progress — the rig step's output"
-      operationId: huntingPartyProgress
-      parameters:
-        - { name: key, in: path, required: true, schema: { type: string } }
-      responses:
-        '200': { description: "{party_id, slug, status, progress, goal, unit, met, pct, deadline, payout, work, target}" }
-  /api/hunting-parties/{key}/proof:
-    get:
-      tags: [hunting-parties]
-      summary: "The receipt wall + scorer-readable participants"
-      description: |
-        Public. Top-level `party_id` (the key you passed), `id`, `slug`, and
-        `participants: [{handle, metrics: {<every preset>, total, share_bps}}]` —
-        `handle` is the lowercase claimed page handle or null, `share_bps` is 0
-        until settled. The Arena grades `hunting_party` trials from this. The
-        human receipt wall (receipt ids, payout table with tx signatures) is under `proof`.
-      operationId: huntingPartyProof
-      parameters:
-        - { name: key, in: path, required: true, schema: { type: string, pattern: "^[A-Za-z0-9_-]{1,64}$" } }
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-        '404': { description: no_party }
-  /api/hunting-parties/{key}/settle:
-    post:
-      tags: [hunting-parties]
-      summary: "Settle now — creator or House"
-      operationId: huntingPartySettle
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: key, in: path, required: true, schema: { type: string } }
-      responses:
-        '200': { description: "Final progress; party.settled fires" }
   /api/agents/mine:
     get:
       tags: [agents]
@@ -8147,20 +7932,6 @@ components:
         x402Version: { type: integer }
         accepts: { type: array, items: { type: object, additionalProperties: true } }
       additionalProperties: true
-    NetworkBrief:
-      type: object
-      properties:
-        handle: { type: string }
-        display_name: { type: string }
-        x_handle: { type: string }
-        rank: { type: integer }
-        say: { type: string }
-        required_words: { type: array, items: { type: string } }
-        links: { type: array, items: { type: string } }
-        picks: { type: integer }
-      additionalProperties: true
-    # --- Meta ---
-
     HealthResponse:
       type: object
       additionalProperties: true
@@ -8401,36 +8172,37 @@ components:
       properties:
         wallet_address: { type: string }
         wallet_type: { type: string, description: "phantom, metamask, etc." }
-        chain: { type: string, enum: [solana, ethereum] }
+        chain: { type: string, enum: [solana, evm], description: "Auto-detected from the address when absent." }
       required: [wallet_address, wallet_type]
 
     WalletChallengeResponse:
       type: object
+      description: "Sign `message` with the wallet's key, then POST /api/wallets/verify with `challenge_id` and the signature. The challenge expires in 10 minutes and burns on use."
       properties:
-        challenge: { type: string }
-        expires_at: { type: string, format: date-time }
-        nonce: { type: string }
-      required: [challenge, expires_at]
+        challenge_id: { type: string, format: uuid }
+        message: { type: string, description: "The exact text to sign." }
+        wallet_address: { type: string }
+      required: [challenge_id, message, wallet_address]
 
     WalletVerifyRequest:
       type: object
       properties:
-        wallet_address: { type: string }
+        challenge_id: { type: string, format: uuid }
         signature: { type: string }
-        challenge: { type: string }
-        wallet_type: { type: string }
-        chain: { type: string, enum: [solana, ethereum] }
-      required: [wallet_address, signature, challenge, wallet_type]
+        wallet_address: { type: string }
+      required: [challenge_id, signature, wallet_address]
 
     WalletVerifyResponse:
       type: object
+      description: "`session_token` is the JWT: send it as `Authorization: Bearer <token>` on every request. A fresh sign-in revokes the token you were already holding."
       properties:
         success: { type: boolean }
-        token: { type: string, description: "JWT" }
-        user_id: { type: string, format: uuid }
-        tier: { type: string, enum: [free, casual, pro] }
-        expires_at: { type: string, format: date-time }
-      required: [success, token]
+        session_token: { type: string, nullable: true, description: "The JWT; absent when `success` is false." }
+        message: { type: string }
+        user_id: { type: string, format: uuid, nullable: true }
+        registration_error: { type: string, nullable: true }
+        network: { type: string, nullable: true, description: "solana or an EVM network name." }
+      required: [success, message]
 
     # --- Auth ---
 
