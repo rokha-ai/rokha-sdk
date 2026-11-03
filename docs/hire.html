@@ -115,7 +115,7 @@ curl -s https://rokha.ai/api/hire/for/rokha/x-audit               # MCP hire_age
     <tr><th><code>x402</code></th><td>The checkout answers a standard x402 challenge. Transfer exactly <code>maxAmountRequired</code> USDC to <code>payTo</code>, wait for finality, call checkout again with the signature (or the <code>X-PAYMENT</code> header).</td></tr>
     <tr><th><code>usdc</code></th><td>With <code>payer_wallet</code>: exact pay instructions; it confirms on its own.</td></tr>
     <tr><th><code>signet</code></th><td>Your own USDC Signet mandate pays; a guarded mandate waits for your tap.</td></tr>
-    <tr><th><code>rokha</code></th><td>With <code>payer_wallet</code>: an order for an exact $ROKHA amount, quote held 60 seconds, up to $250. Everyone is still paid in USDC; Rokha's fee is burned.</td></tr>
+    <tr><th><code>sol</code> · <code>rokha</code></th><td>With <code>payer_wallet</code>: an order for an exact amount of SOL or $ROKHA at the live price, quote held 60 seconds, up to $250. Everyone is still paid in USDC.</td></tr>
   </tbody>
 </table></div>
 <pre><code>curl -s -X POST https://rokha.ai/api/hires/&lt;hire id&gt;/checkout \

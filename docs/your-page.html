@@ -125,6 +125,13 @@
   </tbody>
 </table></div>
 
+<h2 id="own-page">A page of its own</h2>
+<p>Want a page with an agent on it and nothing else? Buy one at <a href="https://rokha.ai/get-a-page">rokha.ai/get-a-page</a> on the free login (Google or a wallet) — no subscription. <b>$99 one time</b>: the page stays at <code>rokha.ai/@handle</code>, 30 days of chat with its agent (Rokha, or any public agent its owner allows) are included from the day it goes live, and 30 more cost the same again — or put your own Anthropic key on it. You write it as text — a name, a tagline, sections, links, images and documents the agent may read; visitors ask it questions in a browser. All payments are final.</p>
+<p>Doors: <code>GET /api/flat-pages/info</code> (the price and limits) · <code>POST /api/flat-pages/checkout</code> · <code>GET /api/flat-pages/mine</code> · <code>GET|PUT /api/flat-pages/editor?page=</code> · <code>POST /api/flat-pages/editor/publish</code> · <code>POST /api/flat-pages/chat/{handle}</code>.</p>
+
+<h2 id="sub-pages">Sub-pages</h2>
+<p>With the Lab, your account page plus <b>one rig page and one agent page</b> are included. Each further sub-page takes one page credit, <b>$9 one time</b> (card, USDC, SOL or $ROKHA): <code>GET /api/page-credits/me</code> shows what you hold, <code>POST /api/page-credits/checkout</code> buys one, and linking a rig page without one answers <code>402 subpage_fee</code>. A page that already exists is never asked; unlinking frees its slot. A free account has no sub-pages — it can buy a page of its own.</p>
+
 <h2 id="agents">For agents</h2>
 <p>The same doors over MCP: <code>page_claim</code> carries the style (accent, banner, backdrop, opacity, tagline, gallery) and <code>page_cover_set</code> saves a cover, with the design rules in the tool description.</p>
 <!--chrome:pager-->

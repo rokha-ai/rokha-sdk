@@ -76,19 +76,50 @@ Other ways for an agent to pay (`POST /api/products/<id>/checkout` or MCP
 
 - `rail: "signet"` — the account's own USDC Signet mandate pays. An autonomous
   mandate pays inside its caps at once; a guarded one waits for the owner's tap.
-- `rail: "rokha"` + `payer_wallet` — pay with $ROKHA: an order for an exact $ROKHA amount
-  (`amount_rokha`, `pay_to`, `expires_at`; the quote holds 60 seconds, up to $250 a payment).
-  Send exactly that from `payer_wallet` and it confirms on its own. The creator is paid in USDC
-  and Rokha's fee on that payment is burned. (`rail: "fuel"` is retired — a balance pays for
-  Rokha's models only.)
+- `rail: "sol"` or `"rokha"` + `payer_wallet` — pay in SOL or $ROKHA: an order for the exact
+  amount at the live price (`amount_sol` + `lamports`, or `amount_rokha` + `rokha_base` + `mint`,
+  with `pay_to` and `expires_at`; the quote holds 60 seconds, up to $250 a payment). Send
+  exactly that from `payer_wallet` and it confirms on its own. The creator is paid in USDC.
 - `rail: "card"` / `"usdc"` — a link or exact instructions to hand a person.
+
+Before you buy, `GET /api/products/<id>` says whether the item is `proven` (it has run clean
+end to end); `null` means it could not be read.
+
+## Rokha's own tools — a proof call
+
+Hunt (`GET /api/hunt?q=`, MCP `hunt_report`), Mark Check (`GET /api/mark/check?q=`, MCP
+`mark_check`) and the Solwatch rig are priced per call: **$0.02 a call, sold as a pack of 50
+for $1** (`per_run` on the House listing). Free with the Studio; one free call a day on a
+signed-in account. Anyone else gets **402 `purchase_required`** — Rokha's own price for the
+call, never the target site's:
+
+```json
+{
+  "code": "purchase_required",
+  "product": { "id": "<product id>", "model": "per_run", "price_cents": 100, "runs_per_pack": 50 },
+  "checkout_url": "https://rokha.ai/buy/<id>?kind=rig&ref=<ref>",
+  "pay": { "api": "POST /api/products/<id>/checkout {\"rail\":…}", "mcp": "product_checkout" },
+  "free_trial": { "per_day": 1, "how": "sign in: one free call a day on your account" },
+  "per_call": "$0.02",
+  "x402Version": 1,
+  "accepts": [{ "scheme": "exact", "network": "solana", "asset": "<USDC mint>",
+                "payTo": "<Rokha wallet>", "maxAmountRequired": "1000000" }]
+}
+```
+
+`accepts` comes only to a caller with a session (a JWT, an `rk_` key or an anonymous session
+id): transfer exactly `maxAmountRequired`, wait for finality, then call the door again — the
+pack lands on that session and the call runs. Or buy the pack with `product_checkout` on any
+rail and call again. The gate runs before any work, so a refused call costs nothing. A mark
+or hunt on a coin Rokha herself launched carries `conflict` and `house_launched: true` in place
+of a verdict. The paid doors are listed at `GET /.well-known/x402`.
 
 ## Rokha keys
 
 An outside agent can act as you with a personal key: Profile → Keys → **Rokha
 keys** (or `POST /api/keys`). Send it as `Authorization: Bearer rk_…`. A key can
-read, run and buy with money it sends (card, USDC, x402); it cannot change your
-account, spend a Signet mandate or a balance, or make other keys. Revoke it
+read, run and buy with money it sends (card, USDC, SOL, $ROKHA, x402); it cannot change your
+account, spend a Signet mandate, or make other keys. Revoke it
 any time.
 
 MCP tools: `product_get` · `product_set` · `product_checkout` · `purchases_mine`.

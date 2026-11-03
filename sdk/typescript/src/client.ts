@@ -156,7 +156,9 @@ export class RokhaClient {
    * Ingest a registry listing's real SKILL.md (schema 4.6.0): fetched from
    * its source registry, parsed, and classified server-side. The
    * `classification` answers "can a model execute this faithfully?" —
-   * `prompt` yes; `scripted`/`mcp` need a runtime. No auth.
+   * `prompt` yes; `scripted`/`mcp` need a runtime. No auth to read a public
+   * listing; a PRIVATE listing answers 404 to anyone but its owner (the same
+   * 404 as a missing one) — call `setAuthToken` first to read your own.
    */
   async getSkillMd(provider: 'clawhub' | 'rokha', slug: string): Promise<SkillMdBundle> {
     const q = new URLSearchParams({ provider, slug });
