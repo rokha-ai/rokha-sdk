@@ -121,7 +121,7 @@
     <tr><th>Schedules</th><td><code>GET|POST /api/schedules</code> (named <code>inputs</code>, <code>last_fail_code</code>) · <code>DELETE /api/schedules/{id}</code> · <code>/pause</code> · <code>/resume</code> · <code>/cadence</code></td><td><code>rigs</code></td></tr>
     <tr><th>Skills and harnesses</th><td><code>/api/skills/*</code> · <code>/api/harnesses/*</code></td><td><code>skills</code> <code>harnesses</code></td></tr>
     <tr><th>Sandbox runtime</th><td><code>POST /api/runtime/run</code></td><td><code>runtime</code></td></tr>
-    <tr><th>Your data</th><td><code>/api/data/*</code></td><td><code>data</code></td></tr>
+    <tr><th>Your data</th><td><code>/api/data-attachments</code> · <code>/api/data-attachments/{id}</code> · <code>/from-run</code> · <code>/templates</code></td><td><code>data</code></td></tr>
     <tr><th>Agents</th><td><code>GET|POST /api/agents/mine</code> · <code>GET /api/agents/directory</code></td><td><code>agents</code></td></tr>
     <tr><th>Sales and packs</th><td><code>PUT /api/products</code> · <code>GET /api/products/{id}</code> (carries <code>proven</code>) · <code>POST /api/products/{id}/checkout</code> · <code>/api/packs/*</code> · <code>GET /api/purchases/mine</code></td><td><code>sales</code></td></tr>
     <tr><th>Proof tools</th><td><code>GET /api/hunt?q=</code> · <code>GET /api/mark/check?q=</code> — free with the Lab, one free call a day signed in, then $0.02 a call as a pack of 50 for $1: <code>402 purchase_required</code> with the pack and an x402 <code>accepts</code> · <code>GET /api/callers/check</code></td><td><code>signals</code></td></tr>

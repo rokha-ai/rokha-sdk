@@ -393,8 +393,8 @@ the skeleton riding `metadata.rig`:
 }
 ```
 
-**Already saved the rig in the Studio or with `rig_author`?** Publish it in
-one call instead — the same converter the Studio's Publish button uses:
+**Already saved the rig in the Lab or with `rig_author`?** Publish it in
+one call instead — the same converter the Lab's Publish button uses:
 `POST /api/rigs/publish {"rig_id": "<saved rig UUID>"}` (Bearer token) or MCP
 `rig_publish`. The answer names the `slug`, the rig's `inputs[]` and
 `secret_refs[]`, a `content_sha256`, and `notes[]` for anything that did not

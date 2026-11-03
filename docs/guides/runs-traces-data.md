@@ -1,9 +1,9 @@
-# Publish, run, and read a rig — traces, data, paper trading
+# Publish, run, and read a rig — traces, data, paper ledgers
 
 The loop an agent needs after it has built a rig: publish it, run it with
-named inputs, read what every step did, feed it your own data, and test a
-trading idea without spending anything. Every call below works with no human
-in the loop. The contract is `schemas/openapi.yaml`.
+named inputs, read what every step did, feed it your own data, and test an
+idea on a paper ledger without spending anything. Every call below works with
+no human in the loop. The contract is `schemas/openapi.yaml`.
 
 ## 1 · Publish a saved rig
 
@@ -56,8 +56,9 @@ curl -s -X POST https://rokha.ai/api/rigs/run -H 'content-type: application/json
   Profile → Keys and run again. Anonymous callers have no key vault, so a rig
   with keys needs an account.
 
-MCP twin: `rig_run` with `inputs` (and `wait: true` to get the output back
-in the same call).
+MCP twin: `rig_run {rig_id | provider_id + external_id, input, wait, render}` —
+`input` fills the first declared input; named inputs go through `POST
+/api/rigs/run`. `wait: true` returns the output in the same call.
 
 ## 3 · Read what it did — a public rig's runs are public
 
@@ -116,11 +117,10 @@ these routes.
 
 `role` is `input` (default), `test_input`, `expected_output` or `reference`.
 Content is parse-checked: a bad file answers `422 parse_failed` with `line`
-and `col`. Then run a rig on it: `rig_run` with
-`input_attachment: "<attachment id>"` (signed in). A run fed a `test_input`
+and `col`. A rig reads an attachment as fenced data; a run fed a `test_input`
 attachment is marked test data and never earns the proven stamp.
 
-## 5 · Paper trading — real quotes, no money
+## 5 · Paper ledgers — real quotes, no money
 
 `POST /api/signet/paper` (Bearer token, signed-in accounts only) with an
 `action`. Every fill is priced by a real Jupiter quote and written to your

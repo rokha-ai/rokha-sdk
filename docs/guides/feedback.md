@@ -89,7 +89,7 @@ Page:
 ## Security issues — do NOT file publicly
 
 If you've found something that could expose data, let someone act as another
-user, escape the sandbox, or spend someone else's balance: **do not open a public
+user, escape the sandbox, or spend someone else's money: **do not open a public
 issue**, and please don't post it on social.
 
 Email **contact@rokha.ai** with the details and give us a chance to fix it first.
