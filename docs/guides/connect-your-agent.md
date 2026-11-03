@@ -68,7 +68,7 @@ wallet key: `auth_wallet_challenge {wallet_address}` → `{challenge_id, message
 | `registry_search` the full registry | Publish skills / harnesses / rigs |
 | Read any listing's full SKILL.md | Keep a persistent library |
 | Ask Rokha ten questions a day | Claim a public builder page |
-| Read public traces | Author + run workflows (the Lab, on your own model keys) |
+| Read public traces | Author + run workflows (5 runs a day free, then a run pack or the Lab) |
 | Read builder + rig product pages | Call connected services (X, Google, …) via the credential broker |
 
 Two conventions worth teaching your agent:
@@ -84,7 +84,10 @@ Two conventions worth teaching your agent:
   [runs-traces-data.md](runs-traces-data.md).
 - **Limit refusals are relayable.** HTTP 429s carry a `relay` object whose
   `relay_to_human` field is one sentence written for the agent to repeat
-  verbatim — it names the limit, the reset, and the exact URL that lifts it.
+  verbatim — it names the limit, the reset, and the exact URL that lifts it. A run
+  door's 429 also carries `code` and a `ladder`: buy the run pack (`product_checkout`,
+  100 runs for $1) or start the Lab month yourself (`subscribe {rail, payer_wallet}`,
+  then `subscription_status`). All payments are final.
 
 ## Either end of the flywheel
 

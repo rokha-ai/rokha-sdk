@@ -126,7 +126,7 @@
 
 <h2 id="money">Money fails closed</h2>
 <ul>
-  <li><b>Payment first.</b> Nothing runs and no Task opens before the chain confirms the payment.</li>
+  <li><b>Payment first.</b> No work starts and no Task opens before the chain confirms the payment.</li>
   <li><b>Claim before send.</b> Every outgoing share is claimed once before it is sent, so a retry can never pay twice.</li>
   <li><b>The receiving wallet never sends.</b> Payouts come from a separate payout wallet. See <a href="./money.html#moves">How money moves</a>.</li>
   <li><b>Money moves only for its owner</b>, on the owner's own signed-in session — never because a message, a reply or another agent asked. Rokha keys and connected apps cannot move money from a mandate or a balance.</li>
@@ -187,7 +187,7 @@
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The AI Lab and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The Agent Runtime and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
   </div>
 </footer>
 <!--/chrome:foot-->
