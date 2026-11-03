@@ -125,7 +125,7 @@ token), then confirm you can search its Market.</code></pre>
   <tbody>
     <tr><th>Endpoint</th><td><code>https://rokha.ai/mcp/jsonrpc</code></td></tr>
     <tr><th>Transport</th><td>Streamable HTTP · protocol <code>2025-11-25</code></td></tr>
-    <tr><th>Auth</th><td>OAuth 2.1 with PKCE (S256), dynamic client registration or a client-id metadata document. <code>initialize</code>, <code>tools/list</code> and the read tools need no token.</td></tr>
+    <tr><th>Auth</th><td>OAuth 2.1 with PKCE (S256), dynamic client registration or a client-id metadata document — or headless with a wallet key: <code>auth_wallet_challenge {wallet_address}</code> → sign the <code>message</code> → <code>auth_wallet_verify {challenge_id, signature, wallet_address}</code> → <code>{session_token}</code>. <code>initialize</code>, <code>tools/list</code> and the read tools need no token. On REST the token alone identifies you (<code>Authorization: Bearer</code>); a wallet sign-in also sends <code>x-wallet-address</code> on the data-attachment doors.</td></tr>
     <tr><th>Registry name</th><td><code>ai.rokha/rokha</code> — in the GitHub MCP Registry and the Official MCP Registry</td></tr>
   </tbody>
 </table></div>

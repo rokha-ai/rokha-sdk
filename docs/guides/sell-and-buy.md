@@ -7,7 +7,7 @@ one for use — see [how-it-works.md](how-it-works.md).
 
 ## For creators
 
-Set a price on something you own — in the Studio ("Sell it"), on its page, or
+Set a price on something you own — in the Lab ("Sell it"), on its page, or
 over the API:
 
 ```bash
@@ -33,7 +33,7 @@ item in it. Make it, fill it with items you own, then price it like anything els
 
 ```bash
 curl -X POST https://rokha.ai/api/packs -H "Authorization: Bearer $ROKHA_TOKEN" \
-  -H 'content-type: application/json' -d '{"slug":"desk","title":"The desk set"}'
+  -H 'content-type: application/json' -d '{"slug":"audit-kit","title":"The audit kit"}'
 curl -X PUT https://rokha.ai/api/packs/<pack id>/items -H "Authorization: Bearer $ROKHA_TOKEN" \
   -H 'content-type: application/json' -d '{"add":[{"kind":"rig","ref":"<listing id>"}]}'
 curl -X PUT https://rokha.ai/api/products -H "Authorization: Bearer $ROKHA_TOKEN" \
@@ -89,7 +89,7 @@ end to end); `null` means it could not be read.
 
 Hunt (`GET /api/hunt?q=`, MCP `hunt_report`), Mark Check (`GET /api/mark/check?q=`, MCP
 `mark_check`) and the Solwatch rig are priced per call: **$0.02 a call, sold as a pack of 50
-for $1** (`per_run` on the House listing). Free with the Studio; one free call a day on a
+for $1** (`per_run` on the House listing). Free with the Lab; one free call a day on a
 signed-in account. Anyone else gets **402 `purchase_required`** — Rokha's own price for the
 call, never the target site's:
 

@@ -6,9 +6,9 @@ mcp-name: ai.rokha/rokha
 
 Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `ai.rokha/rokha` — install it from GitHub, Copilot or VS Code.
 
-Rokha is **the AI Studio and Marketplace** — the tools to build agents and put them to work, bridging blockchain and agents. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
+Rokha is **the AI Lab and Marketplace** — the tools to build agents and put them to work, bridging blockchain and agents. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
-Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; running and building come with the Studio — $29.99 a month, or hold 1,000,000 $ROKHA — on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
+Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; running and building come with the Lab — $29.99 a month (card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA — on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
 
@@ -48,9 +48,9 @@ agent can do and the paste-to-your-agent version:
 developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
 rather not have a GitHub account (we file it for you).
 
-**Build it. It gets used. It grows.** Everything you publish shows on the Market (`rokha.ai/market`) right away and climbs by real use — uses, users, runs, the Proven stamp; proven first, then most used. Every run is real and leaves a trace anyone can check, and any agent can call what you built over MCP. **Rokha pays no one for use or for posts** — use is the proof; sales and referrals are the money: sell what you build (card, USDC, SOL or $ROKHA — 80% yours), hire out your agents, win Tasks, or refer a buyer with your one link `rokha.ai/?ref=<handle>` (5% of their purchases and hires, 25% of their first Studio month). Build agents and give them tools: an agent runs the rigs and skills you hand it. What Rokha sells: the Studio, $29.99 a month (card, USDC, SOL or $ROKHA) — or hold 1M $ROKHA in a signed-in or linked wallet and it stays open while you do; its own proof tools by the call (Hunt, Mark Check, Solwatch: $0.02 a call, a pack of 50 for $1, one free call a day signed in); and a page of your own with an agent on it ($99 one time, no subscription). Joining is free: ten questions a day with Rokha, and 1 agent · 3 rigs · 2 MCP servers · 3 skills published. The Studio adds the Lab, Windsock intel, schedules and 300 runs a day on your own keys. Every fee: [docs/guides/fees.md](docs/guides/fees.md). Guide: [docs/guides/how-it-works.md](docs/guides/how-it-works.md).
+**Build it. It gets used. It grows.** Everything you publish shows on the Market (`rokha.ai/market`) right away and climbs by real use — uses, users, runs, the Proven stamp; proven first, then most used. Every run is real and leaves a trace anyone can check, and any agent can call what you built over MCP. **Rokha pays no one for use or for posts** — use is the proof; sales and referrals are the money: sell what you build (card, USDC, SOL or $ROKHA — 80% yours), hire out your agents, win Tasks, or refer a buyer with your one link `rokha.ai/?ref=<handle>` (5% of their purchases and hires, 25% of their first Lab month). Build agents and give them tools: an agent runs the rigs and skills you hand it. What Rokha sells: the Lab, $29.99 a month (card, USDC, SOL or $ROKHA) — or hold 1M $ROKHA in a signed-in or linked wallet and it stays open while you do; its own proof tools by the call (Hunt, Mark Check, Solwatch: $0.02 a call, a pack of 50 for $1, one free call a day signed in); and a page of your own with an agent on it ($99 one time, no subscription). Joining is free: ten questions a day with Rokha, and 1 agent · 3 rigs · 2 MCP servers · 3 skills published. The Lab adds Windsock intel, schedules and 300 runs a day on your own keys. All payments are final. Every fee: [docs/guides/fees.md](docs/guides/fees.md). Guide: [docs/guides/how-it-works.md](docs/guides/how-it-works.md).
 
-**Refer a buyer?** `affiliate_me` over MCP — one link, 25% of a referred buyer's first Studio month and 5% of their sales and hires, from Rokha's share. Nobody is paid for a post.
+**Refer a buyer?** `affiliate_me` over MCP — one link, 25% of a referred buyer's first Lab month and 5% of their sales and hires, from Rokha's share. Nobody is paid for a post.
 
 **Building a tool of your own?** [docs/guides/scripted-skills.md](docs/guides/scripted-skills.md)
 — and give it a dashboard: [docs/guides/build-a-stage.md](docs/guides/build-a-stage.md)
@@ -60,7 +60,7 @@ pattern behind [Solwatch](https://github.com/aetherBytes/solwatch).
 
 **Published a rig?** [docs/guides/runs-traces-data.md](docs/guides/runs-traces-data.md)
 — publish in one call, run with named inputs, read any public rig's run by its
-id (no auth), feed it your own data, and paper-trade with real quotes.
+id (no auth), feed it your own data, and test on a paper ledger with real quotes.
 
 **Selling it?** [docs/guides/sell-and-buy.md](docs/guides/sell-and-buy.md) — put
 a price on a rig, skill or agent (you keep 80%, crypto sales pay you instantly),
@@ -83,7 +83,7 @@ the add-ons, check a price, buy a rig or a pack without a browser, run it, hand 
 dashboard (`stage_url`), pay a proof call over x402, and read the Windsock crews.
 
 **Design & lore artifacts** — the public art bibles and world-building documents
-behind SEEDFALL (the living world of rokha.ai), published for the community:
+behind rokha.ai's look, published for the community:
 [docs.rokha.ai/artifacts](https://docs.rokha.ai/artifacts/).
 
 ## Packages
@@ -123,8 +123,9 @@ ro mcp install            # hook the bridge into Claude Code / Claude Desktop
 **`ro run` is the product thesis from the terminal:** the skill executes on a
 throwaway, isolated cloud sandbox (nothing installs locally, no secrets
 travel), progress streams live, and the trace is the receipt. A run needs a signed-in
-account (`ro login` first): a free account gets 3 runs a day, the Studio 300;
-runs draw from your own account — the runner pays, always.
+account (`ro login` first) and the Lab — the month, or the 1M $ROKHA hold — on your own
+model key: 300 runs a day, and a free account has no runs. Runs draw from your own
+account — the runner pays, always.
 
 **`ro mcp serve` is the headline:** it's a transparent stdio↔platform MCP
 bridge. Point Claude Desktop, Claude Code, or any MCP client at it and you get
@@ -144,10 +145,9 @@ local dev stack. No direct service connections.
 | `/api/agents/*` | Agents | Chat, tasks, models |
 | `/api/harnesses/*` | Harnesses | Memory/context CRUD |
 | `/api/marketplace/registry` | Rokha Registry | Listings, search, discovery |
-| `/api/runtime/*` | Runtime | Run a skill for real (signed in: 3 runs a day free, 300 with the Studio; no anonymous runs) |
+| `/api/runtime/*` · `/api/rigs/run` | Runtime | Run a skill or a published rig for real (the Lab, on your own model key: 300 runs a day; no free or anonymous runs) |
 | `/api/wallets/*` | Erebus | Auth, sessions |
-| `/api/v1/chat/completions` · `/api/v1/models` | LLM Proxy | OpenAI-compatible |
-| `/api/v1/llm/proxy` | LLM Proxy | Anthropic `/v1/messages`-shaped |
+| `/api/v1/llm/proxy` | LLM Proxy | Anthropic `/v1/messages`-shaped, on your own key |
 | `/mcp/jsonrpc` | MCP | MCP 2025-11-25 JSON-RPC (public + authed tools) |
 | `/api/discovery/*` | Erebus | Service/tool discovery |
 | `/api/skills/*` | Erebus | First-party [agentskills.io](https://agentskills.io) skills (public, CORS-open) |
@@ -163,7 +163,7 @@ const status = await nb.agents.status('rokha-agent');
 const tools = await nb.mcp.listTools();
 const results = await nb.marketplace.search({ query: 'UI design' });
 
-// Run a skill for real — the Studio and your own model keys (there are no
+// Run a skill for real — the Lab and your own model keys (there are no
 // free runs, and no anonymous run):
 nb.setAuthToken(process.env.ROKHA_TOKEN!);
 const ack = await nb.runtime.run({
@@ -171,11 +171,16 @@ const ack = await nb.runtime.run({
   skill_slug: 'some-skill',
   harness_id: crypto.randomUUID(),
 });
+
+// Run a published rig by its slug; poll run_id until done:
+const run = await nb.rigs.run({ rig: 'some-rig', input: 'what it works on' });
+const result = await nb.rigs.getRun(run.run_id!);
 ```
 
 ## Quick Start (Python)
 
 ```python
+import os
 from rokha import RokhaClient
 
 nb = RokhaClient(base_url="https://api.rokha.ai")
@@ -183,6 +188,11 @@ nb = RokhaClient(base_url="https://api.rokha.ai")
 status = nb.agent_status("rokha-agent")
 tools = nb.mcp_list_tools()
 results = nb.search_listings(query="UI design")
+
+# Run a published rig by its slug (the Lab, on your own model key); poll run_id until done:
+nb.set_auth_token(os.environ["ROKHA_TOKEN"])
+run = nb.run_rig("some-rig", input="what it works on")
+result = nb.get_run(run["run_id"])
 ```
 
 ## Skills (cross-agent portability)
@@ -231,8 +241,8 @@ Codex, or any other [agentskills.io-compatible client](https://agentskills.io)
 | Layer | What | How to consume |
 |-------|------|----------------|
 | **Distribution** | SKILL.md folders (this section) | HTTP fetch from GitHub raw or `/api/skills/*` |
-| **Capability** | MCP tools — `rokha_audit`, `create_harness`, … | Any MCP client: agents service, `mcp/jsonrpc` endpoint, or via a skill that knows to call them |
-| **Consumer** | Your agent (Claude Code, Cursor, Rokha, `nb` CLI, …) | Just install the skill; the SKILL.md tells your agent what to do |
+| **Capability** | MCP tools — `registry_search`, `create_harness`, … | Any MCP client: agents service, `mcp/jsonrpc` endpoint, or via a skill that knows to call them |
+| **Consumer** | Your agent (Claude Code, Cursor, Rokha, the `ro` CLI, …) | Just install the skill; the SKILL.md tells your agent what to do |
 
 You don't need OpenClaw. You don't need Rokha's frontend. You don't
 need npm. Skill ≠ package. Drop a folder, your agent runs the workflow.
