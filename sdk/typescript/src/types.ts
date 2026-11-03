@@ -128,17 +128,29 @@ export interface MarketplaceSearchRequest {
   offset?: number;
 }
 
+export interface WalletChallengeRequest {
+  wallet_address: string;
+  wallet_type?: 'phantom' | 'metamask' | string;
+  chain?: 'solana' | 'ethereum' | string;
+}
+
 export interface WalletChallenge {
-  challenge: string;
-  expires_at: string;
+  challenge_id: string;
+  /** Sign this text with the wallet key (Ed25519 on Solana, EIP-191 on EVM). */
+  message: string;
+  wallet_address: string;
 }
 
 export interface WalletVerifyRequest {
   wallet_address: string;
+  challenge_id: string;
   signature: string;
-  challenge: string;
-  wallet_type: string;
-  chain?: string;
+}
+
+/** The session a verified signature opens: a Bearer JWT, good for 24 hours. */
+export interface WalletSession {
+  session_token: string;
+  [extra: string]: unknown;
 }
 
 export interface User {

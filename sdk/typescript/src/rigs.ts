@@ -34,6 +34,31 @@ export interface TraceFilters {
   node_id?: string;
 }
 
+/** `POST /api/rigs/run` — run a published rig in one call. */
+export interface RigRunRequest {
+  /** The published rig's slug. */
+  rig: string;
+  /** The listing's provider when the slug alone is ambiguous (default `rokha`). */
+  provider_id?: string;
+  /** Fills the first declared input. */
+  input?: string;
+  /** Named inputs ({name: text}, up to 12) for a rig with more than one. */
+  inputs?: Record<string, string>;
+}
+
+/** The 202 a run door answers at once: poll `run_id` until `done`. */
+export interface RigRunAck {
+  ok?: boolean;
+  run_id?: string;
+  rig?: string;
+  rig_id?: string;
+  status?: string;
+  stage_url?: string;
+  poll?: { url: string; method: string; headers: Record<string, string> };
+  anon_session_id?: string | null;
+  [extra: string]: unknown;
+}
+
 export class RigsClient {
   constructor(
     private client: RokhaClient,
@@ -82,6 +107,23 @@ export class RigsClient {
     member: { harness_id: string; position?: number; role?: string },
   ): Promise<unknown> {
     return this.req('POST', `/rigs/${rigId}/harnesses`, member);
+  }
+
+  // --- Runs ---
+
+  /**
+   * Run a published rig by slug — the one-call run door. Answers 202 at once
+   * with `run_id`, `stage_url` and a `poll` block; a 409 `needs_secret` names
+   * a key the rig needs that you have not saved; a 402 names the Lab (the
+   * month, or the 1M $ROKHA hold) — runs use your own model key.
+   */
+  async run(req: RigRunRequest): Promise<RigRunAck> {
+    return this.req('POST', '/rigs/run', req);
+  }
+
+  /** A run's status, steps, output and traces. A PUBLIC rig's run reads with no token. */
+  async getRun(runId: string): Promise<Record<string, unknown>> {
+    return this.req('GET', `/rigs/runs/${encodeURIComponent(runId)}`);
   }
 
   // --- Traces ---
