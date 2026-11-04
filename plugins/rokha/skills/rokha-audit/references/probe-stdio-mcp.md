@@ -21,7 +21,7 @@ a microVM, or an isolated WSL session — the skill works in any of them.
 
 ```bash
 # Inside the sandbox:
-pkg=$1                      # e.g. @smithery/cli-server-fetch
+pkg=$1                      # e.g. @modelcontextprotocol/server-everything
 timeout=8                   # seconds before we give up
 
 npm install --no-save "$pkg" 2>&1 | tail -20

@@ -1,14 +1,14 @@
 {
   "name": "@rokha_ai/sdk",
   "version": "1.0.0",
-  "description": "TypeScript SDK for Rokha — the operating system for building with AI agents (marketplace, no-code workflow editor, memory layer): agents, harnesses, MCP tools, and Rokha Registry",
+  "description": "TypeScript SDK for Rokha, the Agent Runtime and Marketplace",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
   },
-  "keywords": ["rokha", "agents", "mcp", "harnesses", "crossroads", "solana"],
+  "keywords": ["rokha", "agents", "mcp", "runtime", "marketplace"],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.3.0"

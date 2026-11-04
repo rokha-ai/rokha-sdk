@@ -8,8 +8,8 @@ just works.
 
 | Skill | What it does | Stage |
 |-------|--------------|-------|
-| [`rokha-audit/`](./rokha-audit/SKILL.md) | Security & compliance audit for MCP tools, agents, and skills. Three-stage flow (heuristic scan → optional sandboxed probe → harness persistence). | MVP shipped |
-| [`rokha-network/`](./rokha-network/SKILL.md) | Build on Rokha over MCP — sign in, publish something that runs, get it used and ranked on the Market, sell what you build (80%), one referral link (25% of a referred Studio first month). Rokha pays no one for use or posts. | Live |
+| [`rokha-audit/`](./rokha-audit/SKILL.md) | Security audit for MCP tools, agents, and skills: a `hunt_report` scan, an optional sandboxed probe, findings saved to a harness. | MVP shipped |
+| [`rokha-network/`](./rokha-network/SKILL.md) | Build, run and sell tools on Rokha over MCP: sign in, author and run a rig with a trace, publish it, sell it (80%), hire agents or enter Tasks. | Live |
 
 More on the way. Open an issue or PR if you have a workflow you want to
 package and share.
@@ -108,9 +108,7 @@ npx -y @agentskills/cli validate skills/your-skill
 
 **Shipping a skill backed by real executable code** (a compiled tool the
 sandbox runs via `npx -y`, rather than pure instructions)? Follow the full
-recipe in [docs/guides/scripted-skills.md](../docs/guides/scripted-skills.md):
-compiled core → npm wrapper → release CI → SKILL.md → registry publish → Rig
-template. Solwatch is the live reference implementation.
+recipe at [docs.rokha.ai/build.html](https://docs.rokha.ai/build.html).
 
 Or roundtrip via our Erebus API (returns 200 + parsed manifest if valid):
 
@@ -133,7 +131,7 @@ CORS is open on all skills endpoints. Auth is never required.
 | Layer | What | Rokha surface | Spec |
 |-------|------|---------------|------|
 | Distribution | Portable SKILL.md folders | `skills/` in this repo + `/api/skills/*` | [agentskills.io](https://agentskills.io) |
-| Capability | Callable MCP tools | `rokha-protocols` (port 8001), e.g. `rokha_audit`, `create_harness` | [MCP 2025-11-25](https://spec.modelcontextprotocol.io) |
+| Capability | Callable MCP tools | `https://rokha.ai/mcp/jsonrpc`, e.g. `hunt_report`, `registry_search` | [MCP 2025-11-25](https://spec.modelcontextprotocol.io) |
 | Consumer | The thing running the skill | Rokha (browser), `ro` (terminal), Claude Code, Cursor, Goose, … | n/a — any agent |
 
 The skill **teaches** the agent how to do something. The MCP tools are

@@ -5,8 +5,8 @@
 //! installs locally, no secrets travel — and the trace is the receipt.
 //!
 //! Two doors, same contract as the browser (runner pays, always):
-//! - logged in  → `POST /api/runtime/run` (your account's daily runs — 3 on a
-//!   free account, 300 with the Studio)
+//! - logged in  → `POST /api/runtime/run` (your account's daily runs — 5 on a
+//!   free account, then a run pack, 300 with the Lab)
 //! - anonymous  → `POST /api/runtime/taste` (closed: an anonymous caller has
 //!   no runs, and the server answers a refusal — `ro login` first)
 //!
@@ -76,7 +76,7 @@ pub async fn run(
         ),
         None => (
             "nothing — anonymous runs are refused".to_string(),
-            "run `ro login` first (a free account gets 3 runs a day)".to_string(),
+            "run `ro login` first (a free account gets 5 runs a day)".to_string(),
         ),
     };
     println!(
@@ -348,8 +348,9 @@ async fn read_ack(
                 "{}",
                 t.amber("  That's a daily limit. It resets at 00:00 UTC, or:")
             );
-            eprintln!("    • log in (`ro login`) — a free account gets 3 runs a day");
-            eprintln!("    • the Studio ($249 a month, or hold 1M $ROKHA) → https://rokha.ai/pricing");
+            eprintln!("    • log in (`ro login`) — a free account gets 5 runs a day");
+            eprintln!("    • a run pack — 100 runs for $1");
+            eprintln!("    • the Lab — $29.99 a month → https://rokha.ai/pricing");
         }
         Err(1)
     }

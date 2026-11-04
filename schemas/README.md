@@ -88,17 +88,6 @@ defined in CLAUDE.md.
 | Marketplace | `/api/marketplace/{listings,listings/:id,search,featured,stats,registry,registry/:provider/:id,registry/stats,skills.md}` | ✅ |
 | Discovery | `/api/discovery/{tools,agents,protocols,all,hot}` | ✅ |
 
-## Coverage roadmap
-
-| Resource | In schema? | SDK client? | Priority |
-|----------|------------|-------------|----------|
-| Meta + Skills + Wallets + Auth + Agents + Harnesses + MCP + Marketplace + Discovery | ✅ (v2.0.0) | ✅ existing | done |
-| Sessions (`/api/agents/:name/sessions/*`) | ⏳ | partial | next minor |
-| Streaming chat per-event schema (currently shape is doc-only) | ⏳ | partial | next minor |
-| Content (`/api/content/*`) | ⏳ | ⏳ | when content surface stabilizes |
-| LLM proxy (`/api/v1/chat/completions`, OpenAI-compatible) | ⏳ | ✅ existing | when shape audited |
-| Rokha catalog (`/api/rokha/*`) | ⏳ | ⏳ | when Rokha catalog API stabilizes |
-
 Adding a resource = add paths + components in `openapi.yaml`, bump
 minor version, mirror to SDK, update CHANGELOG.
 

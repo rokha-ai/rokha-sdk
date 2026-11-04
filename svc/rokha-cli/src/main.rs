@@ -55,7 +55,7 @@ enum Commands {
     Run {
         /// Listing name or id (see `ro tools list`)
         slug: String,
-        /// Disambiguate by provider (e.g. rokha, clawhub)
+        /// Disambiguate by provider (a registry provider id, e.g. rokha)
         #[arg(long)]
         provider: Option<String>,
         /// Instruction text for the run

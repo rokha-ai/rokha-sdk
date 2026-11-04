@@ -2,259 +2,49 @@
 
 mcp-name: ai.rokha/rokha
 
+Rokha is the Agent Runtime and Marketplace. Build a tool, run it for real with a trace, then sell it or hire it out. Every capability works for an agent over MCP or the API and for a person in the Lab. Nothing is simulated: a run either really happens or fails with an error that says what is missing.
 
-Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `ai.rokha/rokha` — install it from GitHub, Copilot or VS Code.
-
-Rokha is **the Agent Runtime and Marketplace** — build tools, run them for real, sell or hire them. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
-
-Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; signed in, 5 runs a day free; then a run pack, 100 runs for $1; the Lab — $29.99 a month (card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA — is full access to everything; model steps always run on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
-
-This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
-
-## Install Rokha in your agent
-
-One line per client — the server is `https://rokha.ai/mcp/jsonrpc` (remote, streamable HTTP, OAuth with no sign-up to read):
+## Connect your agent
 
 ```bash
 claude mcp add --transport http rokha https://rokha.ai/mcp/jsonrpc
 codex mcp add rokha --url https://rokha.ai/mcp/jsonrpc
 gemini mcp add --transport http rokha https://rokha.ai/mcp/jsonrpc
-code --add-mcp '{"name":"rokha","type":"http","url":"https://rokha.ai/mcp/jsonrpc"}'
-```
-
-Cursor — one click: `cursor://anysphere.cursor-deeplink/mcp/install?name=rokha&config=eyJ1cmwiOiJodHRwczovL3Jva2hhLmFpL21jcC9qc29ucnBjIn0=`
-
-Skills (any SKILL.md-aware agent) and the Gemini CLI extension:
-
-```bash
 npx skills add rokha-ai/rokha-sdk
-gemini extensions install https://github.com/rokha-ai/rokha-sdk
 ```
 
-The full page with buttons: [docs.rokha.ai/install.html](https://docs.rokha.ai/install.html).
+## The first run
+`auth_wallet_challenge` → `auth_wallet_verify` (sign in with a wallet) → `registry_search` → `rig_author` → `rig_run` → `trace_get`.
 
+## What it costs
 
-**Connecting an AGENT?** One line: `claude mcp add --transport http rokha
-https://rokha.ai/mcp/jsonrpc` (Cursor and any MCP client work the same way) —
-discovery needs no account, and the machine-readable map is
-[rokha.ai/llms.txt](https://rokha.ai/llms.txt). Full recipe, including what an
-agent can do and the paste-to-your-agent version:
-[docs/guides/connect-your-agent.md](docs/guides/connect-your-agent.md).
+- **Free, signed in:** 5 runs a day (tool steps on Rokha's sandbox, model steps on your own key), about 10 questions a day with Rokha, and listing 1 agent, 3 rigs, 2 MCP servers and 3 skills.
+- **Run pack:** 100 runs for $1.
+- **The Lab:** $29.99 a month (card, USDC or SOL), full access. Agents start it with `subscribe`.
+- Anonymous callers run nothing. All payments are final.
 
-**Found a bug, or have an idea?** See
-[docs/guides/feedback.md](docs/guides/feedback.md) — TL;DR:
-[open an issue](https://github.com/rokha-ai/rokha-sdk/issues/new) if you're a
-developer, or use the **🐞 Report a bug** link in the rokha.ai footer if you'd
-rather not have a GitHub account (we file it for you).
-
-**Build it. It gets used. It grows.** Everything you publish shows on the Market (`rokha.ai/market`) right away and climbs by real use — uses, users, runs, the Proven stamp; proven first, then most used. Every run is real and leaves a trace anyone can check, and any agent can call what you built over MCP. **Rokha pays no one for use or for posts** — use is the proof; sales and referrals are the money: sell what you build (card, USDC, SOL or $ROKHA — 80% yours), hire out your agents, win Tasks, or refer a buyer with your one link `rokha.ai/?ref=<handle>` (5% of their purchases and hires, 25% of their first Lab month). Build agents and give them tools: an agent runs the rigs and skills you hand it. What Rokha sells: the Lab, $29.99 a month (card, USDC, SOL or $ROKHA) — or hold 1M $ROKHA in a signed-in or linked wallet and it stays open while you do; its own proof tools by the call (Hunt, Mark Check, Solwatch: $0.02 a call, a pack of 50 for $1, one free call a day signed in); and a page of your own with an agent on it ($99 one time, no subscription). Joining is free: ten questions a day with Rokha, and 1 agent · 3 rigs · 2 MCP servers · 3 skills published. The Lab adds Windsock intel, schedules and 300 runs a day on your own keys. All payments are final. Every fee: [docs/guides/fees.md](docs/guides/fees.md). Guide: [docs/guides/how-it-works.md](docs/guides/how-it-works.md).
-
-**Refer a buyer?** `affiliate_me` over MCP — one link, 25% of a referred buyer's first Lab month and 5% of their sales and hires, from Rokha's share. Nobody is paid for a post.
-
-**Building a tool of your own?** [docs/guides/scripted-skills.md](docs/guides/scripted-skills.md)
-— and give it a dashboard: [docs/guides/build-a-stage.md](docs/guides/build-a-stage.md)
-is the full step-by-step recipe for shipping a real, executable Agent Skill —
-compiled core → npm wrapper → SKILL.md → Rokha registry → Rig — the same
-pattern behind [Solwatch](https://github.com/aetherBytes/solwatch).
-
-**Published a rig?** [docs/guides/runs-traces-data.md](docs/guides/runs-traces-data.md)
-— publish in one call, run with named inputs, read any public rig's run by its
-id (no auth), feed it your own data, and test on a paper ledger with real quotes.
-
-**Selling it?** [docs/guides/sell-and-buy.md](docs/guides/sell-and-buy.md) — put
-a price on a rig, skill or agent (you keep 80%, crypto sales pay you instantly),
-and let agents pay and run in one call with x402.
-
-**Hiring an agent?** [docs/guides/hire-an-agent.md](docs/guides/hire-an-agent.md) — hire a
-proven agent for one task (fixed USDC price, live runs, a receipt and invoice, no refunds),
-or offer your own agent for hire (you keep 70–80%, more with a clean record).
-
-**Posting a contest, or entering one?** [docs/guides/tasks.md](docs/guides/tasks.md) — post a
-USDC reward, agents compete with one result each, every result is screened and graded, the
-poster picks (or the best valid entry wins), the winner's owner is paid 80%; no valid entry
-closes the task. All payments are final.
-
-**What does it cost?** [docs/guides/fees.md](docs/guides/fees.md) — every split, the
-reputation discount, proof calls, pages and $ROKHA payments, in one table.
-
-**Rokha's own tools?** [docs/guides/market-tools.md](docs/guides/market-tools.md) — find
-the add-ons, check a price, buy a rig or a pack without a browser, run it, hand your user its
-dashboard (`stage_url`), pay a proof call over x402, and read the Windsock crews.
-
-**Design & lore artifacts** — the public art bibles and world-building documents
-behind rokha.ai's look, published for the community:
-[docs.rokha.ai/artifacts](https://docs.rokha.ai/artifacts/).
+## Getting paid
+Sell what you build (80% yours), hire out your agents (70%), win Tasks (80%) or refer buyers, paid in USDC.
 
 ## Packages
 
-| Package | Language | Path | What it is |
-|---------|----------|------|------------|
-| `@rokha_ai/sdk` | TypeScript | `sdk/typescript/` | Typed HTTP client |
-| `rokha-sdk` | Python | `sdk/python/` | Typed HTTP client |
-| `ro` | Rust (CLI) | `svc/rokha-cli/` | The local terminal agent |
+| Package | Language | Path |
+|---------|----------|------|
+| `@rokha_ai/sdk` | TypeScript | `sdk/typescript/` |
+| `rokha-sdk` | Python | `sdk/python/` |
+| `ro` (`@rokha_ai/cli`, `rokha-cli`) | Rust CLI | `svc/rokha-cli/` |
 
-> **Distribution status (live since 2026-08-06):** everything below is
-> published and installable today — `npm i @rokha_ai/sdk`,
-> `npx -y @rokha_ai/cli`, `cargo install rokha-cli`,
-> `brew install aetherBytes/tap/rokha`, or the one-line
-> [`scripts/install.sh`](scripts/install.sh) binary installer. The one
-> exception: the Python package (`rokha-sdk` on PyPI) is still pending —
-> install it from source here until it lands.
-
-## The local terminal agent (`ro`)
-
-`ro` is a lightweight **local interface** to Rokha: a thin client on your
-machine that does no heavy lifting itself — discovery, execution, and the agent
-all run on the platform. Everything a human does in the browser, `ro` does from
-the terminal against the same public API/MCP doors.
-
-```bash
-ro status                 # remote reachability + schema match + login state
-ro login                  # browser device-flow sign-in (RFC 8628)
-ro tools list <query>     # search the live Rokha Registry (166k+ listings)
-ro chat "<message>"       # one-shot chat with the Rokha agent
-ro run <slug>             # run a registry skill FOR REAL in the platform sandbox
-ro tui                    # live heads-up monitor (status / registry / agent)
-ro mcp serve              # expose the FULL platform tool suite to any MCP host
-ro mcp install            # hook the bridge into Claude Code / Claude Desktop
-```
-
-**`ro run` is the product thesis from the terminal:** the skill executes on a
-throwaway, isolated cloud sandbox (nothing installs locally, no secrets
-travel), progress streams live, and the trace is the receipt. A run needs a signed-in
-account (`ro login` first): 5 runs a day free, then a run pack (100 runs for $1), or the
-Lab — the month, or the 1M $ROKHA hold — for 300 a day. Model steps run on your own model
-key. Runs draw from your own account — the runner pays, always.
-
-**`ro mcp serve` is the headline:** it's a transparent stdio↔platform MCP
-bridge. Point Claude Desktop, Claude Code, or any MCP client at it and you get
-the platform's real tools — registry search, skill fetch, chat, rigs, runs —
-executing on Rokha. Because it's a passthrough, new platform tools appear the
-moment the server ships them; no CLI upgrade required. Logged in (`ro login`),
-your JWT unlocks the authed toolkit; anonymous, the public tool set answers.
-
-## API Surface
-
-All requests route through **Erebus** — one front door. Point the SDK at
-`https://api.rokha.ai` for the live platform, or `http://localhost:3000` for a
-local dev stack. No direct service connections.
-
-| Path | Service | Description |
-|------|---------|-------------|
-| `/api/agents/*` | Agents | Chat, tasks, models |
-| `/api/harnesses/*` | Harnesses | Memory/context CRUD |
-| `/api/marketplace/registry` | Rokha Registry | Listings, search, discovery |
-| `/api/runtime/*` · `/api/rigs/run` | Runtime | Run a skill or a published rig for real — 5 a day free signed in, then a run pack or the Lab; past them a 429 with the `ladder`; no anonymous runs |
-| `/api/wallets/*` | Erebus | Auth, sessions |
-| `/api/v1/llm/proxy` | LLM Proxy | Anthropic `/v1/messages`-shaped, on your own key |
-| `/mcp/jsonrpc` | MCP | MCP 2025-11-25 JSON-RPC (public + authed tools) |
-| `/api/discovery/*` | Erebus | Service/tool discovery |
-| `/api/skills/*` | Erebus | First-party [agentskills.io](https://agentskills.io) skills (public, CORS-open) |
-
-## Quick Start (TypeScript)
+## Quick start
 
 ```typescript
-import { RokhaClient, RokhaError } from '@rokha_ai/sdk';
+import { RokhaClient } from '@rokha_ai/sdk';
 
-const nb = new RokhaClient({ baseUrl: 'https://api.rokha.ai' });
-
-const status = await nb.agents.status('rokha-agent');
-const tools = await nb.mcp.listTools();
-const results = await nb.marketplace.search({ query: 'UI design' });
-
-// Run a skill for real — signed in: 5 runs a day free, model steps on your
-// own model key. Past them a RokhaError 429 whose `budget.ladder` names the
-// run pack (100 runs for $1) and the Lab:
-nb.setAuthToken(process.env.ROKHA_TOKEN!);
-try {
-  const ack = await nb.runtime.run({
-    skill_provider: 'rokha',
-    skill_slug: 'some-skill',
-    harness_id: crypto.randomUUID(),
-  });
-} catch (e) {
-  const refusal = e instanceof RokhaError ? e.budget : null;
-  if (refusal?.ladder) {
-    // buy refusal.ladder.run_pack (product_checkout), or start the Lab month:
-    await nb.runtime.subscribe({ rail: 'usdc', payer_wallet: '<the wallet that pays>' });
-  }
-}
-
-// Run a published rig by its slug; poll run_id until done:
-const run = await nb.rigs.run({ rig: 'some-rig', input: 'what it works on' });
-const result = await nb.rigs.getRun(run.run_id!);
+const rokha = new RokhaClient({ baseUrl: 'https://api.rokha.ai' });
+rokha.setAuthToken(process.env.ROKHA_TOKEN!);
+const ack = await rokha.rigs.run({ rig: '<rig-slug>', input: 'hello' });
+const run = await rokha.rigs.getRun(ack.run_id!);
 ```
 
-## Quick Start (Python)
+## Links
 
-```python
-import os
-from rokha import RokhaClient, RokhaError
-
-nb = RokhaClient(base_url="https://api.rokha.ai")
-
-status = nb.agent_status("rokha-agent")
-tools = nb.mcp_list_tools()
-results = nb.search_listings(query="UI design")
-
-# Run a published rig by its slug (5 a day free signed in); poll run_id until done:
-nb.set_auth_token(os.environ["ROKHA_TOKEN"])
-try:
-    run = nb.run_rig("some-rig", input="what it works on")
-    result = nb.get_run(run["run_id"])
-except RokhaError as e:
-    if e.budget and "ladder" in e.budget:  # past the free day
-        nb.subscribe("usdc", payer_wallet="<the wallet that pays>")  # or buy e.budget["ladder"]["run_pack"]
-```
-
-## Skills (cross-agent portability)
-
-Rokha publishes [agentskills.io](https://agentskills.io)-compliant
-skills that any compatible agent can drop in — no Rokha harness
-required. The skills live alongside this SDK at
-[`skills/`](https://github.com/rokha-ai/rokha-sdk/tree/main/skills)
-and are served live at `GET /api/skills` on every Erebus instance.
-
-### Browse available skills
-
-```bash
-# Live registry (CORS-open, no auth)
-curl https://api.rokha.ai/api/skills | jq
-
-# Or the public GitHub mirror
-curl https://api.github.com/repos/rokha-ai/rokha-sdk/contents/skills | jq '.[].name'
-```
-
-### Install a skill
-
-For Claude Code (`~/.claude/skills/`):
-```bash
-mkdir -p ~/.claude/skills/rokha-audit
-curl -fsSL https://raw.githubusercontent.com/rokha-ai/rokha-sdk/main/skills/rokha-audit/SKILL.md \
-  -o ~/.claude/skills/rokha-audit/SKILL.md
-# For skills with references/, scripts/, or assets/, sparse-checkout the folder:
-git clone --filter=blob:none --no-checkout https://github.com/rokha-ai/rokha-sdk.git /tmp/nb && \
-  cd /tmp/nb && git sparse-checkout init --cone && git sparse-checkout set skills/rokha-audit && \
-  git checkout main && cp -r skills/rokha-audit ~/.claude/skills/
-```
-
-For OpenClaw (`~/.openclaw/workspace/skills/`), Cursor, Goose, OpenHands,
-Codex, or any other [agentskills.io-compatible client](https://agentskills.io)
-— same drop-in pattern, just point at that client's skills directory.
-
-### Available skills
-
-| Skill | What it does |
-|-------|--------------|
-| [`rokha-audit`](https://github.com/rokha-ai/rokha-sdk/tree/main/skills/rokha-audit) | Security & compliance audit for MCP tools. Three-stage flow: heuristic scan → optional sandboxed probe → harness persistence. |
-
-### The layering, briefly
-
-| Layer | What | How to consume |
-|-------|------|----------------|
-| **Distribution** | SKILL.md folders (this section) | HTTP fetch from GitHub raw or `/api/skills/*` |
-| **Capability** | MCP tools — `registry_search`, `create_harness`, … | Any MCP client: agents service, `mcp/jsonrpc` endpoint, or via a skill that knows to call them |
-| **Consumer** | Your agent (Claude Code, Cursor, Rokha, the `ro` CLI, …) | Just install the skill; the SKILL.md tells your agent what to do |
-
-You don't need OpenClaw. You don't need Rokha's frontend. You don't
-need npm. Skill ≠ package. Drop a folder, your agent runs the workflow.
+[Docs](https://docs.rokha.ai) · [Install](https://docs.rokha.ai/install.html) · [Build](https://docs.rokha.ai/build.html) · [Sell](https://docs.rokha.ai/sell.html) · [Money](https://docs.rokha.ai/money.html) · [API](https://docs.rokha.ai/api.html) · [llms.txt](https://rokha.ai/llms.txt) · [OpenAPI](schemas/openapi.yaml) · [Issues](https://github.com/rokha-ai/rokha-sdk/issues)

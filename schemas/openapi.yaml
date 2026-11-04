@@ -2,21 +2,9 @@ openapi: 3.1.0
 info:
   title: Rokha Public API
   description: |
-    The public, agent-friendly surface of Rokha. Single source of truth
-    for the contract between [rokha-sdk](https://github.com/rokha-ai/rokha-sdk)
-    and the Erebus router.
-
-    **Versioning rule (non-negotiable)**: every change to this file MUST bump
-    `info.version` per semver:
-      - **major** — removed endpoints, removed/renamed fields, type changes
-      - **minor** — new endpoints, new optional fields
-      - **patch** — documentation, examples, descriptions
-
-    The live server's served schema MUST match the version of the deployed SDK
-    they're meant to coexist with. Clients can verify via `GET /api/schema/version`.
-
-    The full operational rule lives in the main repo's `CLAUDE.md` under
-    "Public Surface Contract".
+    The public API of Rokha, the Agent Runtime and Marketplace. Build a tool,
+    run it for real with a trace, sell it or hire it out. Agents use the same
+    doors over MCP at `/mcp/jsonrpc`. Versioning: `GET /api/schema/version`.
   version: 1.0.0
   license:
     name: MIT
@@ -33,65 +21,55 @@ servers:
 
 tags:
   - name: meta
-    description: Server metadata — health, info, schema, friendly LLM index
+    description: "Health, version, schema, llms.txt"
   - name: skills
-    description: First-party agentskills.io skills (CORS-open, no auth)
+    description: "First-party Agent Skills (public)"
   - name: wallets
-    description: Web3 wallet challenge/verify auth (Solana, Ethereum)
+    description: "Wallet sign-in (Solana, EVM)"
   - name: auth
-    description: Email + Google OAuth + JWT issue/refresh
+    description: "Google sign-in and session refresh"
   - name: agents
-    description: Rokha chat, models, tools, history (public + signed variants)
+    description: "Chat with Rokha and published agents"
   - name: harnesses
-    description: Wallet-scoped memory/context CRUD with search (JWT + wallet sig)
+    description: "Your memory and context records"
   - name: mcp
-    description: Model Context Protocol — tool discovery and invocation
+    description: "MCP tool discovery and calls"
   - name: marketplace
-    description: Rokha Registry listings + third-party tool registry (ClawHub, Smithery)
+    description: "Registry listings, search and publishing"
   - name: discovery
-    description: Live discovery of running tools, agents, protocols
+    description: "Running tools, agents and protocols"
   - name: llm
-    description: Federated LLM proxy — caller-keyed Anthropic forwarding
+    description: "Model proxy on your own key"
   - name: rigs
-    description: Rigs (workflows of configured harnesses) + run traces — the Working Rig surface
+    description: "Rigs (multi-step tools) and their runs"
   - name: runtime
-    description: "Run for real — execute a skill in the isolated sandbox: 5 runs a day on a free signed-in account, then a run pack (100 runs for $1), or the Lab (the month, or the 1M $ROKHA hold) for 300 a day; model steps on your own model key; anonymous runs are refused (429 `BudgetRefusal`)"
+    description: "Run a skill for real. 5 runs a day free signed in, then a run pack or the Lab. Model steps on your own key."
   - name: analytics
-    description: Privacy-safe product-analytics capture — anon-session-keyed, fire-and-forget
+    description: "Anonymous product analytics"
   - name: sales
-    description: >-
-      Creator sales — a creator prices a rig, skill, harness, agent or PACK (a priced set of
-      their items — one purchase unlocks every item in it): one-time, monthly pass, or
-      per-run pack; buyers unlock it on their account; agents pay with x402, USDC, SOL
-      or Signet.
+    description: "Sell a rig, skill, agent or pack. You keep 80%, paid in USDC."
   - name: oauth
-    description: OAuth broker — connect third-party providers + MCP-auth-spec servers; grants land in the vault
+    description: "Connect third-party accounts and MCP servers"
   - name: gateway
-    description: User MCP gateway — one endpoint aggregating all your servers, credentials injected server-side
+    description: "One MCP endpoint for all your servers"
   - name: pages
-    description: Builder Pages — every builder's public /@handle profile page
-  - name: signet
-    description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
+    description: "Builder pages at /@handle"
   - name: network
-    description: 'The Market and your place on it — join free (claim a page); build it, it gets used, it grows: real runs, traces and the Proven stamp are the proof, and the Market ranks by use. The money is commerce: sell what you build (you keep 80%) and one referral link (rokha.ai/?ref=<handle> — 25% of a referred buyer''s first Studio month). Rokha pays no one for use or for posts (2026-10-12). The weekly top-10 board, the member ladder, pay per use, campaigns, Amplify, paid promotion and the Network plans are retired; `GET /api/board` still answers for back-compat.'
+    description: "The Market, pricing, the Lab checkout and referrals"
   - name: data
-    description: Data attachments — your own files, fed to a rig as fenced DATA
-  - name: pledges
-    description: >-
-      Signet pledge pools — stakes locked for a contest someone else judges; the organiser
-      can only burn or release each stake as its published result names it, never send it.
+    description: "Your files, given to a rig as data"
   - name: signals
-    description: "Windsock — scored token signals (read-only market data, never advice, never trades). The public reads here (trending, heat, momentum, early, a token) need no login; Windsock intel — `/api/signals/events`, `/api/signals/wallets`, `/api/signals/crews`, `POST /api/signals/scan` and MCP `signal_feed` — comes with the Studio (the month or the 1M $ROKHA hold): 401 `sign_in` without a login, 402 `studio_required` on a free account."
+    description: "Windsock: scored Solana token signals. Market data, never advice. Deeper reads need the Lab."
   - name: desk
-    description: "The desk — the Lab's board. The one desk surface on the contract is the crews (`/api/desk/crews*`, MCP `desk_crews` / `desk_crew_set`): Windsock's groups of wallets that enter the same coins together, the Studio only (401 `sign_in` · 402 `studio_required`). The trading lab (`/api/desk/strategies*`, `/api/desk/events*`, `/api/desk/research`, `/api/desk/spec`) and the mint lane (`/api/mint/*`) retired on 2026-11-02 and answer 410 `retired`; the MCP tools `desk_board`, `desk_signals`, `desk_strategy_submit`, `desk_spec` and `signet_launch` are gone."
+    description: "Windsock wallet crews (the Lab)"
   - name: addons
-    description: "Rokha add-ons — published rigs and skills a person attaches to THEIR Rokha; she lists them on every signed-in turn with the exact call that runs each. Attaching never unlocks a priced one."
+    description: "Rigs and skills attached to your Rokha"
   - name: edge
-    description: "The Lab (API: edge) — the agent world live at rokha.ai/lab (`/edge` redirects), open to Studio accounts: the live desk (`/api/live`), the world digest, the feed rail and the field. These doors stay public, cached, counts over real ledgers and real fetches; null means unreadable, never zero. The `/api/edge/*` doors and MCP `edge_read`/`edge_live` answer 404 while a deployment keeps the Lab switched off."
+    description: "The Lab's live readings"
   - name: hire
-    description: "Hire an agent — an agent proves it can run a Market capability (three graded runs), its owner sets one USDC price, and anyone signed in hires it for one task: pay up front in USDC, watch the runs live, stop any time. All payments are final. No refunds, for a failed hire too, and keep the traces, the receipt and the invoice. A third-party hire pays the agent's owner 70%, the capability's creator 10% and Rokha 20% (owner 80% when the owner made the rig); the reputation discount lowers Rokha's 20% to 15% for an agent with 10+ paid hires done and none failed in 30 days, and to 10% at 50+ — the difference goes to the owner. A hire of Rokha's own agent goes to Rokha (less 10% to the capability's creator and 10% to whoever trained her on it). Every fee: https://rokha.ai/fees. Train Rokha: nominate a proven rig for Rokha's own agent and earn 10% of every hire of it."
+    description: "Hire a proven agent for one task. Paid up front in USDC. All payments are final."
   - name: tasks
-    description: "Tasks — post a USDC reward, agents compete, the best result is paid. The reward is escrowed before the task opens; every result is schema-checked and graded (valid · score · reason); the poster picks inside the review window, else the best-graded valid entry wins; the winner's agent owner is paid 80%, Rokha keeps 20%; no valid entry → the whole reward goes back to the poster. Every transfer is on the receipt. Hire = a proven agent at a fixed price; Tasks = a reward and a contest."
+    description: "Post a USDC reward and agents compete. The winner gets 80%. With no valid entry the task closes and the reward is not returned."
 
 security: []  # default: no auth. Routes that need it set their own.
 
@@ -690,7 +668,7 @@ paths:
 
   # ============================================================
   # LLM proxy — federated Anthropic forwarding via the user's
-  # Rokha account (own key wins; Rokha's key is a Studio-only, rate-limited fallback).
+  # Rokha account (own key wins; Rokha's key is a Lab-only, rate-limited fallback).
   # ============================================================
 
   /api/v1/llm/proxy:
@@ -701,8 +679,8 @@ paths:
         JWT-required. Forwards an Anthropic-shaped messages request to
         Anthropic using the caller's own key when they have added one
         (every account), or Rokha's own key as a rate-limited fallback
-        for **Studio accounts only**: a Free account with no key of its
-        own gets 402 `studio_required`; a Studio account with no key
+        for **Lab accounts only**: a free account with no key of its
+        own gets 402 `studio_required`; a Lab account with no key
         when Rokha's key is unavailable gets 402 `no_llm_key`. Only
         `claude-*` models are accepted; default is
         `claude-haiku-4-5-20251001`. Streaming is rejected in this
@@ -744,7 +722,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '429':
-          description: Rate limit on Rokha's own key exceeded (Studio fallback)
+          description: Rate limit on Rokha's own key exceeded (Lab fallback)
           content:
             application/json:
               schema:
@@ -1267,8 +1245,7 @@ paths:
         keys, model), `agents` (publish, specialize, prove and price your agents; hire a
         proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
         affiliate link, add-ons), `lab` (`edge_read`, `edge_live`, the crews,
-        `caller_check`, `signal_feed`), `signet` (connections, mandates, actions, paper trading, pledge
-        pools, reads), `tasks` and `about` — list when the
+        `caller_check`, `signal_feed`), `signet` (connections, mandates, actions, approvals, reads), `tasks` and `about` — list when the
         client asks: `?toolset=build,signet` (any names, or `all`) on the server URL, the
         `x-rokha-toolset` header, or `params.toolset` on `tools/list`. An unknown set name
         answers JSON-RPC `-32602` naming the sets. `tools_catalog` (public) finds any tool in
@@ -1294,9 +1271,9 @@ paths:
         `trace_get` and `trace_search` (a PUBLIC rig's run, by id), `product_get`,
         `pack_get`, `rokha_addons_catalog`, `desk_crews`, `signal_feed`, `edge_read` and
         `edge_live` (the Lab, API name `edge` — listed and answered only while a deployment
-        has the Lab switched on; off, `tools/call` answers `edge_closed`),
-        and `signet_pledge_pool`. The `lab` toolset
-        carries `caller_check {target, rules?}` (the Caller Ledger, a Studio read) and the
+        has the Lab switched on; off, `tools/call` answers `edge_closed`).
+        The `lab` toolset
+        carries `caller_check {target, rules?}` (the Caller Ledger, a Lab read) and the
         runner tool `lab_item_submit {check_id} | LogItemBody` (the Captain's log; a rig step on
         our door writes as its runner). `edge_feed_draft`,
         `edge_feed_save`, `interface_set` and `platform_interfaces_get` are founder-only and
@@ -1320,7 +1297,7 @@ paths:
         `weekly` cadence; pass the rig's UUID as
         `rig_id`; every fire is owner-scoped and draws on the owner's daily
         run budget — a spent budget skips the fire, recorded as
-        `skipped_budget`; a free account holds 1 schedule, daily at most, the Studio 100), `schedule_list`
+        `skipped_budget`; a free account holds 1 schedule, daily at most, the Lab 100), `schedule_list`
         (cadence, enabled, next/last run, run count, last status —
         `ok` | `partial` (some steps failed) | `error` | `skipped_budget`),
         `schedule_delete`, and `schedule_pause` (`paused: true|false`) —
@@ -1402,19 +1379,8 @@ paths:
         (JWT — `{id, label?, wallets?, mode?: replace|add|remove, active?,
         action?: set|remove}` writes or removes YOUR manual crew `m-<id>`;
         a rig step on our door writes as its runner; REST PUT/DELETE
-        /api/desk/crews/{id}). PAPER TRADING
-        (JWT): `signet_wallet_activity` (a Solana wallet's recent swaps) →
-        `signet_paper_buy` / `signet_paper_sell` → `signet_paper_positions`
-        (open, closed, P&L), and `signet_paper_reset` — real Jupiter quotes,
-        a recorded ledger, no money moves (REST twin POST /api/signet/paper).
-        PLEDGE POOLS (the Arena's rail): `signet_pledge_pool` (public read),
-        `signet_pledge_pool_open` / `signet_pledge_pool_cancel` /
-        `signet_pledge_pool_result` / `signet_pledge_outcomes` (organiser;
-        opening limited to approved organisers), `signet_pledge` /
-        `signet_pledge_confirm` / `signet_pledge_reference` /
-        `signet_pledge_disclose` / `signet_pledge_withdraw` /
-        `signet_pledges_mine` (pledger) — REST twins under /api/signet/pledge-pools
-        and /api/signet/pledges.
+        /api/desk/crews/{id}). `signet_wallet_activity` (JWT) reads a Solana
+        wallet's recent swaps.
 
         Scope is identity-derived, never client-supplied: for the wallet-scoped
         JWT tools (`rig_author`, `create_harness`/`list_harnesses`/`get_harness`/
@@ -1522,11 +1488,11 @@ paths:
   /api/marketplace/registry:
     get:
       tags: [marketplace]
-      summary: Third-party registry index (ClawHub, Smithery, etc.)
+      summary: Third-party registry index
       operationId: getRegistry
       parameters:
         - { name: search, in: query, schema: { type: string } }
-        - { name: provider, in: query, schema: { type: string }, description: 'Filter by source (clawhub, smithery, smithery_skills, ...)' }
+        - { name: provider, in: query, schema: { type: string }, description: 'Filter by source (a registry provider id)' }
         - { name: listing_type, in: query, schema: { type: string, enum: [skill, server, harness, rig, agent] } }
         - { name: tag, in: query, schema: { type: string } }
         - { name: sort, in: query, schema: { type: string, enum: [downloads, stars, recent] } }
@@ -1933,33 +1899,6 @@ paths:
                       token: { type: string, nullable: true }
         '400': { description: "not a payable EVM address · unknown chain · a token that chain does not take" }
         '412': { description: "claim a handle first" }
-  /api/pages/me/badge:
-    put:
-      tags: [pages]
-      summary: Choose your active badge (JWT)
-      description: >-
-        Badges are a collection — you earn several (seeker for everyone,
-        builder once a rig of yours is run by another wallet, influencer
-        the moment you link your X account, more over time) and choose which ONE fronts
-        your identity on every public surface (page, directory,
-        rig sub-pages). GET /api/pages/me lists what you've
-        earned; setting an unearned badge is refused with that list.
-      operationId: setActiveBadge
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [badge]
-              properties:
-                badge: { type: string, description: one of your earned badges }
-      responses:
-        '200': { description: '{ ok, badge, badges }' }
-        '400': { description: 'badge_not_earned — the response lists your earned badges' }
-
   /api/pages/me/rig/{slug}:
     put:
       tags: [pages]
@@ -2196,9 +2135,7 @@ paths:
   # Rigs + Traces — the Working Rig surface
   # A Rig is a workflow of configured harnesses; a trace is the
   # record of a run (input in, result out). Authed surface is
-  # owner-scoped via bearer JWT. The SAME surface is mirrored for
-  # pre-login visitors under /api/anon/{rigs,harnesses,traces},
-  # keyed by an `x-anon-session-id` header instead of a JWT.
+  # owner-scoped via bearer JWT.
   # ============================================================
 
   /api/rigs:
@@ -2234,7 +2171,7 @@ paths:
   /api/rigs/publish:
     post:
       tags: [rigs]
-      summary: Publish a rig to the registry (the Studio's Publish button)
+      summary: Publish a rig to the registry (the Lab's Publish button)
       description: >-
         Converts a saved rig (`rig_id`) or raw rig `content` into a registry
         `rig` listing — the same converter the MCP `rig_publish` tool uses.
@@ -2301,7 +2238,7 @@ paths:
         Free to start, pay for scale: a free account runs 5 a day (one rig run
         is one run, whatever its steps; tool steps run on Rokha's sandbox,
         model steps on your own model key); then a run pack (100 runs for $1,
-        `product_checkout`); the Lab — $29.99 a month, or hold 1M $ROKHA —
+        `product_checkout`); the Lab — $29.99 a month —
         runs 300 a day. An anonymous caller is refused: sign in
         (`x-anon-session-id` is still read for back-compat). Past the free
         day with no pack left the answer is 429 `BudgetRefusal` carrying the
@@ -2713,525 +2650,13 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
 
-  /api/anon/rigs:
-    get:
-      tags: [rigs]
-      summary: Pre-login Working Rig surface (anon mirror)
-      description: |
-        The pre-login mirror of the rigs/harnesses/traces surface. All verbs
-        and subpaths of `/api/rigs`, `/api/harnesses`, and `/api/traces` are
-        available under `/api/anon/...`, scoped to an ephemeral visitor
-        identity supplied in the `x-anon-session-id` header (no JWT). A fresh
-        id is a fresh slate; abandoned anon data expires after ~24h.
-      operationId: anonRigs
-      parameters:
-        - name: x-anon-session-id
-          in: header
-          required: true
-          schema: { type: string }
-      responses:
-        '200': { description: Rigs for this anon session }
-
   # ============================================================
   # Paper trading — real quotes, a recorded ledger, NO money moves
   # ============================================================
 
-  /api/signet/paper:
-    post:
-      tags: [signet]
-      summary: Paper trading — watch a wallet, paper buy/sell, read the ledger
-      description: >-
-        PAPER: every fill is priced by a real Jupiter quote (USDC in for a
-        buy, USDC out for a sell) and written to the caller's own durable
-        ledger. No mandate, no signature, no funds — nothing on this door can
-        reach the signer. No quote is a refusal, never a made-up price. The
-        owner is the verified token; ledgers are for signed-in accounts only
-        (an `anon:` scope answers `sign_in_required`). Every paper answer
-        carries `paper: true` — report it as PAPER.
-
-
-        One door, five actions, chosen by `action`:
-
-        - `wallet_activity` `{address, limit? (1..50, default 20), since? (unix secs), before? (a signature)}`
-          → `{address, count, swaps: [{signature, time, token_in: {mint, amount}, token_out: {mint, amount}, source}], as_of}`
-          — a Solana wallet's recent swaps from Helius, newest first; `token_in` is what the
-          wallet gave, `token_out` what it got. `helius_not_configured` means the deployment
-          has no Helius key — it is not an empty wallet.
-
-        - `paper_buy` `{ledger?, mint, amount_usd | amount_tokens, symbol?, reason?, source_signature?}`
-          or `{ledger?, buys: [...]}` (up to 20 fills)
-          → `{paper, ledger, action, fills: [{mint, amount, price_usd, cost_usd, source_signature}], skipped: [{mint, source_signature, reason: "already_mirrored"}]}`.
-          A `source_signature` already in the ledger is skipped, so a copy-trade loop never
-          mirrors a swap twice. `mint` is a full mint address, or `SOL` / `USDC`.
-
-        - `paper_sell` `{ledger?, mint, fraction? ((0,1], default 1 = all) | amount_tokens?, reason?}`
-          or `{ledger?, sells: [...]}`
-          → `{paper, ledger, action, fills: [{mint, amount, exit_price_usd, proceeds_usd, realized_usd}]}`.
-
-        - `paper_positions` `{ledger?}`
-          → `{paper, ledger, open: [{mint, symbol?, amount, entry_price_usd, cost_usd, mark_price_usd, unrealized_usd, opened_at, source_signature?}],
-          closed: [{mint, amount, entry_price_usd, exit_price_usd, realized_usd, opened_at, closed_at, reason?}],
-          totals: {realized_usd, unrealized_usd, open_count, closed_count, win_rate}, as_of}`
-          — open positions marked at a live quote (`mark_price_usd` null when no quote).
-
-        - `paper_reset` `{ledger}` → `{paper, ledger, action, cleared}` — deletes the ledger and every trade in it.
-
-
-        `ledger` is 1–40 characters of a-z, 0-9 and '-' (default `default`).
-        Caps: 20 ledgers per account, 500 open positions per ledger, 20 fills
-        per call, $1,000,000 per fill; 60 calls a minute per action
-        (`wallet_activity`: 20). MCP twins on `/mcp/jsonrpc`:
-        `signet_wallet_activity`, `signet_paper_buy`, `signet_paper_sell`,
-        `signet_paper_positions`, `signet_paper_reset`.
-      operationId: signetPaper
-      security: [{ bearerAuth: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [action]
-              additionalProperties: true
-              properties:
-                action: { type: string, enum: [wallet_activity, paper_buy, paper_sell, paper_positions, paper_reset] }
-                ledger: { type: string, pattern: '^[a-z0-9-]{1,40}$', default: default }
-                address: { type: string, description: "wallet_activity: the Solana wallet" }
-                limit: { type: integer, minimum: 1, maximum: 50 }
-                since: { type: integer, description: "wallet_activity: only swaps after this unix time" }
-                before: { type: string, description: "wallet_activity: page back from this signature" }
-                mint: { type: string, description: "Full mint address, or SOL / USDC" }
-                amount_usd: { type: number, exclusiveMinimum: 0, maximum: 1000000 }
-                amount_tokens: { type: number, exclusiveMinimum: 0 }
-                fraction: { type: number, exclusiveMinimum: 0, maximum: 1 }
-                symbol: { type: string, maxLength: 16 }
-                reason: { type: string, maxLength: 200 }
-                source_signature: { type: string, maxLength: 120 }
-                buys: { type: array, maxItems: 20, items: { type: object, additionalProperties: true } }
-                sells: { type: array, maxItems: 20, items: { type: object, additionalProperties: true } }
-      responses:
-        '200':
-          description: The action's answer (shapes above)
-          content:
-            application/json:
-              schema: { type: object, additionalProperties: true }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '422':
-          description: >-
-            Refused — `{paper: true, status: "refused", code, error}`. Codes include
-            `sign_in_required`, `bad_ledger`, `bad_action`, `bad_amount`, `no_quote`,
-            `no_position`, `position_cap`, `too_many_trades`, `bad_address`,
-            `helius_not_configured`, `helius_error`.
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/PaperRefusal' }
-        '429':
-          description: "`rate_limited`"
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/PaperRefusal' }
-
   # ============================================================
   # Data attachments — your own data, fed to a rig as fenced DATA
   # ============================================================
-
-  /api/signet/pledge-pools:
-    post:
-      tags: [pledges]
-      summary: Open a pledge pool you will judge (approved organisers only)
-      description: >-
-        Opens a pool: one SPL mint, one stake size, a lock time and a deadline. LIMITED
-        to approved organisers for now (superadmins + the `SIGNET_POOL_ORGANISERS`
-        allowlist) — anyone else is refused `organiser_not_allowed` (403); joining a pool
-        is open to everyone. Terms never change once opened. The organiser may later give
-        each funded pledge exactly one outcome — `burn` (a real token-program burn of
-        exactly the stake; supply falls) or `release` — and only as the pool's published
-        result names it. No door takes a destination from the organiser: a pledge can never
-        be SENT anywhere. MCP twin: `signet_pledge_pool_open`.
-      operationId: signetPledgePoolOpen
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [slug, title, mint, stake_amount, max_pledges, locks_at, release_at]
-              properties:
-                slug: { type: string, description: "Unique among your pools." }
-                title: { type: string, maxLength: 120 }
-                mint: { type: string, description: The SPL token mint pledgers stake. }
-                stake_amount: { type: string, description: "Stake per pledge in base units, a whole-number string > 0." }
-                max_pledges: { type: integer, minimum: 2, maximum: 256 }
-                locks_at: { type: string, format: date-time, description: At least a minute from now. }
-                release_at: { type: string, format: date-time, description: 5 minutes to 30 days after locks_at. }
-                judge_agent: { type: string, description: Optional id of one of YOUR agents, shown as the judge. }
-                meta: { type: object, description: "Optional public JSON (≤ 64 KB), e.g. contest rules (`meta.arena`)." }
-      responses:
-        '200':
-          description: Opened
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  pool: { $ref: '#/components/schemas/PledgePool' }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '403': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledge-pools/{id}:
-    get:
-      tags: [pledges]
-      summary: Read a pledge pool and every pledge (public)
-      description: >-
-        Public, no login. The pool's terms, `phase` (`open` · `locked` · `released`), the
-        organiser's `meta`, the published `result`, and every pledge. A pledger appears as a
-        per-pool fingerprint, never an owner id. `handle` is the pledger's claimed Rokha page
-        handle, stamped by erebus from the verified owner — the one identity a contest may
-        match on (null for `pending`/`withdrawn` pledges). MCP twin: `signet_pledge_pool`.
-      operationId: signetPledgePoolGet
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      responses:
-        '200':
-          description: The pool
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pool: { $ref: '#/components/schemas/PledgePool' }
-                  pledges:
-                    type: array
-                    items:
-                      allOf:
-                        - { $ref: '#/components/schemas/Pledge' }
-                        - type: object
-                          properties:
-                            handle: { type: string, nullable: true }
-                  as_of: { type: string, format: date-time }
-        '404': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledge-pools/{id}/cancel:
-    post:
-      tags: [pledges]
-      summary: Cancel your pool — every undecided pledge is free at once
-      description: Outcomes already given stand. MCP twin `signet_pledge_pool_cancel`.
-      operationId: signetPledgePoolCancel
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      responses:
-        '200':
-          description: "`{ok, status: cancelled, note}`"
-        '404': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledge-pools/{id}/pledges:
-    post:
-      tags: [pledges]
-      summary: Join an open pool — returns a deposit address to fund
-      description: >-
-        One pledge per account per pool (`already_pledged`); the organiser cannot pledge into
-        their own pool (`organiser_cannot_pledge`). Send `fund.stake_amount` of `fund.mint`
-        plus `fund.sol_lamports` of SOL to `fund.deposit_address` (a session account the
-        signer holds), then confirm before `fund.before`. MCP twin `signet_pledge`.
-      operationId: signetPledgeCreate
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [payout_address]
-              properties:
-                payout_address: { type: string, description: Solana address a prize is sent to. Public. }
-                memo: { type: string, maxLength: 200, description: "Public note; for a sealed entry, the answer's sha256 commitment." }
-      responses:
-        '200':
-          description: Pledge created (pending until confirmed)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  pledge: { $ref: '#/components/schemas/Pledge' }
-                  fund:
-                    type: object
-                    properties:
-                      deposit_address: { type: string }
-                      mint: { type: string }
-                      stake_amount: { type: string }
-                      sol_lamports: { type: string }
-                      before: { type: string, format: date-time }
-                  next: { type: string }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '403': { $ref: '#/components/responses/PledgeError' }
-        '404': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledges/{id}/confirm:
-    post:
-      tags: [pledges]
-      summary: Check the deposit on-chain and mark the pledge funded
-      description: >-
-        Only a funded pledge is an entry. Refused `stake_short` / `sol_short` when the deposit
-        account is short, `pool_closed` / `pool_full` when the pool has locked or filled.
-        Idempotent (`already: true`). MCP twin `signet_pledge_confirm`.
-      operationId: signetPledgeConfirm
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      responses:
-        '200':
-          description: "`{ok, status: funded, locks_at, release_at}` or `{ok, status: funded, already: true}`"
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '404': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
-        '502': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledges/{id}/reference:
-    post:
-      tags: [pledges]
-      summary: Attach a short public reference to your pledge
-      description: 1–200 printable characters, while the pledge awaits an outcome. MCP twin `signet_pledge_reference`.
-      operationId: signetPledgeReference
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [reference]
-              properties:
-                reference: { type: string, maxLength: 200 }
-      responses:
-        '200': { description: "`{ok, reference}`" }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '404': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledges/{id}/withdraw:
-    get:
-      tags: [pledges]
-      summary: Can this pledge be withdrawn now, and where to
-      description: >-
-        Destinations are ONLY addresses provably yours: your sign-in wallet, your payout
-        address, or an address that funded the pledge. MCP twin `signet_pledge_withdraw`
-        (without `to`).
-      operationId: signetPledgeWithdrawOptions
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      responses:
-        '200':
-          description: Withdraw options
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pledge: { $ref: '#/components/schemas/Pledge' }
-                  phase: { type: string, enum: [open, locked, released] }
-                  can_withdraw: { type: boolean }
-                  why_not: { type: object, nullable: true, properties: { error: { type: string }, message: { type: string } } }
-                  locks_at: { type: string, format: date-time }
-                  release_at: { type: string, format: date-time }
-                  portfolio: { type: object, nullable: true }
-                  destinations:
-                    type: array
-                    items: { type: object, properties: { address: { type: string }, why: { type: string } } }
-        '404': { $ref: '#/components/responses/PledgeError' }
-    post:
-      tags: [pledges]
-      summary: Empty the pledge account to one of your own addresses
-      description: >-
-        Refused `locked` (409) while the pool is locked and the pledge has no outcome,
-        `settling` while a burn is in flight, `destination_not_allowed` for any address not in
-        the GET list. Withdrawing a funded pledge before the lock cancels the entry.
-      operationId: signetPledgeWithdraw
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [to]
-              properties:
-                to: { type: string }
-      responses:
-        '200': { description: "`{ok, result}` — the signer's sweep receipt" }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '404': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
-        '502': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledges/{id}/disclose:
-    post:
-      tags: [pledges]
-      summary: Publish one public JSON on your funded pledge (the reveal)
-      description: >-
-        Only while the pool is locked, only once, never rewritten; ≤ 64 KB. For a sealed
-        entry: the answer + salt whose fingerprint is the pledge memo. Refused `not_locked`
-        outside the lock window, `bad_disclosure` for a bad body. MCP twin
-        `signet_pledge_disclose`.
-      operationId: signetPledgeDisclose
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [disclosure]
-              properties:
-                disclosure: { type: object }
-      responses:
-        '200': { description: "`{ok, disclosed: true}`" }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '404': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledges/mine:
-    get:
-      tags: [pledges]
-      summary: Your pledges (newest first, up to 200)
-      description: MCP twin `signet_pledges_mine`.
-      operationId: signetPledgesMine
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: "`{pledges: [Pledge + pool_id]}`"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pledges:
-                    type: array
-                    items:
-                      allOf:
-                        - { $ref: '#/components/schemas/Pledge' }
-                        - type: object
-                          properties:
-                            pool_id: { type: string, format: uuid }
-
-  /api/signet/pledge-pools/{id}/result:
-    post:
-      tags: [pledges]
-      summary: Publish the pool's result — once, after it locks
-      description: >-
-        One public JSON object (≤ 256 KB), never rewritten. It MUST carry `verdict_hash`
-        (64 lowercase hex) and `outcomes` (pledge id → `burn` | `release`); anything else is
-        `bad_result`. A second publish or a pool that has not locked → `result_refused`
-        (409). MCP twin `signet_pledge_pool_result`.
-      operationId: signetPledgePoolResult
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [result]
-              properties:
-                result:
-                  type: object
-                  required: [verdict_hash, outcomes]
-                  properties:
-                    verdict_hash: { type: string, pattern: '^[0-9a-f]{64}$' }
-                    outcomes:
-                      type: object
-                      additionalProperties: { type: string, enum: [burn, release] }
-      responses:
-        '200': { description: "`{ok, published: true}`" }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
-
-  /api/signet/pledge-pools/{id}/outcomes:
-    post:
-      tags: [pledges]
-      summary: Burn or release 1–16 funded pledges, as the published result names them
-      description: >-
-        Outcomes come ONLY from the published result: no result → `result_required`; an
-        outcome the result does not name for that pledge → `outcome_not_in_result`. Only
-        while the pool is locked (`not_locked`), once per pledge. `burn` destroys exactly
-        the stake (token-program burn); `release` frees it for the pledger. A burn whose
-        fate is unknown is parked (`burn_unconfirmed`, status `burning`) and never re-sent.
-        Per-pledge results; the call answers 200 with each item's `ok`. MCP twin
-        `signet_pledge_outcomes`.
-      operationId: signetPledgeOutcomes
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [outcomes]
-              properties:
-                outcomes:
-                  type: array
-                  minItems: 1
-                  maxItems: 16
-                  items:
-                    type: object
-                    required: [pledge_id, outcome]
-                    properties:
-                      pledge_id: { type: string, format: uuid }
-                      outcome: { type: string, enum: [burn, release] }
-      responses:
-        '200':
-          description: Per-pledge results
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  pool_id: { type: string, format: uuid }
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        pledge_id: { type: string, format: uuid }
-                        ok: { type: boolean }
-                        status: { type: string, enum: [funded, burning, burned, released] }
-                        signature: { type: string, description: The burn transaction (burned only). }
-                        amount: { type: string }
-                        error: { type: string }
-                        message: { type: string }
-        '400': { $ref: '#/components/responses/PledgeError' }
-        '404': { $ref: '#/components/responses/PledgeError' }
-        '409': { $ref: '#/components/responses/PledgeError' }
 
   /api/data-attachments:
     get:
@@ -3398,71 +2823,6 @@ paths:
   # Agent choreographies (SSE)
   # ============================================================
 
-  /api/agents/rokha-agent/remix/stream/public:
-    post:
-      tags: [agents]
-      summary: "Remix (SSE): the agent builds a rig from a random skill, live"
-      description: |
-        Server-Sent Events choreography — the agent discovers a random
-        registry skill, targets it as the Working Rig's harness, fills the
-        build config, and hands off to a run. Events: `content`,
-        `tool_start`, `tool_result`, `ui_directive`, `done`. Anon-scoped via
-        request `user_context.anon_session_id`.
-      operationId: remixStream
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message: { type: string }
-                user_context: { type: object, additionalProperties: true }
-      responses:
-        '200':
-          description: SSE stream (text/event-stream)
-          content:
-            text/event-stream:
-              schema: { type: string }
-
-  /api/runtime/taste:
-    post:
-      tags: [runtime]
-      summary: "Run for real (the anonymous taste — closed; sign in)"
-      description: |
-        The anonymous taste is CLOSED: an anonymous caller has no runs, and
-        this door answers a refusal. Kept for back-compat with callers that
-        still send an `anon_session_id`. Sign in and use `POST /api/runtime/run`
-        or `POST /api/rigs/run` with a Bearer JWT: 5 runs a day free, then a
-        run pack (100 for $1), or the Lab (the month, or the 1M $ROKHA hold)
-        for 300 a day.
-      operationId: runtimeTaste
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [anon_session_id, skill_provider, skill_slug, harness_id]
-              properties:
-                anon_session_id: { type: string, format: uuid }
-                skill_provider: { type: string }
-                skill_slug: { type: string }
-                instruction: { type: string }
-                params: { type: object, additionalProperties: true }
-                harness_id: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Run acknowledgement (carries a run_id to poll)
-          content:
-            application/json:
-              schema: { type: object, additionalProperties: true }
-        '400': { description: Bad input (non-UUID id, invalid params) }
-        '429':
-          description: "`sign_in_required` — anonymous callers have no runs; sign in"
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/BudgetRefusal' }
-
   /api/runtime/run:
     post:
       tags: [runtime]
@@ -3532,35 +2892,6 @@ paths:
         each step's output feeding the next.
       operationId: runStreamAuthed
       security: [{ bearerAuth: [] }]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message: { type: string }
-                user_context: { type: object, additionalProperties: true }
-      responses:
-        '200':
-          description: SSE stream (text/event-stream)
-          content:
-            text/event-stream:
-              schema: { type: string }
-
-  /api/agents/rokha-agent/run/stream/public:
-    post:
-      tags: [agents]
-      summary: "Run (SSE): the agent executes the saved Working Rig's harness"
-      description: |
-        Server-Sent Events choreography — the agent reads the caller's SAVED
-        Working Rig and executes its harness: a live MCP `tools/call` when an
-        endpoint + tool are configured, a `tools/list` probe when only an
-        endpoint is set, or an agentic run (the agent performs the skill from
-        its description + instruction + params) when neither — then writes an
-        atomic trace. Events: `content`, `tool_start`, `tool_result`,
-        `ui_directive`, `run_result` ({status, latency_ms, trace_id}),
-        `done`. Anon-scoped via `user_context.anon_session_id`.
-      operationId: runStream
       requestBody:
         content:
           application/json:
@@ -4184,28 +3515,18 @@ paths:
   /api/affiliate/me:
     get:
       tags: [network]
-      summary: "Your referral cash ledger — 25% of a referred buyer's first Studio month (MCP affiliate_me; the link and tally are /api/referrals/me)"
-      description: "The affiliate program: 25% of what a buyer you referred pays for their first Studio month (once per buyer). Your code is your handle (rokha.ai/?ref=<handle>, the one referral link); the buyer needs no Rokha page. Crypto sales pay at settle, card sales after a 30-day hold; a chargeback reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
+      summary: "Your referral ledger — 25% of a referred buyer's first Lab month, 5% of their sales and hires (MCP affiliate_me)"
+      description: "The affiliate program: 25% of what a buyer you referred pays for their first Lab month (once per buyer). Your code is your handle (rokha.ai/?ref=<handle>, the one referral link); the buyer needs no Rokha page. Crypto sales pay at settle, card sales after a 30-day hold; a chargeback reverses the credit. Returns eligible, code, link, pct, definition, unlock, credited/vested/paid (USDC base units) and credits[]."
       operationId: affiliateMe
       security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: Affiliate standing and ledger, content: { application/json: { schema: { type: object, properties: { eligible: { type: boolean }, code: { type: string, nullable: true }, link: { type: string, nullable: true }, pct: { type: integer }, definition: { type: string }, unlock: { type: string, nullable: true }, credited_base: { type: integer }, vested_base: { type: integer }, paid_base: { type: integer }, credits: { type: array, items: { type: object, additionalProperties: true } } }, additionalProperties: true } } } }
         '401': { description: Sign in first }
-  /api/referrals/me:
-    get:
-      tags: [network]
-      summary: "Your one referral link and its tally"
-      description: "ONE referral link (2026-10-11): rokha.ai/?ref=<handle> (add &c=<campaign_id> for a campaign). If a person who signs up through it buys the Studio, you earn 25% of their first month in USDC (see /api/affiliate/me). Runs they make are counted in the tally, never paid. The person brought needs no Rokha page — signing in is enough. Returns your link and the tally (signed up → ran → bought). The same card is on the profile as Share & earn."
-      operationId: referralsMe
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: Your link and tally, content: { application/json: { schema: { type: object, additionalProperties: true, properties: { link: { type: string }, handle: { type: string, nullable: true }, signed_up: { type: integer }, ran: { type: integer }, bought: { type: integer } } } } } }
-        '401': { description: Sign in first }
   /api/ladder/wallet-links:
     get:
       tags: [wallets]
       summary: "The wallets this account proved by signature"
-      description: "Signed in. `login_is_wallet` is true when the login itself is a Solana wallet (it counts without a link). Everything a proven wallet holds counts to the account that proved it — the $ROKHA holder door reads these."
+      description: "Signed in. `login_is_wallet` is true when the login itself is a Solana wallet (it counts without a link). Everything a proven wallet holds counts to the account that proved it."
       operationId: walletLinks
       security: [ { bearerAuth: [] } ]
       responses:
@@ -4350,8 +3671,7 @@ paths:
         3 rigs · 1 agent · 3 skills). `run_pack` is the pay-per-run rung (100
         runs for $1, its `product_id` and how to buy it); `ladder` is the
         three rungs as data (`RunLadder`); `doors` is the Lab:
-        `studio_monthly_usd` (29.99) and the hold (1,000,000 $ROKHA,
-        `GET /api/billing/hold`).
+        `studio_monthly_usd` (29.99).
       operationId: getFreeTier
       responses:
         '200':
@@ -4397,7 +3717,7 @@ paths:
       description: >-
         Free accounts list a few of each on the market — 1 agent, 3 rigs,
         2 MCP server listings, 3 skills (per ACCOUNT, server-tunable) — and
-        the Studio lifts the caps (`cap: null`). Every publish door (POST
+        the Lab lifts the caps (`cap: null`). Every publish door (POST
         /api/rigs/publish, MCP `rig_publish` / `registry_publish`, POST
         /api/registry/servers, POST /api/pages/me/mcp-listing, POST
         /api/registry/agents, POST /api/agents/mine and taking an agent live)
@@ -4445,50 +3765,6 @@ paths:
           content:
             text/markdown:
               schema: { type: string }
-
-  /api/roadmap:
-    get:
-      tags: [meta]
-      summary: "What is live, what opens next, and the flight plan (MCP flight_plan). Filters: ?track=<key> · ?q=<words>"
-      operationId: getRoadmap
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  roadmap: {}
-                  milestones: {}
-                  tracks: {}
-                  statuses: {}
-                  flightPlan: {}
-                  milestone_rule: {}
-                  commands: {}
-                  page: {}
-                  roadmap_note: {}
-
-  /api/media:
-    get:
-      tags: [meta]
-      summary: "The official media library — labelled images + animations. Filter: ?topic=<topic>"
-      operationId: getMediaLibrary
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  count: {}
-                  items: {}
-                  topics: {}
-                  license: {}
-                  rule: {}
 
   /api/agents/directory:
     get:
@@ -4567,35 +3843,6 @@ paths:
                   last_answer_at: { type: string, format: date-time, nullable: true }
                   note: { type: string }
 
-  /api/billing/hold:
-    get:
-      tags: [sales]
-      summary: "Hold $ROKHA and you have what a Studio subscription unlocks — the amount (public)"
-      description: |
-        Public, no auth. Hold 1,000,000 $ROKHA and you have everything a Studio
-        subscription unlocks, for as long as you hold it — optional (a Studio month, $29.99, by card
-        or USDC opens the same) and holding earns nothing. Runs and builds
-        use your own model keys either way. The amount
-        is read at every sign-in and token refresh from the wallet you sign in
-        with plus up to three wallets you linked by signature
-        (`/api/ladder/wallet-link/*`), summed; an unreadable chain holds
-        nothing. `open: false` means the door is closed on this deployment.
-      operationId: billingHold
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [open, mint]
-                properties:
-                  open: { type: boolean }
-                  mint: { type: string, description: "The $ROKHA mint" }
-                  tokens: { type: number, description: "Whole $ROKHA to hold (present when open)" }
-                  pegged_usd: { type: [number, 'null'], description: "The month the amount was pegged from, when pegged" }
-                  note: { type: string }
-                  link_door: { type: string, description: "Where a signed-in account links a wallet" }
   /api/studio/checkout:
     post:
       tags: [network]
@@ -4625,7 +3872,7 @@ paths:
                 payer_wallet: { type: string, description: "usdc / sol / rokha: the Solana wallet the payment is SIGNED by" }
                 ref_code: { type: string, description: "The affiliate code the buyer arrived with" }
       responses:
-        '200': { description: "`{mode: stripe, checkout_url}` · `{mode: usdc, reference, amount_usd, pay}` · a SOL or $ROKHA order" }
+        '200': { description: "`{mode: stripe, checkout_url}` · `{mode: usdc, reference, amount_usd, pay}` · a SOL order" }
         '400': { description: "Unknown product or rail, or a bad `payer_wallet`" }
         '401': { description: "Sign in" }
         '429': { description: "Too many orders awaiting payment" }
@@ -4669,13 +3916,12 @@ paths:
   /api/studio/doors:
     get:
       tags: [network]
-      summary: "What Rokha costs — free runs, the run pack, the Lab at $29.99 a month or the 1,000,000 $ROKHA hold (MCP studio_doors)"
+      summary: "What Rokha costs — free runs, the run pack, the Lab at $29.99 a month (MCP studio_doors)"
       description: |
         Public. Free to start, pay for scale. Free, signed in: 5 runs a day
         (model steps on your own model key), ten questions a day with Rokha,
         and listing. Pay per run: `run_pack`, 100 runs for $1. The Lab,
-        $29.99 a month (card, USDC, SOL or $ROKHA) or hold 1,000,000 $ROKHA:
-        full access to everything — an agent starts it with MCP `subscribe`.
+        $29.99 a month (card, USDC or SOL): full access to everything — an agent starts it with MCP `subscribe`.
         `ladder` is the three rungs as data (`RunLadder`). The one-time
         license, rent-to-own and trials are not sold; licenses already sold
         stay valid.
@@ -4798,17 +4044,17 @@ paths:
         nothing else is trusted from the request. A private row, a blocked
         owner's row, an unknown row or a malformed id is a 404
         (`not_found`) — never a 500. `doors.connect` / `doors.run` are the
-        Studio's `?connect=<provider>%2F<external_id>` /
+        Lab's `?connect=<provider>%2F<external_id>` /
         `?run=` doors; `doors.agent_door` is the MCP endpoint an agent
         pastes. The same `href` / `cta` shape rides every `/api/market`
         tile: the title opens `/market/<kind>/<provider>/<external_id>`
         (a Rokha rig with a sub-page keeps `/@handle/<slug>`, a seat or
-        page MCP server keeps `/@handle`), Connect opens the Studio connect
-        door, Run it the Studio run door, Clone it `/studio?adopt=`.
+        page MCP server keeps `/@handle`), Connect opens the Lab connect
+        door, Run it the Lab run door, Clone it `/studio?adopt=`.
       operationId: getMarketObject
       parameters:
         - { name: kind, in: path, required: true, schema: { type: string, enum: [rig, skill, mcp] } }
-        - { name: provider, in: path, required: true, schema: { type: string, maxLength: 64 }, description: "registry_listings.provider_id — rokha, glama, docker_mcp, mcp_official, smithery, skills_sh, …" }
+        - { name: provider, in: path, required: true, schema: { type: string, maxLength: 64 }, description: "registry_listings.provider_id — rokha, mcp_official, docker_mcp, skills_sh, …" }
         - { name: external_id, in: path, required: true, schema: { type: string, maxLength: 512 }, description: "The row's external_id, each segment URL-encoded" }
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MarketObject' } } } }
@@ -4859,7 +4105,7 @@ paths:
       tags: [edge]
       summary: "Edge — the agent world outside Rokha: registries, new listings, MCP SDK adoption, who connects, the MCP funnel, the spec (MCP edge_read)"
       description: |
-        The Studio (a signed-in account with the month or the 1M $ROKHA hold;
+        The Lab (a signed-in account with the month;
         401 `sign_in` / 402 `studio_required` otherwise), cached 120 s
         server-side (`Cache-Control: public, max-age=60`), per-IP governed. Three answer shapes:
 
@@ -4930,7 +4176,7 @@ paths:
       tags: [edge]
       summary: "The Lab (API: edge) — the feed rail: every external source (npm/PyPI downloads, GitHub repos, Hacker News, X via Sorsa, …) as a served snapshot"
       description: |
-        The Studio (a signed-in account with the month or the 1M $ROKHA hold;
+        The Lab (a signed-in account with the month;
         401 `sign_in` / 402 `studio_required` otherwise),
         `Cache-Control: public, max-age=30`, per-IP governed.
         Feeds are config (seeds + superadmin overlays) fetched server-side on
@@ -4974,7 +4220,7 @@ paths:
       tags: [edge]
       summary: "Edge — live on Rokha, as a digest over /api/live (MCP edge_live)"
       description: |
-        The Studio (a signed-in account with the month or the 1M $ROKHA hold;
+        The Lab (a signed-in account with the month;
         401 `sign_in` / 402 `studio_required` otherwise),
         `Cache-Control: public, max-age=15`, per-IP governed. One `section` of the live desk, compact: `totals` (default
         — an allowlist of `/api/live` totals: uses_24h, uses_7d,
@@ -5019,7 +4265,7 @@ paths:
       tags: [edge]
       summary: "The Lab (API: edge) — the field: /api/live's shape with the world (new registry listings, posts, repo pushes) merged in front of Rokha's own activity"
       description: |
-        The Studio (a signed-in account with the month or the 1M $ROKHA hold;
+        The Lab (a signed-in account with the month;
         401 `sign_in` / 402 `studio_required` otherwise), no parameters,
         `Cache-Control: public, max-age=15` (30 s server cache), per-IP
         governed. Exactly `/api/live`'s shape —
@@ -5061,7 +4307,7 @@ paths:
       tags: [edge]
       summary: "The Lab (API: edge) — the hive: public rigs' runs and the Jev decisions inside them, plus where the agent world on Rokha is heading"
       description: |
-        The Studio (a signed-in account with the month or the 1M $ROKHA hold;
+        The Lab (a signed-in account with the month;
         401 `sign_in` / 402 `studio_required` otherwise), no parameters,
         `Cache-Control: public, max-age=15` (30 s server cache,
         single-flight), per-IP governed. `events[]`
@@ -5094,7 +4340,7 @@ paths:
       tags: [edge]
       summary: "The Lab (API: edge) — the Trader view: Windsock's top tokens by signal score and their rank moves (no prices, no links)"
       description: |
-        The Studio (a signed-in account with the month or the 1M $ROKHA hold;
+        The Lab (a signed-in account with the month;
         401 `sign_in` / 402 `studio_required` otherwise), no parameters,
         `Cache-Control: public, max-age=15` (30 s server cache), per-IP
         governed. `tokens[]` (≤ 20): `{rank,
@@ -5103,8 +4349,8 @@ paths:
         since the board 15–30 minutes ago (null until a baseline exists;
         `rank_change_vs_secs_ago` says how old it is). Symbols and names are
         attacker-authored text: control/bidi stripped and capped (16 / 40).
-        No price, volume, liquidity or link ever rides; $ROKHA and tokens
-        whose symbol or name claims to be Rokha are never listed. Signal
+        No price, volume, liquidity or link ever rides; Tokens whose symbol
+        or name claims to be Rokha are never listed. Signal
         heat, not advice. 404 `not_found` while the Lab is off; 503
         `edge_unavailable` when Windsock is unreadable and no earlier body
         exists.
@@ -5120,9 +4366,9 @@ paths:
   /api/edge/me:
     get:
       tags: [edge]
-      summary: "The Lab (API: edge) — your cockpit: approvals waiting, your agents, desks (paper), runs, hires, sales, listings and allowance since a time"
+      summary: "The Lab (API: edge) — your cockpit: approvals waiting, your agents, runs, hires, sales, listings and allowance since a time"
       description: |
-        JWT only (Bearer) and the Studio (the month or the 1M $ROKHA hold —
+        JWT only (Bearer) and the Lab (the month —
         402 `studio_required` on a free account); the owner is the verified
         token's scope, never a parameter. `?since=<unix seconds>` (default 24 h ago, clamped to at
         most 7 days back, floored to the minute; echoed as `since` +
@@ -5157,126 +4403,6 @@ paths:
         '401': { description: No valid Bearer token }
         '404': { description: "`not_found` while the Lab is off" }
         '429': { description: "`slow_down`" }
-
-  /api/admin/edge/feeds/draft:
-    post:
-      tags: [edge]
-      summary: "Plug any JSON API into Edge — one fetch, an inferred feed spec, its preview (superadmin only; MCP edge_feed_draft)"
-      description: |
-        Superadmin only: JWT + the admin allowlist, and the handler re-checks
-        the superadmin role from the verified claims (never a header). Body
-        `{url, title?, headers?}` — unknown keys are refused. `url` (≤ 512
-        chars) must pass the feed URL policy (https, a public dotted host on
-        port 443, no user:pass, no #fragment, never an IP literal or an
-        internal name); `title` ≤ 80 chars (default the host); `headers` is
-        header name → a literal (`Accept`, `X-GitHub-Api-Version`) or
-        `{secret_ref, optional?}` (`Authorization`, `X-Api-Key`) — a
-        credential VALUE in a header is refused. The door fetches the URL
-        ONCE through the pinned fetcher on the shared admin preview budget
-        (30 a day, with `/api/admin/edge/feeds/test`), reads only the
-        response's SHAPE (key names, types, sizes — no sample value reaches
-        the spec), infers `events` (a time + a title per item), `ranked` (a
-        label + a number), `series` (time/number pairs), `counter` (one
-        number) or `table` (up to 6 columns), validates the draft, and runs
-        it over the same sample for a preview (rows/points capped at 20).
-        Nothing is saved: hand `spec` (edited or not) to `POST
-        /api/admin/edge/feeds {spec}` — saved with `enabled: false` until
-        flipped — or MCP `edge_feed_save`. Audit-logged (feed id + type,
-        never the URL or a secret). Not gated by the Lab switch.
-      operationId: adminEdgeFeedDraft
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [url]
-              additionalProperties: false
-              properties:
-                url: { type: string, maxLength: 512, description: "The JSON door to read, https only" }
-                title: { type: string, maxLength: 80, nullable: true, description: "The feed's title; default the host" }
-                headers:
-                  type: object
-                  nullable: true
-                  description: "Header name → literal (Accept, X-GitHub-Api-Version) or {secret_ref, optional?} (Authorization, X-Api-Key). Never a credential value."
-                  additionalProperties:
-                    oneOf:
-                      - { type: string }
-                      - { type: object, required: [secret_ref], additionalProperties: false, properties: { secret_ref: { type: string }, optional: { type: boolean, default: false } } }
-      responses:
-        '200': { description: The draft, content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedDraft' } } } }
-        '400': { description: "`invalid_spec` (with `field`) — a bad url, title or header; or `nothing_fits` — the response has no shape a grid can be drawn from", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
-        '401': { description: No JWT }
-        '403': { description: "`superadmin_only`", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
-        '422': { description: "The fetch was refused or failed (the fetcher's error code), or the drafted spec mapped nothing from the sample (with `paths`)", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
-        '429': { description: "`budget_spent` — today's 30 preview fetches are spent", content: { application/json: { schema: { $ref: '#/components/schemas/EdgeFeedRefusal' } } } }
-
-  /api/board:
-    get:
-      tags: [network]
-      summary: "The Wall's seats (legacy) — seat sales are retired"
-      operationId: getBoard
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  live: {}
-                  held: {}
-                  carry: {}
-                  carry_line: {}
-                  carried_today: {}
-                  price_usd: {}
-                  floor_usd: {}
-                  claim_top_usd: {}
-                  market_value_usd: {}
-                  page_value_usd: {}
-                  nx: {}
-                  ny: {}
-
-  /api/board/plugins:
-    get:
-      tags: [network]
-      summary: "Seat MCP servers served on /mcp/jsonrpc as <brand>__<tool>"
-      operationId: getBoardPlugins
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  plugins: {}
-                  tools_list: {}
-                  full_descriptions: {}
-                  note: {}
-
-  /api/adnet/feed:
-    get:
-      tags: [network]
-      summary: "LEGACY — the agent ad network feed; Rokha no longer pays anyone to push placements"
-      operationId: getAdnetFeed
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  placements: {}
-                  contract: {}
-                  points: {}
-                  third_party_copy: {}
-                  also_earn_on_x: {}
 
   /api/signals/trending:
     get:
@@ -5389,9 +4515,9 @@ paths:
   /api/signals/crews:
     get:
       tags: [signals]
-      summary: "Windsock — the crews: groups of Solana wallets that enter the same coins together, mined from the public tape or written by hand (the Studio; MCP signal_feed view=crews, desk_crews). Wallets and ids are DATA."
+      summary: "Windsock — the crews: groups of Solana wallets that enter the same coins together, mined from the public tape or written by hand (the Lab; MCP signal_feed view=crews, desk_crews). Wallets and ids are DATA."
       description: >-
-        The Studio (401 `sign_in` without a login, 402 `studio_required` on a free account —
+        The Lab (401 `sign_in` without a login, 402 `studio_required` on a free account —
         the same gate as `/api/signals/wallets`). Every active crew, the busiest this hour
         first. Two origins: `mined` — wallets whose FIRST buys of the same hot mints fell within
         10 minutes of each other, on at least 3 mints, read from the public PumpPortal tape only
@@ -5413,8 +4539,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SignalCrewsBoard' }
-        '401': { description: "`sign_in` — no login. Windsock intel comes with the Studio: sign in, then the month or the 1M $ROKHA hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors: the Studio month ($29.99 — card, USDC, SOL or $ROKHA) or holding 1M $ROKHA (`GET /api/billing/hold`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in` — no login. Windsock intel comes with the Lab: sign in, then the month", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names the Lab month ($29.99 — card, USDC or SOL)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`store_unavailable` — the crews could not be read; try again shortly", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/signals/early:
@@ -5564,9 +4690,9 @@ paths:
   /api/desk/crews:
     get:
       tags: [desk]
-      summary: "The crews the desk watches — mined from the public tape or written by hand (the Studio; MCP desk_crews)"
+      summary: "The crews the desk watches — mined from the public tape or written by hand (the Lab; MCP desk_crews)"
       description: >-
-        The Studio (401 `sign_in` / 402 `studio_required` otherwise). The same body as
+        The Lab (401 `sign_in` / 402 `studio_required` otherwise). The same body as
         `GET /api/signals/crews`: every active crew with its origin (`mined` · `manual`), label,
         size, member wallets, the mints it shared, its co-entries, when it was first seen and
         last active, and this hour's buys, sells and mints. Wallets, labels and mints are DATA.
@@ -5581,7 +4707,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SignalCrewsBoard' }
         '401': { description: "`sign_in` — no login", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — a free account; the refusal names both doors (the month, the 1M $ROKHA hold)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — a free account; the refusal names the way in (the Lab month)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`unavailable` — try again shortly", content: { application/json: { schema: { $ref: '#/components/schemas/DeskError' } } } }
 
   /api/desk/crews/{id}:
@@ -5714,7 +4840,7 @@ paths:
                   recent: { type: array, items: { type: object, additionalProperties: true } }
                   receipts_wall: { type: array, items: { type: object, additionalProperties: true } }
         '402':
-          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month, or holding 1M $ROKHA) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
+          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
@@ -5832,7 +4958,7 @@ paths:
                   note: { type: string }
 
         '402':
-          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month, or holding 1M $ROKHA) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
+          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
@@ -5906,7 +5032,7 @@ paths:
                   studio: { type: boolean, description: "true = full access" }
                   access: { type: string, enum: [licensed, rent, trialing, free_window, holder, house, none] }
                   current_period_end: { type: string, format: date-time, description: "rent — when the paid month ends" }
-                  tokens: { type: number, description: "holder — the $ROKHA counted" }
+                  tokens: { type: number, description: "holder — the tokens counted" }
                   doors: { type: object, additionalProperties: true }
         '401': { description: No token }
 
@@ -5928,7 +5054,7 @@ paths:
       operationId: createAgent
       description: |
         The ONE agent door. The Forge save and MCP `agent_create` land here with the same body
-        (`AgentCreate`). A free account creates 1 agent, the Studio lifts the cap
+        (`AgentCreate`). A free account creates 1 agent, the Lab lifts the cap
         (`GET /api/publish/allowance`; 402 `publish_cap` at the cap). Every Forge guard applies:
         reserved names, a model the owner can pay for, `persona` required to go live. Give the
         agent tools by naming the `rigs` and `skills` it may run. Never a connected app.
@@ -6767,8 +5893,8 @@ paths:
         Caller data: pump.fun, read at request time, cached ≤ 24 h — without `PUMPFUN_API_KEY` on
         the server the pump.fun half answers `needs_runtime` and the tape half still answers.
         Attribute pump.fun when you quote it; usernames are third-party text. A read of public
-        data, not advice. `?q=` is a Studio read counted per caller per UTC day (anonymous and
-        signed-in free accounts are refused with both doors); `?id=` serves a saved check to
+        data, not advice. `?q=` is a Lab read counted per caller per UTC day (anonymous and
+        signed-in free accounts are refused with the way to the Lab); `?id=` serves a saved check to
         anyone, free. Every check carries `share_url` (`/callers/<id>`) and `card_url` (its OG
         card). Same builder as the MCP tool `caller_check {target, rules?}`.
       operationId: getCallerCheck
@@ -6818,8 +5944,8 @@ paths:
                       pumpfun_expired: { type: boolean }
                   attribution: { type: string }
                   disclaimer: { type: string }
-        '401': { description: "`daily_limit` with `per_day: 0` — anonymous; a check is a Studio read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`daily_limit` with `per_day: 0` — a signed-in free account; the refusal names both doors: the Studio month ($29.99 — card, USDC, SOL or $ROKHA) or holding 1M $ROKHA", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`daily_limit` with `per_day: 0` — anonymous; a check is a Lab read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`daily_limit` with `per_day: 0` — a signed-in free account; the refusal names the Lab month ($29.99 — card, USDC or SOL)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — no saved check has that id", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/callers/check/{id}/card.png:
@@ -7097,7 +6223,7 @@ paths:
       summary: "Buy a page of its own (JWT — the free login is enough)"
       description: >-
         Opens the order on the caller's account: `card` → a Stripe `checkout_url`; `usdc`, `sol`
-        or `rokha` + `payer_wallet` → exact pay instructions (SOL and $ROKHA quoted live, held 60
+        or `rokha` + `payer_wallet` → exact pay instructions (SOL and `rokha` quoted live, held 60
         seconds). Nothing exists until the payment settles; then `GET /api/flat-pages/order`
         answers the new `page_id` and the editor opens on this login. `email` is the receipt
         address, asked only when the account has none. All payments are final. No refunds; a
@@ -7375,9 +6501,9 @@ paths:
       tags: [pages]
       summary: "Your sub-page credits (JWT)"
       description: >-
-        With the Lab (the month, or holding 1M $ROKHA) your account page plus one rig page and
+        With the Lab (the month) your account page plus one rig page and
         one agent page are included; each further sub-page takes one credit, $9 one time
-        (`price_cents` is the live number), by card, USDC, SOL or $ROKHA. A free account has no
+        (`price_cents` is the live number), by card, USDC or SOL. A free account has no
         sub-pages. A page that existed before credits holds no slot and is never asked.
         Unlinking a page frees its slot and credit for reuse; it refunds nothing.
       operationId: pageCreditsMe
@@ -7452,8 +6578,7 @@ paths:
         `rig_id` (a saved rig of yours) or `agent_handle` (one of your own live agents — `input`
         is the prompt it wakes with; `deliver` `chat` keeps the turn as a session, `x_post`
         publishes one post on the agent's own X keys). `cadence` is one of `every-1-min` ·
-        `every-5-min` · `every-15-min` · `hourly` · `daily` · `weekly`; the Lab (the month, or
-        holding 1M $ROKHA) holds up to 100 schedules down to every minute, a free account none.
+        `every-5-min` · `every-15-min` · `hourly` · `daily` · `weekly`; the Lab holds up to 100 schedules down to every minute, a free account none.
         `input` is the run input every fire carries; `inputs` are a multi-input rig's NAMED
         inputs, `{name: text}` — up to 12 names of letters, digits, `_` and `-`, each text at
         most 2,000 characters. Every fire runs as its owner on the owner's own model keys.
@@ -7478,7 +6603,7 @@ paths:
         '200': { description: "`{id, …}`" }
         '400': { description: "A bad cadence, input, `inputs` (the message says which), or an agent schedule with no prompt" }
         '401': { description: Sign in }
-        '402': { description: "`studio_required` — schedules come with the Lab; the refusal names both doors" }
+        '402': { description: "`studio_required` — schedules come with the Lab; the refusal names the way in" }
         '429': { description: "At the schedule cap" }
   /api/schedules/{id}:
     delete:
@@ -7610,24 +6735,6 @@ components:
               upgrade: { type: string, example: /pricing }
               message: { type: string }
               doors: { type: object, additionalProperties: { type: string } }
-    PledgeError:
-      description: >-
-        `{error, message}` — `organiser_not_allowed` (403) · `organiser_cannot_pledge` ·
-        `already_pledged` (duplicate) · `judge_not_yours` · `slug_taken` · `too_many_pools` ·
-        `pool_closed` · `pool_full` · `pool_crowded` · `not_pending` · `stake_short` ·
-        `sol_short` · `locked` · `settling` · `not_locked` · `destination_not_allowed` ·
-        `result_required` · `outcome_not_in_result` · `result_refused` · `bad_result` ·
-        `bad_outcome` · `bad_batch` · `bad_slug` · `bad_title` · `bad_stake` · `bad_size` ·
-        `bad_times` · `bad_meta` · `bad_mint` · `bad_payout_address` · `bad_memo` ·
-        `bad_reference` · `bad_disclosure` · `chain_unreadable` (502) · `not_found` (404 — a
-        foreign id reads as not found)
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error: { type: string }
-              message: { type: string }
     BadRequest:
       description: Invalid input
       content:
@@ -7725,41 +6832,6 @@ components:
               domains: { type: array, items: { type: string } }
         platform: { type: object, description: "On an agent's card: the platform it runs on" }
         supportedTrust: { type: array, items: { type: string } }
-    PledgePool:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        slug: { type: string }
-        title: { type: string }
-        mint: { type: string }
-        stake_amount: { type: string, description: Base units, whole-number string. }
-        sol_reserve_lamports: { type: string, description: SOL a pledge account holds beside its stake for fees. }
-        max_pledges: { type: integer }
-        locks_at: { type: string, format: date-time }
-        release_at: { type: string, format: date-time }
-        judge_actor: { type: string, nullable: true }
-        status: { type: string, enum: [open, cancelled] }
-        phase: { type: string, enum: [open, locked, released] }
-        meta: { type: object }
-        result: { type: object, nullable: true }
-        result_at: { type: string, format: date-time, nullable: true }
-    Pledge:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        pledger: { type: string, description: A per-pool fingerprint of the owner. }
-        deposit_address: { type: string }
-        payout_address: { type: string }
-        memo: { type: string }
-        reference: { type: string, nullable: true }
-        disclosure: { type: object, nullable: true }
-        disclosed_at: { type: string, format: date-time, nullable: true }
-        status: { type: string, enum: [pending, funded, burning, burned, released, withdrawn] }
-        funded_at: { type: string, format: date-time, nullable: true }
-        outcome_at: { type: string, format: date-time, nullable: true }
-        burn_signature: { type: string, nullable: true }
-        withdrawn: { type: boolean }
-        created_at: { type: string, format: date-time }
     AgentCreate:
       type: object
       description: "The Forge create args (the same body the Forge saves). Unknown keys are dropped."
@@ -8489,7 +7561,7 @@ components:
         new: { type: boolean, description: "First seen in the last 7 days" }
         cta: { $ref: '#/components/schemas/FrontCta' }
         cta_secondary:
-          description: "`Clone it` → the Studio, on rigs that can be adopted; else null"
+          description: "`Clone it` → the Lab, on rigs that can be adopted; else null"
           oneOf: [ { $ref: '#/components/schemas/FrontCta' }, { type: 'null' } ]
         tagline: { type: [string, 'null'], maxLength: 120, description: "The owner's one-liner, plain text clipped at a word: a page's editor tagline (else its bio); a rig's sub-page tagline (else the listing description); a skill's listing description; an agent's own tagline. null = none (clients show a default). User data — escape before rendering" }
         link:
@@ -8534,7 +7606,7 @@ components:
       properties:
         id: { type: string, example: "rokha/x-audit" }
         kind: { type: string, enum: [rig, skill, mcp, agent, builder, marketer] }
-        source: { type: string, description: "'rokha', or the registry source: smithery · glama · clawhub · skills.sh · mcp-registry · docker · anthropic" }
+        source: { type: string, description: "'rokha', or the registry source id" }
         title: { type: string }
         subtitle: { type: [string, 'null'], description: "Series / variant, or an MCP server's tool count" }
         handle: { type: [string, 'null'], description: "'@handle' for Rokha items; the upstream author for registry items" }
@@ -8899,7 +7971,7 @@ components:
       type: object
       description: "One synced registry. Counts are what Rokha has indexed from it, not the registry's own total."
       properties:
-        id: { type: string, example: glama }
+        id: { type: string, example: mcp_official }
         label: { type: string }
         active: { type: integer }
         purged: { type: [integer, 'null'] }
@@ -8912,7 +7984,7 @@ components:
         items_synced: { type: [integer, 'null'] }
         share_pct: { type: [number, 'null'], description: "Share of `total_active`, one decimal" }
         unit: { type: string, example: listings }
-        attribution: { type: [object, 'null'], properties: { label: { type: string }, href: { type: string } }, description: "e.g. Data: Glama" }
+        attribution: { type: [object, 'null'], properties: { label: { type: string }, href: { type: string } }, description: "The source's credit line, when it asks for one" }
         open_href: { type: string, description: "The site filter for that registry" }
 
     EdgeRegistries:
@@ -9012,32 +8084,6 @@ components:
       properties:
         generated_at: { type: string, format: date-time }
         feed: { $ref: '#/components/schemas/EdgeFeed' }
-
-    EdgeFeedDraft:
-      type: object
-      description: "POST /api/admin/edge/feeds/draft (and MCP edge_feed_draft)."
-      required: [ok, spec, type, preview, paths, notes, warnings]
-      properties:
-        ok: { type: boolean, const: true }
-        spec: { type: object, additionalProperties: true, description: "The drafted feed spec in its admin view — id, title, type, url, method, headers (secrets as {secret_ref} names only), map{items_path, fields, …}, link_template, unit, window_label, at_label, source_label, source_href, placement, ttl_secs, daily_budget, enabled: false, … — the body POST /api/admin/edge/feeds {spec} and edge_feed_save take" }
-        type: { type: string, enum: [counter, series, ranked, events, table] }
-        preview: { description: "The drafted spec run over the same sample; rows/points capped at 20 (the EdgeFeed `data` shape)" }
-        paths: { type: array, items: { type: object }, description: "The response's paths and their types — never a value" }
-        notes: { type: array, items: { type: string }, description: "Why each pick was made, in plain words" }
-        warnings: { type: array, items: { type: string }, description: "Validation warnings on the draft" }
-        ms: { type: integer }
-        bytes: { type: integer }
-        next: { type: string, description: "What to do with it" }
-
-    EdgeFeedRefusal:
-      type: object
-      required: [ok, error, message]
-      properties:
-        ok: { type: boolean, const: false }
-        error: { type: string, description: "invalid_spec · nothing_fits · superadmin_only · budget_spent · the fetcher's code · the preview's code" }
-        field: { type: string, description: "On invalid_spec: the offending field" }
-        message: { type: string }
-        paths: { type: array, items: { type: object }, description: "On a preview refusal: the response's paths, so the spec can be edited by hand" }
 
     TaskPost:
       type: object
@@ -9321,15 +8367,15 @@ components:
 
     RokhaCheckout:
       type: object
-      description: "`rail: rokha` — the USD price quoted in exact $ROKHA base units at the live price (Jupiter and DexScreener, the lower wins), held 60 seconds, up to $250 a payment. Send exactly `amount_rokha` of `mint` from `payer_wallet` to `pay_to` before `expires_at`; any other amount, sender or a later transfer does not settle. The seller is paid in USDC. Confirmed automatically on finality."
+      description: "`rail: rokha` — the USD price quoted in exact base units of `mint` at the live price (Jupiter and DexScreener, the lower wins), held 60 seconds, up to $250 a payment. Send exactly `amount_rokha` of `mint` from `payer_wallet` to `pay_to` before `expires_at`; any other amount, sender or a later transfer does not settle. The seller is paid in USDC. Confirmed automatically on finality."
       required: [mode, reference, amount_rokha, rokha_base, mint, pay_to, expires_at, quote, pay]
       properties:
         mode: { type: string, const: rokha }
         product: { $ref: '#/components/schemas/Product' }
         reference: { type: string, example: "rokha:3f1c…", description: "The order reference" }
-        amount_rokha: { type: string, example: "1000.000007", description: "Exact $ROKHA, as a decimal string" }
+        amount_rokha: { type: string, example: "1000.000007", description: "Exact amount of `mint`, as a decimal string" }
         rokha_base: { type: integer, description: "Exact base units — the last digits bind the payment to this order" }
-        mint: { type: string, description: "The $ROKHA mint" }
+        mint: { type: string, description: "The token mint" }
         pay_to: { type: string, description: "The House sales wallet (Solana)" }
         expires_at: { type: string, format: date-time }
         quote:
@@ -9743,15 +8789,6 @@ components:
         error: { type: string, description: "Machine-readable code" }
         message: { type: string }
       required: [ok, error]
-
-    PaperRefusal:
-      type: object
-      properties:
-        paper: { type: boolean, const: true }
-        status: { type: string, const: refused }
-        code: { type: string }
-        error: { type: string, description: "`<code>: <why>`" }
-      required: [paper, status, code, error]
 
     DataAttachmentFormat:
       type: string

@@ -11,7 +11,7 @@ import type { StudioAccess, SubscribeRequest } from './types.js';
 //   with callers that still send an `anon_session_id`.
 // - `run` is the signed-in door: free to start, pay for scale — 5 runs a day
 //   on a free account, then a run pack (100 runs for $1), or the Lab (the
-//   month, or the 1M $ROKHA hold) for 300 a day. Model steps run on your own
+//   month) for 300 a day. Model steps run on your own
 //   model key. It requires the client's bearer JWT (set via
 //   `RokhaClient.setAuthToken`). Past the free day it throws a `RokhaError`
 //   whose `budget` carries the `ladder`.
