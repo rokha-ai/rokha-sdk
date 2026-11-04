@@ -6,6 +6,10 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-04 — a refused MCP run says why, as data
+
+**Additive (versions stay 1.0.0).** When `rig_run` over MCP is refused for runs (signed out, the free day spent, the shared ceiling), the result is still `isError: true` with the sentence first, and now carries a second content block: JSON `{code, ladder?, upgrade?}`. `code` is one of `sign_in_required`, `free_runs_spent`, `free_runs_ceiling`, `lab_runs_spent`, `runtime_ceiling`, `budget_unavailable`; `ladder.run_pack.product_id` is the pack `product_checkout` buys. The REST run door already answered `429` with the same fields.
+
 ## 2026-11-03 — the Lab board, the Crew and Content
 
 **Additive (versions stay 1.0.0).** New doors for the Lab's board, the Crew that works it, and the channels its posts go to. All need a JWT or an `rk_` key; changes the Lab needs answer `402 studio_required`, and person-only moves answer `403 person_only`.
