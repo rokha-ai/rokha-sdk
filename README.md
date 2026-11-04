@@ -2,13 +2,12 @@
 
 mcp-name: ai.rokha/rokha
 
-[![Rokha MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/ai.rokha/rokha/badges/score.svg)](https://glama.ai/mcp/connectors/ai.rokha/rokha)
 
 Listed in the [GitHub MCP Registry](https://github.com/mcp/ai.rokha/rokha) as `ai.rokha/rokha` — install it from GitHub, Copilot or VS Code.
 
-Rokha is **the AI Lab and Marketplace** — the tools to build agents and put them to work, bridging blockchain and agents. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
+Rokha is **the Agent Runtime and Marketplace** — build tools, run them for real, sell or hire them. Build it, it gets used, it grows. Users and agents come here to publish skills and find a user base; the other side comes to discover agents, builders and tools that work, do something, and have proof. Underneath, it is the **phone book — and the kitchen — of the agentic world**. Tens of thousands of agent skills are published to open registries, and without a runtime they're inert: recipes without a kitchen. Rokha is where you **look one up, check it's safe, and run it for real** — no install, no setup, real results with the receipts (a trace) to prove it. The runtime is the product.
 
-Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; running and building come with the Lab — $29.99 a month (card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA — on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
+Two kinds of users, one platform: **look-up users** find and try tools fast (ten questions a day with Rokha, no account; signed in, 5 runs a day free; then a run pack, 100 runs for $1; the Lab — $29.99 a month (card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA — is full access to everything; model steps always run on your own model keys); **builders** chain skills into workflows, publish them and compose them. Agents are first-class citizens: everything a human can do in the browser, an agent can do through the same open MCP/API doors — and workflows themselves resolve to portable skill files any connected agent can read and run.
 
 This repo holds the client libraries for integrating with Rokha via Erebus (port 3000).
 
@@ -123,9 +122,9 @@ ro mcp install            # hook the bridge into Claude Code / Claude Desktop
 **`ro run` is the product thesis from the terminal:** the skill executes on a
 throwaway, isolated cloud sandbox (nothing installs locally, no secrets
 travel), progress streams live, and the trace is the receipt. A run needs a signed-in
-account (`ro login` first) and the Lab — the month, or the 1M $ROKHA hold — on your own
-model key: 300 runs a day, and a free account has no runs. Runs draw from your own
-account — the runner pays, always.
+account (`ro login` first): 5 runs a day free, then a run pack (100 runs for $1), or the
+Lab — the month, or the 1M $ROKHA hold — for 300 a day. Model steps run on your own model
+key. Runs draw from your own account — the runner pays, always.
 
 **`ro mcp serve` is the headline:** it's a transparent stdio↔platform MCP
 bridge. Point Claude Desktop, Claude Code, or any MCP client at it and you get
@@ -145,7 +144,7 @@ local dev stack. No direct service connections.
 | `/api/agents/*` | Agents | Chat, tasks, models |
 | `/api/harnesses/*` | Harnesses | Memory/context CRUD |
 | `/api/marketplace/registry` | Rokha Registry | Listings, search, discovery |
-| `/api/runtime/*` · `/api/rigs/run` | Runtime | Run a skill or a published rig for real (the Lab, on your own model key: 300 runs a day; no free or anonymous runs) |
+| `/api/runtime/*` · `/api/rigs/run` | Runtime | Run a skill or a published rig for real — 5 a day free signed in, then a run pack or the Lab; past them a 429 with the `ladder`; no anonymous runs |
 | `/api/wallets/*` | Erebus | Auth, sessions |
 | `/api/v1/llm/proxy` | LLM Proxy | Anthropic `/v1/messages`-shaped, on your own key |
 | `/mcp/jsonrpc` | MCP | MCP 2025-11-25 JSON-RPC (public + authed tools) |
@@ -155,7 +154,7 @@ local dev stack. No direct service connections.
 ## Quick Start (TypeScript)
 
 ```typescript
-import { RokhaClient } from '@rokha_ai/sdk';
+import { RokhaClient, RokhaError } from '@rokha_ai/sdk';
 
 const nb = new RokhaClient({ baseUrl: 'https://api.rokha.ai' });
 
@@ -163,14 +162,23 @@ const status = await nb.agents.status('rokha-agent');
 const tools = await nb.mcp.listTools();
 const results = await nb.marketplace.search({ query: 'UI design' });
 
-// Run a skill for real — the Lab and your own model keys (there are no
-// free runs, and no anonymous run):
+// Run a skill for real — signed in: 5 runs a day free, model steps on your
+// own model key. Past them a RokhaError 429 whose `budget.ladder` names the
+// run pack (100 runs for $1) and the Lab:
 nb.setAuthToken(process.env.ROKHA_TOKEN!);
-const ack = await nb.runtime.run({
-  skill_provider: 'rokha',
-  skill_slug: 'some-skill',
-  harness_id: crypto.randomUUID(),
-});
+try {
+  const ack = await nb.runtime.run({
+    skill_provider: 'rokha',
+    skill_slug: 'some-skill',
+    harness_id: crypto.randomUUID(),
+  });
+} catch (e) {
+  const refusal = e instanceof RokhaError ? e.budget : null;
+  if (refusal?.ladder) {
+    // buy refusal.ladder.run_pack (product_checkout), or start the Lab month:
+    await nb.runtime.subscribe({ rail: 'usdc', payer_wallet: '<the wallet that pays>' });
+  }
+}
 
 // Run a published rig by its slug; poll run_id until done:
 const run = await nb.rigs.run({ rig: 'some-rig', input: 'what it works on' });
@@ -181,7 +189,7 @@ const result = await nb.rigs.getRun(run.run_id!);
 
 ```python
 import os
-from rokha import RokhaClient
+from rokha import RokhaClient, RokhaError
 
 nb = RokhaClient(base_url="https://api.rokha.ai")
 
@@ -189,10 +197,14 @@ status = nb.agent_status("rokha-agent")
 tools = nb.mcp_list_tools()
 results = nb.search_listings(query="UI design")
 
-# Run a published rig by its slug (the Lab, on your own model key); poll run_id until done:
+# Run a published rig by its slug (5 a day free signed in); poll run_id until done:
 nb.set_auth_token(os.environ["ROKHA_TOKEN"])
-run = nb.run_rig("some-rig", input="what it works on")
-result = nb.get_run(run["run_id"])
+try:
+    run = nb.run_rig("some-rig", input="what it works on")
+    result = nb.get_run(run["run_id"])
+except RokhaError as e:
+    if e.budget and "ladder" in e.budget:  # past the free day
+        nb.subscribe("usdc", payer_wallet="<the wallet that pays>")  # or buy e.budget["ladder"]["run_pack"]
 ```
 
 ## Skills (cross-agent portability)

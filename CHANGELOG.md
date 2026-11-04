@@ -6,6 +6,19 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-03 — the Agent Runtime and Marketplace: free to start, pay for scale
+
+**Contract change (versions stay 1.0.0).** Rokha is the Agent Runtime and Marketplace. Runs are free to start and paid for at scale; model steps always run on the caller's own model key; anonymous callers still run nothing.
+
+- **Three rungs.** Free, signed in: 5 runs a day (one rig run is one run, whatever its steps; a step that runs no model needs no model key). Pay per run: the House run pack, 100 runs for $1 — a `Product` with `kind: runs`, `ref: rokha-runs`, `model: per_run` (`GET /api/products?kind=runs&ref=rokha-runs`), bought with `POST /api/products/{id}/checkout` / MCP `product_checkout` on x402, USDC, SOL, $ROKHA, Signet or card and spent after the free day. The Lab: $29.99 a month or hold 1M $ROKHA, full access to everything. All payments are final.
+- **Run refusals carry the ladder.** `POST /api/rigs/run`, `POST /api/runtime/run` and `POST /api/runtime/taste` answer `429` `BudgetRefusal` `{ok?, error: budget | quota, code, message, upgrade, relay, ladder?}`; `code` is `sign_in_required`, `free_runs_spent`, `free_runs_ceiling` (today's free runs are used for everyone; paid runs keep going) or `budget_unavailable`. `ladder` (`RunLadder`: `free`, `run_pack` (`RunPack`, with `product_id`), `lab`) rides `free_runs_spent` and `free_runs_ceiling`. `/api/rigs/run` used to answer an undocumented 429; `/api/runtime/run` keeps `error: quota`.
+- **Agents start their own month.** MCP `subscribe {rail: usdc | sol | rokha | card, payer_wallet?}` and `subscription_status {}` join the `core` toolset (now 30 tools); both need a JWT or an `rk_` key and act only for the caller. Their REST twins are `POST /api/studio/checkout {product: "month", rail}` and `GET /api/studio/access` (its 200 is now described).
+- `GET /api/free-tier` and MCP `free_tier_status` carry `signed_in_free.runs_per_day` (5), `runs_global_ceiling`, `run_pack` and `ladder`; `GET /api/studio/doors` and MCP `studio_doors` carry `run_pack` and `ladder`.
+- `Product.kind` adds `hire` and `runs`.
+- SDKs: `RokhaError.budget` parses a run door's 429 into `BudgetRefusal` (TypeScript and Python); `runtime.subscribe` / `runtime.subscriptionStatus` (TS) and `subscribe` / `subscription_status` (Python) wrap the REST twins; new types `RunPack`, `RunLadder`, `BudgetRefusal`, `StudioAccess` (and `BudgetRefusalCode`, `SubscribeRequest` in TS).
+
+**For everyone.** The docs, the README and the `rokha-network` skill carry the new headline and the three rungs, and show an agent buying a run pack or subscribing over MCP.
+
 ## 2026-11-02 — no trading, no minting; the tools are for sale
 
 **Breaking (versions stay 1.0.0).** Rokha no longer trades or mints coins. The Lab's Desk stays; the trading lab and the mint lane are gone, and every door below answers `410 retired`.

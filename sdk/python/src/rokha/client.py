@@ -1,7 +1,10 @@
 from __future__ import annotations
+import json
 from dataclasses import dataclass
 from typing import Any, Literal
 import httpx
+
+from rokha.types import BudgetRefusal, StudioAccess
 
 DEFAULT_BASE_URL = "http://localhost:3000"
 DEFAULT_TIMEOUT = 30.0
@@ -23,6 +26,26 @@ class RokhaError(Exception):
         self.body = body
         self.path = path
         super().__init__(f"Rokha API error {status} on {path}: {body}")
+
+    @property
+    def budget(self) -> BudgetRefusal | None:
+        """A run door's 429 refusal, parsed — ``code`` says why and ``ladder``
+        (on ``free_runs_spent`` / ``free_runs_ceiling``) carries the run pack's
+        ``product_id`` and the Lab's ``subscribe`` call. ``None`` otherwise."""
+        if self.status != 429:
+            return None
+        try:
+            v = json.loads(self.body)
+        except ValueError:
+            return None
+        if (
+            isinstance(v, dict)
+            and isinstance(v.get("code"), str)
+            and isinstance(v.get("message"), str)
+            and isinstance(v.get("error"), str)
+        ):
+            return v  # type: ignore[return-value]
+        return None
 
 
 class RokhaClient:
@@ -315,8 +338,9 @@ class RokhaClient:
         block; read the run with ``get_run``. ``input`` fills the first
         declared input; ``inputs`` names them ({name: text}, up to 12). A
         409 ``needs_secret`` names a key the rig needs that you have not
-        saved; a 402 names the Lab (the month, or the 1M $ROKHA hold) — runs
-        use your own model key.
+        saved. A free account runs 5 a day; past them a 429 ``RokhaError``
+        whose ``budget["ladder"]`` names the run pack (100 runs for $1) and
+        the Lab. Model steps use your own model key.
         """
         body: dict[str, Any] = {"rig": rig}
         if input is not None:
@@ -344,10 +368,9 @@ class RokhaClient:
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """The anonymous taste — CLOSED: an anonymous caller has no runs, and
-        the door answers a refusal (sign in). Kept for back-compat. Use
-        `runtime_run` with a signed-in key and the Lab (300 runs a day; a
-        free account has no runs); `harness_id` (a UUID) anchors the trace
-        the run writes.
+        the door answers a 429 ``sign_in_required``. Kept for back-compat.
+        Sign in and use `runtime_run`; `harness_id` (a UUID) anchors the
+        trace the run writes.
         """
         return self.post(
             "/api/runtime/taste",
@@ -370,9 +393,10 @@ class RokhaClient:
         params: dict[str, Any] | None = None,
         model: str | None = None,
     ) -> dict[str, Any]:
-        """The signed-in door: a real run against the caller's daily runs —
-        300 a day with the Lab (the month, or the 1M $ROKHA hold), on your own
-        model key; a free account has no runs.
+        """The signed-in door: a real run against the caller's runs — 5 a day
+        free, then a run pack (100 for $1), or 300 a day with the Lab (the
+        month, or the 1M $ROKHA hold); model steps on your own model key. A
+        429 is a ``RokhaError`` whose ``budget`` names the code and ladder.
 
         Requires the bearer JWT (set via `set_auth_token`). `harness_id` (a
         UUID) anchors the trace.
@@ -391,6 +415,31 @@ class RokhaClient:
     def runtime_progress(self, run_id: str) -> dict[str, Any]:
         """Poll a run's live stage progress by run id."""
         return self.get(f"/api/runtime/runs/{run_id}/progress")
+
+    # --- The Lab month ---
+
+    def subscribe(
+        self,
+        rail: Literal["usdc", "sol", "rokha", "card"],
+        payer_wallet: str | None = None,
+        ref_code: str | None = None,
+    ) -> dict[str, Any]:
+        """Start your own Lab month — ``POST /api/studio/checkout`` with
+        ``product: month``, the REST twin of MCP ``subscribe``. usdc +
+        ``payer_wallet`` → exact pay instructions; sol / rokha +
+        ``payer_wallet`` → a 60-second quote; card → a Stripe link for a
+        person. All payments are final."""
+        body: dict[str, Any] = {"product": "month", "rail": rail}
+        if payer_wallet:
+            body["payer_wallet"] = payer_wallet
+        if ref_code:
+            body["ref_code"] = ref_code
+        return self.post("/api/studio/checkout", body)
+
+    def subscription_status(self) -> StudioAccess:
+        """Your own Lab access — ``GET /api/studio/access`` (MCP
+        ``subscription_status`` adds the ladder)."""
+        return self.get("/api/studio/access")
 
     def close(self) -> None:
         self._http.close()

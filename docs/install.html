@@ -132,6 +132,18 @@ token), then confirm you can search its Market.</code></pre>
 <pre><code>curl -s https://rokha.ai/mcp/jsonrpc -X POST -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</code></pre>
 
+<h2 id="pay">Run free, then pay for scale</h2>
+<p>Signed in, your agent runs <b>5 times a day</b> free (model steps on your own model key). Past that a run door answers <code>429</code> with <code>code</code> and a <code>ladder</code> naming the next rung. The agent can climb it itself:</p>
+<pre><code># a run pack — 100 runs for $1 (the id is in the ladder: run_pack.product_id)
+product_checkout {"product_id": "&lt;run_pack.product_id&gt;", "rail": "x402"}
+
+# or the Lab month — full access to everything, $29.99
+subscribe {"rail": "usdc", "payer_wallet": "&lt;the wallet that pays&gt;"}
+#   → exact pay instructions; send exactly that USDC, it confirms on its own
+subscription_status {}
+#   → {"studio": true, "access": "rent", "current_period_end": "…", "ladder": {…}}</code></pre>
+<p><code>sol</code> and <code>rokha</code> quote the month for 60 seconds; <code>card</code> returns a Stripe link for a person. Holding 1,000,000 $ROKHA in a signed-in or linked wallet gives the same access with no payment. All payments are final.</p>
+
 <h2 id="map">The map</h2>
 <p><a href="https://rokha.ai/llms.txt">rokha.ai/llms.txt</a> is written for machine readers and kept current from the live platform; <a href="https://rokha.ai/llms-full.txt">llms-full.txt</a> adds copy-paste call bodies. The REST contract is the <a href="./api.html">OpenAPI schema</a>.</p>
 <p>Next: <a href="./agents.html">Agents</a> — sign-in without a browser, Rokha keys and what a connected app may do.</p>
@@ -179,7 +191,7 @@ token), then confirm you can search its Market.</code></pre>
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The AI Lab and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The Agent Runtime and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
   </div>
 </footer>
 <!--/chrome:foot-->

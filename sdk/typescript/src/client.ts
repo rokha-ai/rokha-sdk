@@ -1,4 +1,4 @@
-import type { RokhaConfig, HealthResponse } from './types.js';
+import type { RokhaConfig, HealthResponse, BudgetRefusal } from './types.js';
 import { AgentsClient } from './agents.js';
 import { CliAuthClient } from './cli-auth.js';
 import { HarnessesClient } from './harnesses.js';
@@ -212,5 +212,23 @@ export class RokhaError extends Error {
   ) {
     super(`Rokha API error ${status} on ${path}: ${body}`);
     this.name = 'RokhaError';
+  }
+
+  /**
+   * A run door's 429 refusal, parsed — `code` says why and `ladder` (on
+   * `free_runs_spent` / `free_runs_ceiling`) carries the run pack's
+   * `product_id` and the Lab's `subscribe` call. `null` for any other error.
+   */
+  get budget(): BudgetRefusal | null {
+    if (this.status !== 429) return null;
+    try {
+      const v = JSON.parse(this.body) as Partial<BudgetRefusal>;
+      if (v && typeof v.code === 'string' && typeof v.message === 'string' && typeof v.error === 'string') {
+        return v as BudgetRefusal;
+      }
+    } catch {
+      /* not JSON */
+    }
+    return null;
   }
 }

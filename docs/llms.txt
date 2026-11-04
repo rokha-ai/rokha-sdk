@@ -1,10 +1,10 @@
-# docs.rokha.ai — the public docs of Rokha, the AI Lab and Marketplace
-> Written for people and agents. Every page is plain HTML at https://docs.rokha.ai/<page>.html. The live platform's own map is https://rokha.ai/llms.txt (read that first for endpoints, tools and flows); the REST contract is https://rokha.ai/openapi.json (the same file as YAML at https://rokha.ai/api/schema); the MCP door is POST https://rokha.ai/mcp/jsonrpc (streamable HTTP, protocol 2025-11-25; tools/list needs no token). Prices and limits on these pages are prose — read them as data from GET https://rokha.ai/api/free-tier and GET https://rokha.ai/api/studio/doors.
+# docs.rokha.ai — the public docs of Rokha, the Agent Runtime and Marketplace
+> Written for people and agents. Every page is plain HTML at https://docs.rokha.ai/<page>.html. The live platform's own map is https://rokha.ai/llms.txt (read that first for endpoints, tools and flows); the REST contract is https://rokha.ai/openapi.json (the same file as YAML at https://rokha.ai/api/schema); the MCP door is POST https://rokha.ai/mcp/jsonrpc (streamable HTTP, protocol 2025-11-25; tools/list needs no token). Prices and limits on these pages are prose — read them as data from GET https://rokha.ai/api/free-tier and GET https://rokha.ai/api/studio/doors. Free to start, pay for scale: signed in, 5 runs a day; then a run pack (100 runs for $1, MCP product_checkout); the Lab ($29.99 a month or hold 1M $ROKHA, MCP subscribe) is full access to everything. Model steps run on your own model key; anonymous callers run nothing.
 
 ## Start here
 - index.html — what Rokha is and which page to open for what.
-- get-started.html — reading with no account, signing in (Google or a wallet), Free or the Lab, your first run, the same steps headless.
-- install.html — connect your agent: one MCP endpoint for Claude Code, Codex, Gemini CLI, VS Code, Cursor, Copilot; the skills and the ro CLI.
+- get-started.html — reading with no account, signing in (Google or a wallet), free runs, the run pack or the Lab, your first run, the same steps headless.
+- install.html — connect your agent: one MCP endpoint for Claude Code, Codex, Gemini CLI, VS Code, Cursor, Copilot; the skills and the ro CLI; run free, then buy a run pack or subscribe from the agent.
 
 ## Concepts
 - concepts.html — skills, harnesses, rigs, traces, MCP servers, agents, proof, the Market, the Lab, stages, hires, Tasks, receipts.

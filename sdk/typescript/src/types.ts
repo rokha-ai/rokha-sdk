@@ -187,3 +187,62 @@ export interface DiscoveryResult {
   agents: AgentStatus[];
   protocols: Array<{ name: string; url: string }>;
 }
+
+/** The House run pack — pay per run after the free day (live values). */
+export interface RunPack {
+  /** Buy with `POST /api/products/{product_id}/checkout` (MCP `product_checkout`). */
+  product_id: string | null;
+  runs: number;
+  price_cents: number;
+  price?: string;
+  per_run?: string;
+  buy?: string;
+  rails: Array<'x402' | 'usdc' | 'sol' | 'rokha' | 'signet' | 'card'>;
+  spent?: string;
+  no_refunds: true;
+}
+
+/** The three rungs as data: free (signed in), a run pack, the Lab. */
+export interface RunLadder {
+  free: { runs_per_day: number; who?: string; models?: string; resets?: string };
+  run_pack: RunPack;
+  lab: { month_usd: number; hold_rokha: number; start: string; gives?: string; no_refunds: true };
+}
+
+export type BudgetRefusalCode =
+  | 'sign_in_required'
+  | 'free_runs_spent'
+  | 'free_runs_ceiling'
+  | 'budget_unavailable'
+  | 'runtime_ceiling'
+  | 'house_budget_spent';
+
+/** The 429 a run door answers. `ladder` rides `free_runs_spent` and `free_runs_ceiling`. */
+export interface BudgetRefusal {
+  ok?: false;
+  /** `quota` on `POST /api/runtime/run`, `budget` elsewhere. */
+  error: 'budget' | 'quota' | string;
+  code: BudgetRefusalCode | string;
+  message: string;
+  upgrade?: string;
+  relay?: Record<string, unknown>;
+  ladder?: RunLadder;
+}
+
+export interface SubscribeRequest {
+  /** usdc, sol or rokha for an agent (needs `payer_wallet`); card returns a Stripe link for a person. */
+  rail: 'usdc' | 'sol' | 'rokha' | 'card';
+  /** The Solana wallet the payment is sent FROM (usdc, sol, rokha). */
+  payer_wallet?: string;
+  ref_code?: string;
+}
+
+/** `GET /api/studio/access` — your own Lab entitlement. */
+export interface StudioAccess {
+  /** true = full access. */
+  studio: boolean;
+  access: 'licensed' | 'rent' | 'trialing' | 'free_window' | 'holder' | 'house' | 'none' | string;
+  current_period_end?: string;
+  tokens?: number;
+  [extra: string]: unknown;
+}

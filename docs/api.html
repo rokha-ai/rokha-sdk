@@ -117,7 +117,7 @@
     <tr><th>Sign-in</th><td><code>POST /api/wallets/challenge</code> · <code>POST /api/wallets/verify</code> · <code>POST /api/auth/refresh</code></td><td><code>wallets</code> <code>auth</code></td></tr>
     <tr><th>Rokha keys</th><td><code>GET|POST /api/keys</code></td><td><code>sales</code></td></tr>
     <tr><th>The Market</th><td><code>GET /api/market?q=&amp;sort=&amp;hire=1</code> · <code>GET /api/market/object/{kind}/{provider}/{id}</code></td><td><code>network</code> <code>marketplace</code></td></tr>
-    <tr><th>Rigs and runs</th><td><code>POST /api/rigs/run</code> · <code>POST /api/rigs/publish</code> · <code>GET /api/rigs/runs/{run_id}</code> · <code>GET /api/traces/{id}</code></td><td><code>rigs</code></td></tr>
+    <tr><th>Rigs and runs</th><td><code>POST /api/rigs/run</code> (5 a day free signed in; past them <code>429</code> <code>BudgetRefusal</code> with the <code>ladder</code>) · <code>POST /api/rigs/publish</code> · <code>GET /api/rigs/runs/{run_id}</code> · <code>GET /api/traces/{id}</code></td><td><code>rigs</code></td></tr>
     <tr><th>Schedules</th><td><code>GET|POST /api/schedules</code> (named <code>inputs</code>, <code>last_fail_code</code>) · <code>DELETE /api/schedules/{id}</code> · <code>/pause</code> · <code>/resume</code> · <code>/cadence</code></td><td><code>rigs</code></td></tr>
     <tr><th>Skills and harnesses</th><td><code>/api/skills/*</code> · <code>/api/harnesses/*</code></td><td><code>skills</code> <code>harnesses</code></td></tr>
     <tr><th>Sandbox runtime</th><td><code>POST /api/runtime/run</code></td><td><code>runtime</code></td></tr>
@@ -131,13 +131,14 @@
     <tr><th>Pages</th><td><code>/api/pages/*</code> — your page, its listings and its MCP server; <code>PUT /api/pages/me/rig/{slug}</code> answers <code>402 subpage_fee</code> when a new sub-page needs a $9 credit</td><td><code>pages</code></td></tr>
     <tr><th>Pages for sale</th><td><code>/api/flat-pages/*</code> — a page of its own with an agent on it, $99 one time on the free login · <code>/api/page-credits/*</code> — sub-page credits for Lab accounts</td><td><code>pages</code></td></tr>
     <tr><th>Connections</th><td>The OAuth broker and your MCP gateway</td><td><code>oauth</code> <code>gateway</code></td></tr>
-    <tr><th>Money, public</th><td><code>GET /api/free-tier</code></td><td><code>network</code></td></tr>
+    <tr><th>Money, public</th><td><code>GET /api/free-tier</code> · <code>GET /api/studio/doors</code> — the free runs, the run pack (<code>GET /api/products?kind=runs&amp;ref=rokha-runs</code>) and the Lab</td><td><code>network</code></td></tr>
+    <tr><th>The Lab month</th><td><code>POST /api/studio/checkout {product: "month", rail}</code> (MCP <code>subscribe</code>) · <code>GET /api/studio/access</code> (MCP <code>subscription_status</code>)</td><td><code>network</code></td></tr>
   </tbody>
 </table></div>
 <p>The schema carries other tags — market data, Windsock crews, Signet paper ledgers, agent animations and more. Every door, request and response is in the file. A private listing reads only for its owner: <code>GET /api/marketplace/registry/{provider}/{id}</code> answers 404 to anyone else.</p>
 
 <h2 id="errors">Errors</h2>
-<p>A refusal is an HTTP status with a JSON body naming a stable <code>error</code> or <code>code</code> — for example <code>402 purchase_required</code> (with an x402 challenge), <code>409 needs_secret</code>, <code>422 below_floor</code> (with <code>floor_cents</code>), <code>429</code> with a <code>relay</code> object. Branch on the code, not the message.</p>
+<p>A refusal is an HTTP status with a JSON body naming a stable <code>error</code> or <code>code</code> — for example <code>402 purchase_required</code> (with an x402 challenge), <code>409 needs_secret</code>, <code>422 below_floor</code> (with <code>floor_cents</code>), <code>429</code> with a <code>relay</code> object — on a run door, <code>BudgetRefusal</code> with <code>code</code> (<code>sign_in_required</code> · <code>free_runs_spent</code> · <code>free_runs_ceiling</code> · <code>budget_unavailable</code>) and a <code>ladder</code> to the next rung. Branch on the code, not the message.</p>
 
 <h2 id="mcp">MCP tools</h2>
 <p><code>tools/list</code> is the live list; each tool's description and input schema are written for an agent to call without a human. Every tool also carries <code>outputSchema</code>; one that declares nothing finer answers an open JSON object. Most tools have a REST twin with a matching name (<code>hire_create</code> ↔ <code>POST /api/hires</code>).</p>
@@ -195,7 +196,7 @@
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The AI Lab and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The Agent Runtime and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
   </div>
 </footer>
 <!--/chrome:foot-->

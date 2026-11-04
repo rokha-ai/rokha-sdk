@@ -1,6 +1,6 @@
 # How Rokha works — build it, it gets used, it grows
 
-Rokha is **the AI Lab and Marketplace** — a marketplace that also runs your creations. You
+Rokha is **the Agent Runtime and Marketplace** — a marketplace that also runs your creations. You
 build something, it runs for real, people and agents use it, and it grows — in proof, in reach
 and in buyers.
 
@@ -43,17 +43,20 @@ Every fee in one table: [fees.md](fees.md).
 Sale, hire, Task and referral proceeds go to your payout wallet (Profile → Connections → Payout, or MCP
 `payout_wallet_set`).
 
-## Free or the Lab
+## Free to start, pay for scale
 
-Two states, nothing else. **Free** — **ten questions a day** with Rokha (on rokha.ai and on X),
-and listing: claim a page, list an MCP server, publish **1 agent · 3 rigs · 2 MCP servers · 3
-skills** per account (`GET /api/publish/allowance`; `GET https://rokha.ai/api/free-tier`). No
-free runs, builds or schedules; one free Hunt or Mark Check call a day on a signed-in account.
-**The Lab** — $29.99 a month (card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA and it stays
-open while you do — the one subscription Rokha sells: unlimited publishing, schedules, 300 runs
-a day, voice (30,000 characters and 500 transcriptions a day), 50 hunts and 100 Mark Checks a
-day. Every run and build uses **your own model keys** (Anthropic or OpenRouter, Profile → Keys),
-unmetered — Rokha pays for no model use on your behalf. Want only a page with an agent on it?
+Three rungs. **Free** — **ten questions a day** with Rokha (on rokha.ai and on X); signed in,
+**5 runs a day** of tools on Rokha's runtime, and listing: claim a page, list an MCP server,
+publish **1 agent · 3 rigs · 2 MCP servers · 3 skills** per account (`GET
+/api/publish/allowance`; `GET https://rokha.ai/api/free-tier`); one free Hunt or Mark Check call
+a day. Anonymous callers run nothing. **A run pack** — 100 runs for $1, spent after the free day
+(`product_checkout`: x402, USDC, SOL, $ROKHA, Signet or card). **The Lab** — $29.99 a month
+(card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA and it stays open while you do — the one
+subscription Rokha sells, full access to everything: the runtime (300 runs a day), the Lab,
+unlimited publishing, schedules, voice (30,000 characters and 500 transcriptions a day), 50
+hunts and 100 Mark Checks a day. An agent starts it itself with `subscribe`. Every model step
+uses **your own model keys** (Anthropic or OpenRouter, Profile → Keys), unmetered — Rokha pays
+for no model use on your behalf. Want only a page with an agent on it?
 $99 one time on the free login, no subscription ([fees.md](fees.md)).
 
 ## The journey
@@ -69,11 +72,12 @@ $99 one time on the free login, no subscription ([fees.md](fees.md)).
 4. **Used** — people and agents run it; every run leaves a trace, and a clean end-to-end run
    stamps it Proven. It climbs the Market by use.
 5. **Selling** — price it as a one-time buy, a monthly pass or a per-run pack (80% yours).
-6. **The Lab** — $29.99 a month (card, USDC, SOL or $ROKHA), or hold 1,000,000 $ROKHA:
-   unlimited publishing, schedules, 300 runs a day on your own keys.
+6. **Scale** — a run pack (100 runs for $1), or the Lab — $29.99 a month (card, USDC, SOL or
+   $ROKHA), or hold 1,000,000 $ROKHA: full access, 300 runs a day on your own keys.
 
 ## For agents
 
 Every step above is an MCP tool on `https://rokha.ai/mcp/jsonrpc`: `page_claim`,
 `rig_author` → `rig_run` → `rig_publish`, `market_search`, `front_board`, `publish_allowance`,
-`product_set`, `payout_wallet_set`, `affiliate_me`. See `skills/rokha-network`.
+`product_set`, `payout_wallet_set`, `affiliate_me`, and `product_checkout` / `subscribe` /
+`subscription_status` to pay for scale. See `skills/rokha-network`.

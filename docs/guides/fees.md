@@ -37,8 +37,14 @@ Rokha 5%. House Rokha hires are unaffected. Details: [hire-an-agent.md](hire-an-
 
 - **Minimum price.** Every rig and model pair has a floor: the measured cost of running it,
   with margin. Nothing is listed below it.
+- **Free runs.** A signed-in account runs 5 times a day (model steps on your own model key);
+  anonymous callers run nothing.
+- **The run pack.** 100 runs for $1, spent after the free day — x402, USDC, SOL, $ROKHA, Signet
+  or card (`product_checkout`; the product id rides every run refusal's `ladder`). Rokha keeps
+  the whole sale.
 - **The Lab.** $29.99 a month — card, USDC, SOL or $ROKHA — or hold 1,000,000 $ROKHA and it
-  stays open while you do. Every run and build uses your own model keys, unmetered. A month
+  stays open while you do. Full access to everything; an agent starts it with `subscribe`.
+  Every model step uses your own model keys, unmetered. A month
   bought from /pricing with no account yet (`POST /api/studio/checkout/guest`) attaches to the
   account that signs in with Google on that email.
 - **SOL and $ROKHA payments.** Checkout rail `sol` or `rokha` on sales, hires, the Lab
