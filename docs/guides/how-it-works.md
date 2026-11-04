@@ -1,4 +1,4 @@
-# How Rokha works — build it, it gets used, it grows
+# How Rokha works — the Agent Runtime and Marketplace
 
 Rokha is **the Agent Runtime and Marketplace** — a marketplace that also runs your creations. You
 build something, it runs for real, people and agents use it, and it grows — in proof, in reach

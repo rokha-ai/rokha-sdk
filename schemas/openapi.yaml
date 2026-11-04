@@ -73,7 +73,7 @@ tags:
   - name: signet
     description: Signet — paper trading (real quotes, a recorded ledger, no money moves)
   - name: network
-    description: 'The Market and your place on it — join free (claim a page); build it, it gets used, it grows: real runs, traces and the Proven stamp are the proof, and the Market ranks by use. The money is commerce: sell what you build (you keep 80%) and one referral link (rokha.ai/?ref=<handle> — 25% of a referred buyer''s first Studio month). Rokha pays no one for use or for posts (2026-10-12). The weekly top-10 board, the member ladder, pay per use, campaigns, Amplify, paid promotion and the Network plans are retired; `GET /api/board` still answers for back-compat.'
+    description: 'The Market and your place on it — join free (claim a page); real runs, traces and the Proven stamp are the proof, and the Market ranks by use. The money is commerce: sell what you build (you keep 80%) and one referral link (rokha.ai/?ref=<handle> — 25% of a referred buyer''s first Studio month). Rokha pays no one for use or for posts (2026-10-12). The weekly top-10 board, the member ladder, pay per use, campaigns, Amplify, paid promotion and the Network plans are retired; `GET /api/board` still answers for back-compat.'
   - name: data
     description: Data attachments — your own files, fed to a rig as fenced DATA
   - name: pledges
