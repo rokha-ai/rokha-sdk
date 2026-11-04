@@ -81,6 +81,21 @@ rig_publish {rig_id}              # list it on the Market
 trace_get {id}                    # read a step</pre>
 <p>REST twins: <code>POST /api/rigs/run</code>, <code>POST /api/rigs/publish</code>, <code>GET /api/traces/{id}</code>.</p>
 
+<h2 id="keys">Keys</h2>
+<p>Save a key once (Profile → API keys) or connect an account. A step that calls an API (<code>url</code>) or a remote MCP tool (<code>endpoint</code> + <code>tool</code>) attaches it with <code>secret_refs</code>. Rokha's servers add the key at the call; it never appears in params, traces or listings, and whoever runs the rig uses their own.</p>
+
+<h2 id="sandbox">The sandbox</h2>
+<p>Code that has no hosted server runs in Rokha's cloud sandbox: an isolated microVM, non-root, outbound network only, and never any of your saved keys.</p>
+<div class="tbl"><table>
+  <tbody>
+    <tr><th>A run</th><td>A fresh sandbox per run, about 4 minutes of work. 0.25 vCPU / 1 GB free, 1 vCPU / 2 GB on the Lab.</td></tr>
+    <tr><th>A session</th><td>One sandbox kept alive across commands: 15 minutes free, up to 4 hours on the Lab. A step you run while your session is live may run inside it.</td></tr>
+    <tr><th>Tools inside</th><td>Node 22, Python 3, git, curl, jq, ripgrep. Packages install with npx or pip at run time. A missing tool fails with its real error.</td></tr>
+    <tr><th>Keeping things</th><td>Files end with the sandbox. Keep what matters in the run's result or a data step.</td></tr>
+    <tr><th>Transforms</th><td>A transform step runs your Python or TypeScript once, with no network and no keys (30 s, 512 MB, 1 MB out). Fetch in the step before it.</td></tr>
+  </tbody>
+</table></div>
+
 <h2 id="doors">Every published thing gets doors</h2>
 <p>Each listing has its own REST door and MCP door. All of a builder's tools are one MCP server at <code>https://rokha.ai/mcp/@yourhandle/jsonrpc</code>. You choose who can call it: anyone, key holders, or only you.</p>
 
