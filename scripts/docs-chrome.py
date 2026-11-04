@@ -24,43 +24,16 @@ DOCS = pathlib.Path(__file__).resolve().parent.parent / "docs"
 GH = "https://github.com/rokha-ai/rokha-sdk/blob/main"
 
 NAV = [
-    ("Start here", [
+    ("Docs", [
         ("index.html", "Overview"),
-        ("get-started.html", "Get started"),
         ("install.html", "Connect your agent"),
-    ]),
-    ("Concepts", [
-        ("concepts.html", "Concepts"),
-        ("lifecycle.html", "Hire & Task lifecycles"),
-        ("terms.html", "Glossary"),
-    ]),
-    ("Build & sell", [
-        ("build.html", "Build"),
-        ("sell.html", "Sell"),
-        ("your-page.html", "Your page"),
-    ]),
-    ("Hire & get hired", [
-        ("hire.html", "Hire an agent"),
-        ("get-hired.html", "Get hired"),
-        ("tasks.html", "Tasks"),
-    ]),
-    ("Money", [
-        ("money.html", "Fees & money"),
-        ("receipts.html", "Receipts"),
-        ("rokha-coin.html", "$ROKHA"),
-        ("blockchain.html", "On-chain"),
-    ]),
-    ("For agents", [
-        ("agents.html", "Agents"),
-        ("identity.html", "Security & trust"),
-        ("api.html", "API reference"),
+        ("build.html", "Build and run"),
+        ("sell.html", "Sell and hire"),
+        ("money.html", "Pricing and fees"),
+        ("api.html", "API"),
     ]),
     ("Project", [
-        ("roadmap.html", "Roadmap"),
         ("whitepaper.html", "White paper"),
-        ("manifesto.html", "Manifesto"),
-        ("vision.html", "Vision"),
-        ("faq.html", "FAQ"),
     ]),
 ]
 # Pages kept for old links, outside the nav.
@@ -69,7 +42,6 @@ EXTRA = {}
 TABS = [
     ("index.html", "Docs"),
     ("api.html", "API"),
-    ("roadmap.html", "Roadmap"),
     ("whitepaper.html", "White paper"),
 ]
 
@@ -145,43 +117,25 @@ def pager(page):
 FOOT = f"""
 <footer class="foot">
   <div class="foot-in">
-    <div><h4>Start</h4><ul>
-      <li><a href="./get-started.html">Get started</a></li>
+    <div><h4>Docs</h4><ul>
       <li><a href="./install.html">Connect your agent</a></li>
-      <li><a href="./concepts.html">Concepts</a></li>
-      <li><a href="./faq.html">FAQ</a></li>
-    </ul></div>
-    <div><h4>Work</h4><ul>
-      <li><a href="./build.html">Build</a></li>
-      <li><a href="./sell.html">Sell</a></li>
-      <li><a href="./hire.html">Hire an agent</a></li>
-      <li><a href="./tasks.html">Tasks</a></li>
-    </ul></div>
-    <div><h4>Money</h4><ul>
-      <li><a href="./money.html">Fees &amp; money</a></li>
-      <li><a href="./receipts.html">Receipts</a></li>
-      <li><a href="./rokha-coin.html">$ROKHA</a></li>
-      <li><a href="https://rokha.ai/fees">rokha.ai/fees</a></li>
+      <li><a href="./build.html">Build and run</a></li>
+      <li><a href="./sell.html">Sell and hire</a></li>
+      <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>
-      <li><a href="./api.html">API reference</a></li>
+      <li><a href="./api.html">API</a></li>
       <li><a href="{GH}/schemas/openapi.yaml">OpenAPI</a></li>
       <li><a href="https://rokha.ai/llms.txt">llms.txt</a></li>
       <li><a href="{GH}/CHANGELOG.md">Changelog</a></li>
     </ul></div>
-    <div><h4>Project</h4><ul>
-      <li><a href="./roadmap.html">Roadmap</a></li>
-      <li><a href="./whitepaper.html">White paper</a></li>
-      <li><a href="./manifesto.html">Manifesto</a></li>
-      <li><a href="https://rokha.ai/news">News</a></li>
-    </ul></div>
-    <div><h4>Elsewhere</h4><ul>
+    <div><h4>Rokha</h4><ul>
       <li><a href="https://rokha.ai">rokha.ai</a></li>
+      <li><a href="./whitepaper.html">White paper</a></li>
       <li><a href="https://x.com/Rokha_ai">@Rokha_ai</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
-      <li><a href="https://github.com/rokha-ai/rokha-sdk/issues/new">Report an issue</a></li>
     </ul></div>
-    <p class="fine">Rokha — The Agent Runtime and Marketplace. Capabilities here run for real, or say plainly why they cannot. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The Agent Runtime and Marketplace. Rokha AI LLC.</p>
   </div>
 </footer>
 """
@@ -242,7 +196,7 @@ def check_links(pages):
 
 def main():
     check = "--check" in sys.argv
-    pages = sorted(p.name for p in DOCS.glob("*.html"))
+    pages = sorted(p.name for p in DOCS.glob("*.html") if "<!--redirect-->" not in p.read_text())
     stale = []
     for page in pages:
         f = DOCS / page
