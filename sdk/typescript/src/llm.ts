@@ -38,7 +38,7 @@ export class LlmClient {
    * caller's Bearer JWT is sent automatically (set via
    * `RokhaClient.setAuthToken`). The proxy uses the user's BYO
    * Anthropic key when present (every account), or Rokha's own key for
-   * Studio accounts only (rate-limited; 402 `studio_required` / `no_llm_key` otherwise).
+   * Lab accounts only (rate-limited; 402 `studio_required` / `no_llm_key` otherwise).
    */
   proxy(req: AnthropicMessagesRequest): Promise<AnthropicMessagesResponse> {
     return this.client.post<AnthropicMessagesResponse>('/api/v1/llm/proxy', req);

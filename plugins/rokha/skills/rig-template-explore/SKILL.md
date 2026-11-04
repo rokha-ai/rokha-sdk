@@ -1,11 +1,11 @@
 ---
 name: rig-template-explore
-description: A ready-made three-step Rokha Rig pattern — pick a listing from the Rokha Registry (a skill, harness, or rig), dissect its real-world use cases and best pairings, and write an explorer's brief. Use when the user wants to "check out a tool", understand what something in the registry is for, or wants a worked example of a lookup → analyze → brief workflow. Instantiable by any agent over Rokha's public API, or one click in the Rokha editor.
+description: A ready-made three-step Rokha Rig pattern — pick a listing from the Rokha Registry (a skill, harness, or rig), dissect its real-world use cases and best pairings, and write an explorer's brief. Use when the user wants to "check out a tool", understand what something in the registry is for, or wants a worked example of a lookup → analyze → brief workflow. Runs for any agent over Rokha's MCP endpoint, or for a person in the Lab.
 license: MIT
-compatibility: Works against any Rokha deployment (rokha.ai or self-hosted Erebus). Instantiation uses the public anon Working-Rig surface or the authenticated rigs API; running uses the run stream.
+compatibility: Any MCP client that reaches https://rokha.ai/mcp/jsonrpc. Reading the template and searching the registry need no account; building and running need a signed-in account.
 metadata:
   author: rokha
-  version: "0.1.0"
+  version: "0.2.0"
   rokha_kind: rig-template
   homepage: https://rokha.ai
   source_repo: https://github.com/rokha-ai/rokha-sdk
@@ -20,8 +20,8 @@ with it from the registry, who it's for); step 3 writes the explorer's brief
 a human actually wants to read.
 
 Each step carries a registry *query*, resolved against the live Rokha
-Registry at instantiation — the pattern adapts to the mesh's current
-inventory.
+Registry at instantiation — the pattern adapts to the registry's current
+listings.
 
 ## The pattern
 
@@ -37,27 +37,19 @@ Machine-readable skeleton: `assets/rig.json` (served at
 - **Step 3 · brief** — a writing skill (query: `write report markdown`),
   instructed to produce the plain-English explorer's brief.
 
-## The intended agent workflow (search → explore)
+## How an agent runs this
 
-1. `POST /mcp/jsonrpc` → `registry_search` (no auth) to FIND your target skill
-   among 220k+ listings; `registry_get_skill` for its full SKILL.md.
-2. Feed that target as this rig's declared **input** (`input.label` in
-   `assets/rig.json`) — the pinned step 1 (**Rokha Registry Search**) performs
-   a REAL registry lookup + document fetch on it at run time (never a
-   model guess).
-3. Run the rig (recreate it via `rig_author`, or `harness_create` +
-   `rig_add_harness`, then the public run stream) — the output is a
-   plain-English brief; every step writes a trace you can read back.
+1. Fetch the skeleton: `GET /api/skills/rig-template-explore/assets/rig.json` (no auth).
+2. Feed your target as the rig's declared **input** (`input.label` in
+   `assets/rig.json`). The pinned step 1 (Rokha Registry Search) does a real
+   registry lookup and document fetch on it at run time, never a model guess.
+   For each other step, pick a real skill with `registry_search {query: <step.query>}`.
+3. Sign in (`auth_wallet_challenge` → `auth_wallet_verify`) and build the rig
+   with `rig_author {nodes}`, one node per step with its instruction.
+4. `rig_run {rig_id, input}`, then `trace_get {id}`. Each step's output
+   threads into the next, and every step writes a trace. Signed in, 5 runs a
+   day are free; model steps run on your own key.
 
-## How an agent instantiates this (the public-API path)
+## In the Lab
 
-Fetch this template's `assets/rig.json`, resolve each step's `query` via
-`GET /api/marketplace/registry?search=…`, create the rig + per-step
-harnesses (anon mirror pre-login, `/api/rigs` authenticated), then run via
-the run stream. Each step's output threads into the next; the trace tree
-records the whole run.
-
-## In the Rokha editor
-
-Builder → **template** → Explore. Swap any step via Add-to-Rig before
-running.
+A person builds and runs the same rig at https://rokha.ai/lab.

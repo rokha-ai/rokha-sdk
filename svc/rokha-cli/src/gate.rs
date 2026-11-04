@@ -40,17 +40,17 @@ fn need_login(feature: &str) {
     eprintln!();
     eprintln!("  You're not logged in. To use it:");
     eprintln!("    1. \x1b[1mro login\x1b[0m        — sign in through your browser");
-    eprintln!("    2. open the Studio — $249 a month, or hold 1M $ROKHA");
+    eprintln!("    2. open the Lab — $29.99 a month");
     eprintln!();
-    eprintln!("  The Studio → {PLANS_URL}");
+    eprintln!("  The Lab → {PLANS_URL}");
     eprintln!();
 }
 
 fn need_upgrade(feature: &str, tier: &str) {
     eprintln!();
-    eprintln!("\x1b[1m🔒 {feature} comes with the Studio — your account is '{tier}'.\x1b[0m");
+    eprintln!("\x1b[1m🔒 {feature} comes with the Lab — your account is '{tier}'.\x1b[0m");
     eprintln!();
-    eprintln!("  The local Rokha agent opens with the \x1b[1mStudio\x1b[0m — $249 a month, or hold 1M $ROKHA.");
+    eprintln!("  The local Rokha agent opens with the \x1b[1mLab\x1b[0m — $29.99 a month.");
     eprintln!("  Upgrade → {PLANS_URL}");
     eprintln!();
 }

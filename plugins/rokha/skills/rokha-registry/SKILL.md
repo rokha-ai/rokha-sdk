@@ -1,11 +1,11 @@
 ---
 name: rokha-registry
-description: Search the Rokha Registry's 220k+ published agent skills and install any of them into your own skill library — no account, no API key. Use when the user asks to find an agent skill ("is there a skill for X?"), browse what skills exist for a task, or download/install a skill from the Rokha registry (or clawhub) into Claude's skills. Works over Rokha's public MCP endpoint with plain HTTP calls.
+description: Search the Rokha Registry of published agent skills and install any of them into your own skill library, with no account and no API key. Use when the user asks to find an agent skill ("is there a skill for X?"), browse what skills exist for a task, or install a skill from the Rokha registry. Works over Rokha's public MCP endpoint with plain HTTP calls.
 license: MIT
 compatibility: Any agent that can make HTTPS POST requests (curl, fetch, requests). No authentication required for search + fetch. Works against rokha.ai or any self-hosted Rokha deployment.
 metadata:
   author: rokha
-  version: "0.1.0"
+  version: "0.2.0"
   rokha_kind: agent-tool
   homepage: https://rokha.ai
   source_repo: https://github.com/rokha-ai/rokha-sdk
@@ -13,9 +13,9 @@ metadata:
 
 # Rokha Registry — find and install agent skills
 
-Rokha indexes 220k+ published agent skills (agentskills.io format) and
-exposes them through a **public MCP endpoint** — searchable and installable
-by any agent with zero setup. This skill teaches you the two calls.
+Rokha indexes published agent skills (agentskills.io format) and exposes
+them through a **public MCP endpoint**, searchable and installable by any
+agent with no setup. This skill teaches you the two calls.
 
 Base endpoint (swap the host for a self-hosted deployment):
 
@@ -48,7 +48,7 @@ curl -s -X POST https://rokha.ai/mcp/jsonrpc \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{
         "name":"registry_get_skill",
-        "arguments":{"slug":"<slug from search>","provider":"clawhub"}}}'
+        "arguments":{"slug":"<slug from search>","provider":"<provider from search>"}}}'
 ```
 
 The result's `content[0].text` is JSON with:
@@ -86,6 +86,6 @@ and anything in `requires_bins` they'd need installed for scripted parts.
   and unknown network targets, and tell the user what the skill asks for.
   Recommended: install a vetting skill first (search the registry for
   `skill-vetter`) and run its protocol on everything you pull down.
-- To RUN a skill without installing anything (in Rokha's cloud sandbox
-  instead of locally), point the user at https://rokha.ai — the editor
-  runs skills for real in the Studio, on your own model keys.
+- To RUN a skill without installing it, run it on Rokha: signed in, 5 runs a
+  day are free (tool steps in Rokha's sandbox, model steps on your own key),
+  every run leaves a trace. See https://docs.rokha.ai.

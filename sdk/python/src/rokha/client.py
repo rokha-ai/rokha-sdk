@@ -395,7 +395,7 @@ class RokhaClient:
     ) -> dict[str, Any]:
         """The signed-in door: a real run against the caller's runs — 5 a day
         free, then a run pack (100 for $1), or 300 a day with the Lab (the
-        month, or the 1M $ROKHA hold); model steps on your own model key. A
+        month); model steps on your own model key. A
         429 is a ``RokhaError`` whose ``budget`` names the code and ladder.
 
         Requires the bearer JWT (set via `set_auth_token`). `harness_id` (a

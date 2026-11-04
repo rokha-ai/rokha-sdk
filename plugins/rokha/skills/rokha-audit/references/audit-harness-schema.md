@@ -7,9 +7,9 @@ searched, forked, and replayed alongside other workflow memories.
 ```json
 {
   "tool_name": "Math-MCP",
-  "source": "smithery",
+  "source": "registry",
   "input_config": {
-    "endpoint": "https://server.smithery.ai/.../mcp",
+    "endpoint": "https://example.com/mcp",
     "probe_args": {},
     "options": { "timeout_ms": 5000 }
   },

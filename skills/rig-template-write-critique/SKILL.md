@@ -1,11 +1,11 @@
 ---
 name: rig-template-write-critique
-description: A ready-made two-step Rokha Rig pattern — step 1 writes a piece (any writing skill from the live registry), step 2 critiques it against the actual output. Use when the user wants to "write and review", "draft then critique", or wants a worked example of chaining two skills into one workflow. Instantiable by any agent over Rokha's public API, or one click in the Rokha editor.
+description: A ready-made two-step Rokha Rig pattern — step 1 writes a piece (any writing skill from the live registry), step 2 critiques it against the actual output. Use when the user wants to "write and review", "draft then critique", or wants a worked example of chaining two skills into one workflow. Runs for any agent over Rokha's MCP endpoint, or for a person in the Lab.
 license: MIT
-compatibility: Works against any Rokha deployment (rokha.ai or self-hosted Erebus). Instantiation uses the public anon Working-Rig surface or the authenticated rigs API; running uses the run stream.
+compatibility: Any MCP client that reaches https://rokha.ai/mcp/jsonrpc. Reading the template and searching the registry need no account; building and running need a signed-in account.
 metadata:
   author: rokha
-  version: "0.1.0"
+  version: "0.2.0"
   rokha_kind: rig-template
   homepage: https://rokha.ai
   source_repo: https://github.com/rokha-ai/rokha-sdk
@@ -19,7 +19,7 @@ result into the next) and critiques it with a grade.
 
 This is a **template, not a pinned toolchain**: each step carries a registry
 *query*, and instantiation resolves it against the live Rokha Registry — so
-the pattern re-shapes around whatever the mesh offers today.
+the pattern re-shapes around whatever the registry offers today.
 
 ## The pattern
 
@@ -32,26 +32,17 @@ Read the machine-readable skeleton from `assets/rig.json` (served at
   `review critique feedback`), instructed to critique the previous step's
   output and grade it.
 
-## How an agent instantiates this (the public-API path)
+## How an agent runs this
 
-1. `GET /api/skills/rig-template-write-critique/assets/rig.json` — the skeleton.
-2. For each step, pick a real skill:
-   `GET /api/marketplace/registry?search=<step.query>&limit=5` and choose the
-   best match (downloads are a fair tiebreak).
-3. Create the rig + harnesses. Pre-login, use the anon mirror with an
-   `x-anon-session-id` header (one step only — multi-step needs an account);
-   authenticated, use `/api/rigs` + `/api/harnesses`:
-   - rig: `{ key: "working-rig", summary: <template name>, content: { intent: <rig.json intent> } }`
-   - one harness per step: `{ harness_type: "skill", key: "working-rig.target" | "working-rig.h2", content: { skill: {name, source}, endpoint: "", tool: "", params: {}, instruction: <step.instruction> } }`
-   - membership per step: `POST /api/rigs/:id/harnesses { harness_id, position, role: <step.role> }`
-   - mirror the steps into the rig's `content` (`target`, `target_harness_id`, `config`, `extra_harnesses`) so every surface hydrates.
-4. Run it: `POST /api/agents/rokha-agent/run/stream/public` (anon) or
-   `/api/agents/rokha-agent/run/stream` (bearer JWT). Each step's output
-   threads into the next; the run records a parent `run` trace with per-step
-   atomic traces (`GET /api/traces`).
+1. Fetch the skeleton: `GET /api/skills/rig-template-write-critique/assets/rig.json` (no auth).
+2. For each step, pick a real skill with `registry_search {query: <step.query>}`
+   over MCP (no auth); `registry_get_skill` reads its full SKILL.md.
+3. Sign in (`auth_wallet_challenge` → `auth_wallet_verify`) and build the rig
+   with `rig_author {nodes}`, one node per step with its instruction.
+4. `rig_run {rig_id, input}`, then `trace_get {id}`. Each step's output
+   threads into the next, and every step writes a trace. Signed in, 5 runs a
+   day are free; model steps run on your own key.
 
-## In the Rokha editor
+## In the Lab
 
-One click: RIG pane → **Start from a template** → Write & Critique. The
-editor resolves the queries against the registry and fills the workbench;
-swap any step via Add-to-Rig before running.
+A person builds and runs the same rig at https://rokha.ai/lab.
