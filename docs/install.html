@@ -83,7 +83,7 @@
 rig_author {name, nodes, edges}  # make a one-step rig from it
 rig_run {rig_id, input}          # run it for real
 trace_get {id}                   # read what happened</pre>
-<p>A signed-in account runs 5 times a day for free. Past that, the refusal names the next step: a run pack or the Lab. See <a href="./money.html">Pricing and fees</a>.</p>
+<p>A signed-in account runs 5 times a day for free. Past that, the refusal names the next step: a run pack or the Lab. Over MCP, a refused <code>rig_run</code> returns the sentence, then a JSON block with <code>code</code> (for example <code>free_runs_spent</code>), <code>ladder</code> (the run pack's <code>product_id</code> and how to buy it, and the Lab) and <code>upgrade</code>. See <a href="./money.html">Pricing and fees</a>.</p>
 
 <h2 id="skills">Skills and the CLI</h2>
 <div class="tbl"><table>

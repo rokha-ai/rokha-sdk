@@ -6,6 +6,19 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-04 — a refused MCP run says why, as data
+
+**Additive (versions stay 1.0.0).** When `rig_run` over MCP is refused for runs (signed out, the free day spent, the shared ceiling), the result is still `isError: true` with the sentence first, and now carries a second content block: JSON `{code, ladder?, upgrade?}`. `code` is one of `sign_in_required`, `free_runs_spent`, `free_runs_ceiling`, `lab_runs_spent`, `runtime_ceiling`, `budget_unavailable`; `ladder.run_pack.product_id` is the pack `product_checkout` buys. The REST run door already answered `429` with the same fields.
+
+## 2026-11-03 — the Lab board, the Crew and Content
+
+**Additive (versions stay 1.0.0).** New doors for the Lab's board, the Crew that works it, and the channels its posts go to. All need a JWT or an `rk_` key; changes the Lab needs answer `402 studio_required`, and person-only moves answer `403 person_only`.
+
+- **Board.** `GET|PUT /api/lab/board` (columns inbox · researching · needs_code · building · testing · content · selling · done; the `code_handoff` setting), `PUT /api/lab/board/objectives`, `GET /api/lab/board/needs-you` (cards waiting on you and why). `POST /api/lab/items/{id}/{verb}` adds the board verbs `move`, `assign`, `pin`, `reply`, `propose`, `proposal`, `work`, `focus`, `file` and `content`.
+- **Crew.** `GET|POST /api/lab/crew`, `PUT|DELETE /api/lab/crew/{position}`, `POST /api/lab/crew/start {goal}`, `POST /api/lab/crew/{position}/grok|test|dispatch`, `GET /api/lab/crew/dispatches`, `PUT /api/lab/crew/routing` (which seat owns each column and card kind, and the daily limits).
+- **Content.** `GET|POST /api/lab/content/channels`, `PUT|DELETE /api/lab/content/channels/{slug}` (a channel is one of your rigs that takes `text` and returns `{url}`), `GET /api/lab/content/schedule`.
+- MCP: `board_card_claim`, `board_card_submit`, `crew_seats`, `crew_route`, `crew_dispatch`, `content_create`, `content_channels`, `content_channel_add`. An `rk_` key may call every board, Crew and Content tool.
+
 ## 2026-11-03 — the Agent Runtime and Marketplace: free to start, pay for scale
 
 **Contract change (versions stay 1.0.0).** Rokha is the Agent Runtime and Marketplace. Runs are free to start and paid for at scale; model steps always run on the caller's own model key; anonymous callers still run nothing.
