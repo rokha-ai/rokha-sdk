@@ -6,6 +6,15 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-06 — start with Hunt and the X Account Audit
+
+**Additive (versions stay 1.0.0).** Two tools are now the first things to try, for people and for agents.
+
+- **Hunt** gives a deep dive on any link, repo, @handle or Solana coin. **The X Account Audit** grades any X account. They lead the MCP tool list, `llms.txt`, the agent card and the site.
+- **The X Account Audit is priced like Hunt.** Signed in, you get one free audit a day. After that it costs $0.02 a call, or 50 for $1. With the Lab nothing changes. A signed-out call to `GET /api/x/audit/{handle}` answers `402` with the price, `free_trial` and a `buy.product_id` for `product_checkout`. A `200` answer carries `result_url` and `result_id` for the shareable result.
+- **The coin audit is more accurate.** Stablecoins and large established coins are no longer scored like new launches. Brand-new launches are now read in full. A check that could not run says "Not checked" and never "no red flags". A missing fact reads "unknown" and is never printed as zero.
+- **A hunt's verdict leads with plain words:** Avoid, Caution, No red flags found, or Not checked. Result tables may carry an optional `row_tones` array next to `rows` (`bad`, `warn`, `ok` or `neutral` per row). Clients that don't read it can ignore it.
+
 ## 2026-11-04 — a refused MCP run says why, as data
 
 **Additive (versions stay 1.0.0).** When `rig_run` over MCP is refused for runs (signed out, the free day spent, the shared ceiling), the result is still `isError: true` with the sentence first, and now carries a second content block: JSON `{code, ladder?, upgrade?}`. `code` is one of `sign_in_required`, `free_runs_spent`, `free_runs_ceiling`, `lab_runs_spent`, `runtime_ceiling`, `budget_unavailable`; `ladder.run_pack.product_id` is the pack `product_checkout` buys. The REST run door already answered `429` with the same fields.
