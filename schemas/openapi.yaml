@@ -4933,10 +4933,12 @@ paths:
   /api/tiggy/engines:
     get:
       tags: [signals]
-      summary: "Community fee engines: what they bought and airdropped to holders"
+      summary: "Reward engines across the verse: drops, holders paid, dollars sent"
       description: |
-        Read from each engine's own wallet (Slingfolio by default). An airdrop round's batches are folded
-        into one event with `recipients`. Engines are community-built and unaffiliated.
+        Every wallet seen sending a verse coin to 5 or more holders in one transaction, read from the
+        busiest verse coins' own transactions every few minutes. `stats.totals` (24h, 7d: engines,
+        drops, holders_paid, usd) and `stats.top` (the week's top engines); an airdrop round's batches
+        are folded into one event with `recipients`.
       operationId: getTiggyEngines
       security: [{}]
       parameters:
@@ -4947,9 +4949,11 @@ paths:
   /api/tiggy/bag/{wallet}:
     get:
       tags: [signals]
-      summary: "Any wallet's verse holdings and the drops the fee engines sent it"
+      summary: "Any wallet's verse holdings and every verse coin sent to it"
       description: |
-        `engine_drops` covers the wallet's last 100 transactions. Nothing to sign.
+        `engine_drops.received` lists every verse coin another wallet sent it, grouped by coin and
+        sender, over up to 1,000 transactions or 60 days; `window` says how far back it read. Nothing
+        to sign.
       operationId: getTiggyBag
       security: [{}]
       parameters:
@@ -4967,15 +4971,129 @@ paths:
       security: [{ bearerAuth: [] }]
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/hold/challenge:
+    post:
+      tags: [signals]
+      summary: "Start a wallet hold check (no account)"
+      description: |
+        Returns the exact text the wallet signs (it names rokha.ai, the wallet, the purpose and the
+        expiry), a `nonce` and `expires`. A message signature, not a transaction: it cannot move
+        tokens, approve spending or charge a fee. Valid 5 minutes.
+      operationId: tiggyHoldChallenge
+      security: [{}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [wallet], properties: { wallet: { type: string } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/hold/verify:
+    post:
+      tags: [signals]
+      summary: "Finish a wallet hold check: a 24-hour pass for that wallet"
+      description: |
+        Send the wallet, nonce, expires and the base58 ed25519 signature over the challenge text.
+        Returns `pass` (send it as `x-tiggy-hold` to /api/tiggy/ask) and the wallet's live `hold`.
+        401 bad_signature / bad_challenge / challenge_expired.
+      operationId: tiggyHoldVerify
+      security: [{}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet, nonce, expires, signature]
+              properties:
+                wallet: { type: string }
+                nonce: { type: string }
+                expires: { type: integer }
+                signature: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/live:
+    get:
+      tags: [signals]
+      summary: "Is Sling live? Kick and Twitch, plus every account of his"
+      description: |
+        Checked at most once a minute. A platform that can't be read is `live: null`, never offline.
+        X Live and Spaces show as links. `socials` lists his accounts with a `verified` flag.
+      operationId: getTiggyLive
+      security: [{}]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/pairings:
+    get:
+      tags: [marketplace]
+      summary: "An item's token pairings"
+      description: |
+        `kind` agent|listing and `ref` (the agent's handle or the listing id). Each pairing: mint,
+        symbol, name, hold_usd, run_usd, house (the implied $ROKHA pairing every House item carries).
+      operationId: getPairings
+      security: [{}]
+      parameters:
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [agent, listing] } }
+        - { name: ref, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+    post:
+      tags: [marketplace]
+      summary: "Pair your agent or listing with a Solana token"
+      description: |
+        Any token readable on chain; no proof of the token's team; many items per token, up to 5
+        tokens per item. Optional `hold_usd` (holders get access) and `run_usd` (a run's price, paid in
+        the token). Pairing again updates it. An item that isn't yours answers 404.
+      operationId: pairToken
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, ref, mint]
+              properties:
+                kind: { type: string, enum: [agent, listing] }
+                ref: { type: string }
+                mint: { type: string }
+                hold_usd: { type: number, minimum: 0, maximum: 100000 }
+                run_usd: { type: number, minimum: 0, maximum: 1000 }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/pairings/by-mint/{mint}:
+    get:
+      tags: [marketplace]
+      summary: "Everything paired with one token"
+      operationId: getPairingsByMint
+      security: [{}]
+      parameters:
+        - { name: mint, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/pairings/{id}:
+    delete:
+      tags: [marketplace]
+      summary: "Remove one of your pairings"
+      operationId: unpairToken
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
   /api/tiggy/ask:
     post:
       tags: [signals]
-      summary: "Ask Tiggy about the verse (holders of $20 of $TIGGY)"
+      summary: "Ask Tiggy about the verse (10 free a day, then holders)"
       description: |
-        Answers from the index and the feeds, never advice or a prediction. 401 sign_in without a
-        token; 402 hold_required under the hold (with `hold`); 429 daily_limit; 503 lane_cap.
+        Answers from the index and the feeds, never advice or a prediction. Anyone gets 10 questions
+        a day with no account or wallet (`taste: true` on the answer). After that: a wallet pass from
+        `/api/tiggy/hold/verify` in `x-tiggy-hold`, or a Rokha sign-in, holding $20 of a paired coin.
+        401 prove_hold; 402 hold_required (with `hold`); 429 daily_limit; 503 lane_cap.
       operationId: askTiggy
-      security: [{ bearerAuth: [] }]
+      security: [{}, { bearerAuth: [] }]
+      parameters:
+        - { name: x-tiggy-hold, in: header, required: false, schema: { type: string }, description: "A wallet pass from /api/tiggy/hold/verify." }
       requestBody:
         required: true
         content:
