@@ -4846,6 +4846,150 @@ paths:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
         '503': { description: "`unavailable` — the door's price could not be read; no free work on a priced door" }
 
+  /api/tiggy:
+    get:
+      tags: [signals]
+      summary: "Tiggy — the Tittyverse keeper: totals, the root, the watched wallets, the doors"
+      description: |
+        Tiggy keeps an index of the Tittyverse: every Solana coin whose PumpSwap pool or pump.fun
+        bonding curve is quoted in $BTC (Big Titty Coin, C5xph2yL6gMdxmuLGxJBkGpmuDFfyi5fqkBNhvL6pump —
+        a Solana coin, not Bitcoin) and the coins paired to the biggest ones, read from the chain.
+        Read-only. Community tool; not affiliated with any coin's team; not advice. Her page: rokha.ai/tiggy.
+        The same reads are MCP tools (toolset `tittyverse`): tiggy_verse, tiggy_coin, tiggy_sling,
+        tiggy_buys, tiggy_engines, tiggy_bag.
+      operationId: getTiggy
+      security: [{}]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/verse:
+    get:
+      tags: [signals]
+      summary: "Every coin in the verse, sorted and filtered"
+      description: |
+        Coins with price, market cap, liquidity, 24h volume and change, curve progress and birth time.
+        Slur-named coins are hidden. Coin names are third-party data.
+      operationId: getTiggyVerse
+      security: [{}]
+      parameters:
+        - { name: sort, in: query, schema: { type: string, enum: [mcap, volume, liquidity, new, change, progress] } }
+        - { name: stage, in: query, schema: { type: string, enum: [all, bonded, curve, root] } }
+        - { name: q, in: query, schema: { type: string, maxLength: 44 }, description: "A name, ticker or mint" }
+        - { name: parent, in: query, schema: { type: string }, description: "A mint: the coins paired to it" }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0 } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/coin/{mint}:
+    get:
+      tags: [signals]
+      summary: "One coin: its numbers, the coins paired to it, the watched wallet's moves in it"
+      description: |
+        400 bad_mint for anything not a 32-byte base58 address; 404 not_in_verse for a coin outside the
+        index or hidden.
+      operationId: getTiggyCoin
+      security: [{}]
+      parameters:
+        - { name: mint, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/sling:
+    get:
+      tags: [signals]
+      summary: "The watched wallet, live: creates, buys, sells and verse-coin transfers"
+      description: |
+        The watched wallet is attributed to slingoor by a public tracker (Kolscan), not posted by him;
+        cite it that way. `after` = the last event id you saw.
+      operationId: getTiggySling
+      security: [{}]
+      parameters:
+        - { name: after, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/sling/bag:
+    get:
+      tags: [signals]
+      summary: "What the watched wallet holds in the verse, with USD values"
+      description: |
+        Cached a minute.
+      operationId: getTiggySlingBag
+      security: [{}]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/buys:
+    get:
+      tags: [signals]
+      summary: "Every $TIGGY buy, newest first, with a cheer tier"
+      description: |
+        The buyer is the transaction's signer. `cheer`: buy, big (≥ $100), whale (≥ $1,000). Empty with a
+        note until $TIGGY is live.
+      operationId: getTiggyBuys
+      security: [{}]
+      parameters:
+        - { name: after, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/engines:
+    get:
+      tags: [signals]
+      summary: "Community fee engines: what they bought and airdropped to holders"
+      description: |
+        Read from each engine's own wallet (Slingfolio by default). An airdrop round's batches are folded
+        into one event with `recipients`. Engines are community-built and unaffiliated.
+      operationId: getTiggyEngines
+      security: [{}]
+      parameters:
+        - { name: after, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/bag/{wallet}:
+    get:
+      tags: [signals]
+      summary: "Any wallet's verse holdings and the drops the fee engines sent it"
+      description: |
+        `engine_drops` covers the wallet's last 100 transactions. Nothing to sign.
+      operationId: getTiggyBag
+      security: [{}]
+      parameters:
+        - { name: wallet, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/hold:
+    get:
+      tags: [signals]
+      summary: "Does the signed-in account hold enough $TIGGY to ask Tiggy?"
+      description: |
+        Reads the login wallet and up to 3 proven wallets from the chain at the live price. Fails
+        closed: no coin yet, no price or no readable wallet is `open: false` with a `reason`.
+      operationId: getTiggyHold
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+  /api/tiggy/ask:
+    post:
+      tags: [signals]
+      summary: "Ask Tiggy about the verse (holders of $20 of $TIGGY)"
+      description: |
+        Answers from the index and the feeds, never advice or a prediction. 401 sign_in without a
+        token; 402 hold_required under the hold (with `hold`); 429 daily_limit; 503 lane_cap.
+      operationId: askTiggy
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string, minLength: 1, maxLength: 600 }
+                history:
+                  type: array
+                  items: { type: object, properties: { role: { type: string, enum: [user, assistant] }, content: { type: string } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
   /api/hunt:
     get:
       tags: [signals]
