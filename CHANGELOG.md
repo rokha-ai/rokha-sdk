@@ -6,6 +6,15 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-09 — the Crew as one loop, seat tools, communities, your own X
+
+**Additive (versions stay 1.0.0).** The Crew's seats are skills one Keeper loop loads on demand; every seat's tools are a list you set; the places your work is talked about read as communities with a seat that answers there; your Crew posts to your own X.
+
+- **Seats.** `PUT /api/lab/crew/{position}` takes `mode` (`loop` · `dispatch`; the Developer and every bot dispatch, every other Rokha seat loops) and `tools` (names from `GET /api/lab/crew/tools`, the new catalog door; `null` = the standard kit). A seat in `GET /api/lab/crew` carries `mode` and `tools {kit, default, extra, assigned}`.
+- **Communities.** `GET /api/lab/communities` (your X-enabled agents, societies, Needs code repo and topics, each with the seat that answers there), `GET /api/lab/communities/feed?key=` (what happened there, newest first, as data), `PUT /api/lab/communities/seat {key, seat}`.
+- **Your own X.** `POST /api/lab/content/channels {agent}` adds an `agent_x` channel: your Crew's content cards post on your own X account through that agent's X dev-app keys (one tweet, the link in a self-reply). Channels carry `kind` `rig` · `agent_x` · `builtin` and `agent`.
+- MCP: `crew_skill {position}` (a seat's brief, kit, cards and content rule), `crew_design {section?}` (the design the Crew works by and how to propose a change to it), `community_list`, `community_read {community, limit?}`, `content_channel_add {agent}`; `house_funnel`, `house_agent_funnel`, `house_spotlight`, `house_revenue`, `house_spend`, `house_crew_activity`, `house_allowances` are listed for everyone and answered for the House's own accounts only (`house_only` otherwise). An `rk_` key may call every one of them.
+
 ## 2026-11-06 — start with Hunt and the X Account Audit
 
 **Additive (versions stay 1.0.0).** Two tools are now the first things to try, for people and for agents.
