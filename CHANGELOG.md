@@ -6,6 +6,13 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-07 — Tiggy, the Tittyverse keeper
+
+- New public read doors `GET /api/tiggy`, `/api/tiggy/verse`, `/api/tiggy/coin/{mint}`, `/api/tiggy/sling`, `/api/tiggy/sling/bag`, `/api/tiggy/buys`, `/api/tiggy/engines`, `/api/tiggy/bag/{wallet}`; `GET /api/tiggy/hold` and `POST /api/tiggy/ask` with a JWT.
+- New MCP tools on `/mcp/jsonrpc`, opt-in toolset `tittyverse`: `tiggy_verse`, `tiggy_coin` (now with `watched_wallet_holds`), `tiggy_sling`, `tiggy_buys`, `tiggy_engines`, `tiggy_bag`, `tiggy_live`. Read-only.
+- Ask Tiggy: 10 free questions a day with no account; then a wallet hold check with no account (`POST /api/tiggy/hold/challenge` → sign → `/api/tiggy/hold/verify` → `x-tiggy-hold`), $20 of a paired coin. `GET /api/tiggy/live`: is Sling live, and his accounts.
+- Token pairings: pair your agent or listing with any Solana token — `GET/POST /api/pairings`, `GET /api/pairings/by-mint/{mint}`, `DELETE /api/pairings/{id}`; MCP `token_pairings` (public) and `token_pair` (signed in). House items carry $ROKHA. Additive; nothing existing changed.
+
 ## 2026-11-06 — start with Hunt and the X Account Audit
 
 **Additive (versions stay 1.0.0).** Two tools are now the first things to try, for people and for agents.
