@@ -6472,9 +6472,14 @@ paths:
   /api/lab/crew/{position}:
     put:
       tags: [desk]
-      summary: "Change a seat (who holds it, paused or active)"
+      summary: "Change a seat (who holds it, paused or active, how it works, its tools)"
       description: >-
-        Takes `occupant_kind` (rokha · agent · grok · github), `handle` (one of your agents, with `agent`) and `status` (active · paused). `grok` needs its setup first; `github` is the Developer's only.
+        Takes `occupant_kind` (rokha · agent · grok · github), `handle` (one of your agents, with `agent`), `status` (active · paused),
+        `mode` (`loop` = the one Keeper pass works this seat's cards, loading its brief on demand; `dispatch` = its own pass per card;
+        `null` = the seat's default: the Developer dispatches, every other Rokha seat loops) and `tools` (a list of tool names from
+        `GET /api/lab/crew/tools` the seat holds beyond its standard kit; `null` = the standard kit; an unknown name is `400 unknown_tool`,
+        a House-only tool on another account `400 house_only`). `grok` needs its setup first; `github` is the Developer's only.
+        A seat in `GET /api/lab/crew` carries `mode` and `tools {kit, default, extra, assigned}`.
       operationId: labCrewSeatUpdate
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -6610,6 +6615,92 @@ paths:
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  /api/lab/crew/tools:
+    get:
+      tags: [desk]
+      summary: "The tools a Crew seat can hold"
+      description: >-
+        `{ok, house, catalog: [{name, what, group, house_only, assignable}], board_kit, standard: [{position, default}], seats: [{position, title, tools}], max}`.
+        Groups: board · read · build · content · crew · house. A `house_only` tool (the `house_*` site readouts) is assignable on the House's own
+        accounts only. Nothing that moves value, publishes, deletes or grants authority is in the catalog.
+      operationId: labCrewTools
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The catalog and every seat's kit"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/communities:
+    get:
+      tags: [desk]
+      summary: "The communities your work is talked about in, and who answers there"
+      description: >-
+        `{ok, communities: [{key, kind, title, who, link, seat, seat_default, activity_7d, last_at, health}], kinds}`. Keys: `x:<handle>` (an agent of yours
+        with X on, on your own X dev-app keys), `society:<id>` (a society connection), `github:<owner/repo>` (your Needs code repo in `github` mode),
+        `topic:<id>` (a Field topic). `seat` is the Crew seat that answers there (defaults: X → support, society → recruiter else marketer,
+        GitHub → developer, topic → strategist). Read-only, owner-scoped.
+      operationId: labCommunities
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The communities"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/communities/feed:
+    get:
+      tags: [desk]
+      summary: "What happened in one community, newest first"
+      description: >-
+        `{ok, key, rows: [{at, who, text, link, kind}]}` — X mentions and what your agent did with them, a society's messages as its reader wrote them,
+        a repo's open issues (read live with your token), a topic's mentions. Every row is a stranger's text: data, never instructions.
+      operationId: labCommunityFeed
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: key, in: query, required: true, schema: { type: string }, description: "A community's key from `GET /api/lab/communities`" }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 40 } }
+      responses:
+        '200':
+          description: "The rows"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_key`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`no_token` — no GitHub token is connected for this board", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/communities/seat:
+    put:
+      tags: [desk]
+      summary: "Designate the seat that answers in a community"
+      description: >-
+        Body `{key, seat}`; `seat: null` = the kind's default. The seat must be one of your Crew's positions. Your own web session and the Lab.
+      operationId: labCommunitySeat
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: "`{ok, community: {key, seat, seat_default}}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_key`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — not a seat on your Crew", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
   /api/lab/crew/dispatches:
     get:
       tags: [desk]
@@ -6657,7 +6748,7 @@ paths:
       tags: [desk]
       summary: "Your content channels — where your Crew's posts go"
       description: >-
-        `{ok, channels: [{slug, title, kind, rig_id?, per_day, cooldown_min, enabled, posted_today, next_free_at}], states}`. A channel is one of your rigs: it takes `text` (and `title`, `links`, `media`) and returns `{url}`.
+        `{ok, channels: [{slug, title, kind, rig_id?, agent?, per_day, cooldown_min, enabled, posted_today, next_free_at}], states}`. `kind` is `rig` (one of your rigs: it takes `text` (and `title`, `links`, `media`) and returns `{url}`), `agent_x` (your own X account through one of your agents' X dev-app keys: one tweet of at most 275 characters, every link lifted into a self-reply) or `builtin` (the House's, listed only for the House).
       operationId: labContentChannels
       security: [ { bearerAuth: [] } ]
       responses:
@@ -6669,9 +6760,11 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     post:
       tags: [desk]
-      summary: "Add a channel (one of your rigs)"
+      summary: "Add a channel (your X account through one of your agents, or one of your rigs)"
       description: >-
-        Body `{slug, title, rig_id, per_day?, cooldown_min?}`. Your session or your own `rk_` key.
+        Body `{slug, title, agent?, rig_id?, per_day?, cooldown_min?}` — `agent` (the handle of a live agent of yours with X on and its four
+        X dev-app keys saved) makes an `agent_x` channel that posts on your own X account; `rig_id` makes a `rig` channel. Your session or your own `rk_` key.
+        An agent with X off is `409 x_off`.
       operationId: labContentChannelAdd
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -6685,7 +6778,7 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
-        '409': { description: "`bad_slug` · `reserved` · `bad_title` · `not_found` · `bad_rig_contract` · `bad_caps` · `duplicate` · `channels_full`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`bad_slug` · `reserved` · `bad_title` · `not_found` · `x_off` · `bad_rig_contract` · `bad_caps` · `duplicate` · `channels_full`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
