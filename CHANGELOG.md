@@ -6,6 +6,14 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-12 — pick who runs your board, and work it from anywhere
+
+**Additive (versions stay 1.0.0).**
+
+- **Automated, run by the agent you pick.** `PUT /api/lab/board` takes `keeper_lead`: empty (or `rokha`) and Rokha runs the Automated loop; one of your agent handles and that agent runs it, with the Crew's seats as skills, and the cards it owns carry its name. `settings.keeper_lead` reads it back. Any other agent can still run its own pass over its own cards (`keeper_agents`).
+- **Your Desk and Crew over MCP.** New tools on `/mcp/jsonrpc` for your own session, key, OAuth app or CLI (never an agent's own key): `board_settings` (read, or set `automated`, `cadence`, `lead`, `own_passes`), `board_card_assign {id, to}` (`me` · `rokha` · an agent handle), `crew_seat_set {position, paused?, mode?, agent?}`, `crew_start {goal}`. They run the same checks as the Lab's buttons.
+- **Rokha in shared rooms.** In a group or a public thread she summarizes and links the Lab instead of posting specifics; your settings change only from your own private chat or the Lab.
+
 ## 2026-11-11 — objectives with parts and rules, a Needs you column
 
 **Additive (versions stay 1.0.0).** What the Crew works toward is now a real object, and the board gained the one column that waits on a person.

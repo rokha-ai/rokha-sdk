@@ -6374,7 +6374,7 @@ paths:
       tags: [desk]
       summary: "Change the board's settings (keeper, cadence, agents, code handoff)"
       description: >-
-        Takes any of `keeper_on`, `keeper_cadence`, `keeper_agents`, `code_handoff` (`{mode, repo?, labels?, claimers?}`).
+        Takes any of `keeper_on`, `keeper_cadence`, `keeper_lead` (who runs the Automated loop: empty or `rokha` = Rokha, else one of your agent handles), `keeper_agents`, `code_handoff` (`{mode, repo?, labels?, claimers?}`).
       operationId: labBoardUpdate
       security: [ { bearerAuth: [] } ]
       requestBody:
