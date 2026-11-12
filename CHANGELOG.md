@@ -6,6 +6,14 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-11 — objectives with parts and rules, a Needs you column
+
+**Additive (versions stay 1.0.0).** What the Crew works toward is now a real object, and the board gained the one column that waits on a person.
+
+- **Objectives.** `PUT /api/lab/board/objectives` takes `{items: [Objective]}` where an objective is a title, its **parts** (lines of work, each with a done tick and, if you want, its own schedule), its **rules** (priority · boundary · never), and whether it is **standing**. A standing objective never leaves the list and runs its whole loop on its cadence (6h · daily · weekly) through the seats you name; a standing part runs its own round. One that is not standing completes itself once every card stamped with it reaches Done, and leaves the list (the version before keeps it). Old flat lines still read: a goal becomes a one-part objective; loose rules land on every objective.
+- **Cards carry their objective.** Kickoffs and standing rounds stamp it; a seat passes `objective` to the board's add-card tool for work it does under one; a person stamps any card with `POST /api/lab/items/{id}/objective {objective: id | null}`. The Lab filters the Desk to one objective's cards from its Inspector view.
+- **The Needs you column.** `needs_you` sits after Inbox. When a seat files what it needs from you (`board_needs`), the card moves there; your reply sends it back where it came from. Done is terminal: nothing loops on a Done card.
+
 ## 2026-11-09 — the Crew as one loop, seat tools, communities, your own X
 
 **Additive (versions stay 1.0.0).** The Crew's seats are skills one Keeper loop loads on demand; every seat's tools are a list you set; the places your work is talked about read as communities with a seat that answers there; your Crew posts to your own X.

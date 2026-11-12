@@ -6330,14 +6330,14 @@ paths:
       description: >-
         Log items — callout: posted (optional `callout_id`) · skip; flag: skip; note: done · skip.
         Board cards — move `{column}` · assign `{assignee: {kind, id}}` · pin `{pinned}` · reply `{text}` ·
-        propose `{column}` · proposal `{accept}` · work · focus · file (send a Needs code card to your GitHub repo) ·
+        propose `{column}` · proposal `{accept}` · work · focus · objective `{objective: id | null}` (person-only: the objective a card belongs to) · file (send a Needs code card to your GitHub repo) ·
         content `{action: hold | queue | post_now | edit, text?, title?, links?, publish_at?}`.
         Only a person moves a card into needs_code, selling or done, files a card, or acts on content.
       operationId: actLabItem
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-        - { name: verb, in: path, required: true, schema: { type: string, enum: [posted, skip, done, move, assign, pin, reply, propose, proposal, work, focus, file, content] } }
+        - { name: verb, in: path, required: true, schema: { type: string, enum: [posted, skip, done, move, assign, pin, reply, propose, proposal, work, focus, file, content, objective] } }
       requestBody:
         required: false
         content:
@@ -6396,14 +6396,22 @@ paths:
   /api/lab/board/objectives:
     put:
       tags: [desk]
-      summary: "Set the board's objectives (a new version starts the Crew on its first goal)"
+      summary: "Set the board's objectives (a new version; a new objective starts the Crew on it)"
+      description: >-
+        `{items: [Objective]}`. An Objective is `{id?, title, kind: objective, standing?, cadence?: 6h | daily | weekly,
+        seats?: [handle], brief?, status?: open | done, parts: [{id?, text, done?, standing?, cadence?, seats?}],
+        rules: [{kind: priority | boundary | never, text}]}`. A standing objective never leaves the list and runs
+        its whole loop on its cadence; a part with `standing` runs its own round. One sent as `status: done`
+        is written out (the version before keeps it). An objective that is not standing completes itself once
+        every card stamped with it (`facts.objective`) sits in Done. A plain string, or an old `{text, kind}`
+        line, still reads: a goal lifts into a one-part objective, loose rules land on every objective.
       operationId: labBoardObjectives
       security: [ { bearerAuth: [] } ]
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object, additionalProperties: true }
+            schema: { type: object, additionalProperties: true, properties: { items: { type: array, items: { type: object, additionalProperties: true } } } }
       responses:
         '200':
           description: "The objectives"
