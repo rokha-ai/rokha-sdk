@@ -6323,6 +6323,24 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '422': { description: "`bad_kind` · `bad_title` · `bad_body` · `bad_facts`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  /api/lab/items/{id}:
+    get:
+      tags: [desk]
+      summary: "One of your own board cards"
+      description: >-
+        The same item shape as `/api/lab/items`. Someone else's card, or an id that is not a card, answers 404.
+      operationId: labItemGet
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "The card"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/lab/items/{id}/{verb}:
     post:
       tags: [desk]
