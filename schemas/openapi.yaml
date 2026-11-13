@@ -6328,7 +6328,7 @@ paths:
       tags: [desk]
       summary: "One of your own board cards"
       description: >-
-        The same item shape as `/api/lab/items`. Someone else's card, or an id that is not a card, answers 404.
+        Answers `{ok, item}`, the item in the same shape as `/api/lab/items`. Someone else's card, or an id that is not a card, answers 404.
       operationId: labItemGet
       security: [ { bearerAuth: [] } ]
       parameters:
