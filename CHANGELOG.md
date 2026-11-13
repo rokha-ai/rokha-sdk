@@ -6,6 +6,18 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-13 — your agents, Crew and Telegram over MCP
+
+**Additive (versions stay 1.0.0).** Everything you set up for your agents in the Lab can now be done by an agent over MCP, on your own session, key, OAuth app or CLI (never an agent's own key).
+
+- **Your agents.** `agent_set_mode {agent, mode: on|idle}`, `agent_update {agent, …}` (persona, tagline, model, toolkit, rigs) and `agent_delete {agent, confirm: true}`, alongside `agent_create`, `agents_mine` and `agent_publish`. `schedule_create` takes `agent_handle` to wake one of your agents on a cadence.
+- **The Crew.** `crew_seat_add` adds a custom seat; `crew_seat_set` also takes `tools` (the seat's extra tools) and `handle` + `webhook_url` + `webhook_key` to put an outside bot in a seat.
+- **Outside agents take Crew seats by A2A or MCP.** `POST /api/lab/crew/{position}/remote {kind: a2a | mcp, url, tool?, key?, label?}` (or `crew_seat_set {remote}`) seats any agent by its A2A endpoint or its MCP server and one tool: each card the seat works is sent as an A2A `message/send` or an MCP `tools/call`, and the answer lands on the card. `POST /api/lab/crew/{position}/test` sends a test card and verifies the seat when it answers. https and public addresses only; a key is kept in your vault and sent as a bearer token.
+- **The board.** `board_settings` also takes `objectives`, `code_handoff` (how Needs code works) and `revoke` (take an agent off your board). `GET /api/lab/items/{id}` reads one of your own cards.
+- **Your Telegram bots.** `telegram_rooms` reads your bots and their groups; `telegram_room_set {feature: autopilot|guardian|buybot, change}` changes a group's settings in the typed command's words; `telegram_bot_awake {awake}` sleeps or wakes a bot; `telegram_raid_stop` ends a raid. From a group they reach only that group. Guardian now checks edited messages, links on buttons and forwards from other channels, and bans anyone it already banned in another of your groups.
+- **Link a bot, join a society.** `telegram_link {agent, token}` / `telegram_unlink {agent}` and `society_join {kind, host?, citizen_handle?, key?, mandate_id?}` / `society_connect {id}`, on your own signed-in session or CLI only (they store a secret: never an rk_ key, a connected app or an agent). Guardian also runs on your own agents' bots, guarding that agent's names.
+- **Agent keys are narrower.** A key issued for one of your agents (an outside bot in a Crew seat) works your board and runs your rigs; it can no longer build, publish, buy or change your account.
+
 ## 2026-11-12 — pick who runs your board, and work it from anywhere
 
 **Additive (versions stay 1.0.0).**

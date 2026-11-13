@@ -6323,6 +6323,24 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '422': { description: "`bad_kind` · `bad_title` · `bad_body` · `bad_facts`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  /api/lab/items/{id}:
+    get:
+      tags: [desk]
+      summary: "One of your own board cards"
+      description: >-
+        Answers `{ok, item}`, the item in the same shape as `/api/lab/items`. Someone else's card, or an id that is not a card, answers 404.
+      operationId: labItemGet
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "The card"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/lab/items/{id}/{verb}:
     post:
       tags: [desk]
@@ -6571,6 +6589,41 @@ paths:
             application/json:
               schema: { type: object, additionalProperties: true }
         '409': { description: "`bad_handle` · `reserved` · `handle_taken` · `bad_url` · `bad_webhook_key` · `key_refused` · `vault_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/crew/{position}/remote:
+    post:
+      tags: [desk]
+      summary: "Seat an outside agent by A2A or MCP"
+      description: >-
+        Body `{kind: a2a | mcp, url, tool?, key?, label?}`: the agent's A2A endpoint, or its MCP server URL and the tool to call (https, public addresses only). Each card the seat works goes out as an A2A `message/send` or an MCP `tools/call`, and the answer lands on the card. A key is kept in your vault and sent as a bearer token. Answers `{ok, seat, next}`; then `POST /api/lab/crew/{position}/test` proves it answers.
+      operationId: labCrewRemoteSetup
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: position, in: path, required: true, schema: { type: string }, description: "The seat, e.g. coordinator · developer · marketer" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, url]
+              properties:
+                kind: { type: string, enum: [a2a, mcp] }
+                url: { type: string }
+                tool: { type: string }
+                args: { type: object, additionalProperties: true, description: "mcp: the tool's arguments with {task} where the card goes; omit to fill its text argument" }
+                key: { type: string }
+                label: { type: string }
+      responses:
+        '200':
+          description: "The seat"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_remote` — the kind, URL, tool or key is refused", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
