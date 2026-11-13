@@ -6614,6 +6614,7 @@ paths:
                 kind: { type: string, enum: [a2a, mcp] }
                 url: { type: string }
                 tool: { type: string }
+                args: { type: object, additionalProperties: true, description: "mcp: the tool's arguments with {task} where the card goes; omit to fill its text argument" }
                 key: { type: string }
                 label: { type: string }
       responses:
