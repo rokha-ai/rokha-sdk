@@ -6593,6 +6593,40 @@ paths:
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  /api/lab/crew/{position}/remote:
+    post:
+      tags: [desk]
+      summary: "Seat an outside agent by A2A or MCP"
+      description: >-
+        Body `{kind: a2a | mcp, url, tool?, key?, label?}`: the agent's A2A endpoint, or its MCP server URL and the tool to call (https, public addresses only). Each card the seat works goes out as an A2A `message/send` or an MCP `tools/call`, and the answer lands on the card. A key is kept in your vault and sent as a bearer token. Answers `{ok, seat, next}`; then `POST /api/lab/crew/{position}/test` proves it answers.
+      operationId: labCrewRemoteSetup
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: position, in: path, required: true, schema: { type: string }, description: "The seat, e.g. coordinator · developer · marketer" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, url]
+              properties:
+                kind: { type: string, enum: [a2a, mcp] }
+                url: { type: string }
+                tool: { type: string }
+                key: { type: string }
+                label: { type: string }
+      responses:
+        '200':
+          description: "The seat"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_remote` — the kind, URL, tool or key is refused", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
   /api/lab/crew/{position}/test:
     post:
       tags: [desk]
