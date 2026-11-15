@@ -6,6 +6,16 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-15 — standing notes on the board, and more of the Desk from Telegram
+
+**Additive (versions stay 1.0.0).**
+
+- **Standing notes.** An objective's `rules` take a fourth kind, `standing`: your standing note for how cards are routed and handled ("Reddit digests: clear with a note", "cards from sender X go to Content"). Every loop reads the standing notes and a card's replies before it picks a lane. Under one, an agent may move a card into Done itself, with its reason, when the card is automated mail (`facts.automated`) or carries your own reply; anything else still needs you.
+- **`telegram_rooms` reads more.** Guardian's known spammers (on or off, and how many are remembered), the banned-word list, and the buy bot's token and symbol.
+- **The buy bot's own coin.** `telegram_room_set {feature: buybot, change: "set official"}` sets Rokha's own coin without an address.
+- **Objectives from a group.** In a group your bot is in, `board_settings` (objectives only) and `crew_start` work for the verified owner; the rest of the Desk's settings stay in a DM or the Lab.
+- **X DM tickets name the sender.** A support card from an X DM carries `facts.contact.x_handle` when X gave one.
+
 ## 2026-11-13 — your agents, Crew and Telegram over MCP
 
 **Additive (versions stay 1.0.0).** Everything you set up for your agents in the Lab can now be done by an agent over MCP, on your own session, key, OAuth app or CLI (never an agent's own key).
