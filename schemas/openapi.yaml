@@ -6418,7 +6418,7 @@ paths:
       description: >-
         `{items: [Objective]}`. An Objective is `{id?, title, kind: objective, standing?, cadence?: 6h | daily | weekly,
         seats?: [handle], brief?, status?: open | done, parts: [{id?, text, done?, standing?, cadence?, seats?}],
-        rules: [{kind: priority | boundary | never, text}]}`. A standing objective never leaves the list and runs
+        rules: [{kind: priority | boundary | never | standing, text}]}`. A `standing` rule is the owner's standing note: every loop reads it before routing a card, and it lets a loop move a card into Done itself when the card is automated mail or carries the person's own reply. A standing objective never leaves the list and runs
         its whole loop on its cadence; a part with `standing` runs its own round. One sent as `status: done`
         is written out (the version before keeps it). An objective that is not standing completes itself once
         every card stamped with it (`facts.objective`) sits in Done. A plain string, or an old `{text, kind}`
