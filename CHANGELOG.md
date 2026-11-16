@@ -6,6 +6,15 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-16 — Tiggy and token pairings are retired
+
+**BREAKING removal (versions stay 1.0.0).** These doors and tools are gone from the contract. The server answers `410 Gone` on every path below, and the MCP tools are no longer listed.
+
+- **Tiggy's doors.** `GET /api/tiggy`, `/api/tiggy/verse`, `/api/tiggy/coin/{mint}`, `/api/tiggy/sling`, `/api/tiggy/sling/bag`, `/api/tiggy/buys`, `/api/tiggy/engines`, `/api/tiggy/bag/{wallet}`, `/api/tiggy/hold`, `/api/tiggy/live`; `POST /api/tiggy/hold/challenge`, `/api/tiggy/hold/verify`, `/api/tiggy/ask`. The `x-tiggy-hold` header is no longer read.
+- **Tiggy's MCP tools.** The opt-in toolset `tittyverse` and its tools `tiggy_verse`, `tiggy_coin`, `tiggy_sling`, `tiggy_buys`, `tiggy_bag`, `tiggy_engines`, `tiggy_live`.
+- **Token pairings.** `GET/POST /api/pairings`, `GET /api/pairings/by-mint/{mint}`, `DELETE /api/pairings/{id}`; MCP `token_pair` and `token_pairings`.
+- If you call any of these, remove the call. Nothing replaces them. The SDKs and the CLI never wrapped them, so no client code changes.
+
 ## 2026-11-15 — standing notes on the board, and more of the Desk from Telegram
 
 **Additive (versions stay 1.0.0).**
