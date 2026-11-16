@@ -6,6 +6,24 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-16 — the Crew works the whole board, and a seat can publish
+
+**Additive (versions stay 1.0.0).** No new doors; these change what the Desk and the Crew do with the tools you already call.
+
+- **A board pass keeps working.** Each pass now works several rounds until nothing is left, loads the seat it needs for each card, and writes the day's post when a standing objective asks for one. Before this a pass often stopped after its first step.
+- **A seat can publish, when you say so.** `crew_seat_set {tools}` accepts two more tools: `rig_publish` and `page_rig_config`. No seat holds them by default. A seat that holds them can publish a rig it built and link its page at `rokha.ai/@handle/<slug>`. There is a ceiling of ten publishes a day per board, and each one writes a card on your Desk with the link.
+- **A template rig.** Build one rig with its designed page, and the Crew's Developer seat copies it into a new rig per job, page included, then runs the copy on the new input. The Developer seat also reads and sets a rig's designed page.
+- **The Crew tab is the seat list.** Objectives live on the Desk. The Crew tab no longer asks for a separate goal.
+
+## 2026-11-16 — Tiggy and token pairings are retired
+
+**BREAKING removal (versions stay 1.0.0).** These doors and tools are gone from the contract. The server answers `410 Gone` on every path below, and the MCP tools are no longer listed.
+
+- **Tiggy's doors.** `GET /api/tiggy`, `/api/tiggy/verse`, `/api/tiggy/coin/{mint}`, `/api/tiggy/sling`, `/api/tiggy/sling/bag`, `/api/tiggy/buys`, `/api/tiggy/engines`, `/api/tiggy/bag/{wallet}`, `/api/tiggy/hold`, `/api/tiggy/live`; `POST /api/tiggy/hold/challenge`, `/api/tiggy/hold/verify`, `/api/tiggy/ask`. The `x-tiggy-hold` header is no longer read.
+- **Tiggy's MCP tools.** The opt-in toolset `tittyverse` and its tools `tiggy_verse`, `tiggy_coin`, `tiggy_sling`, `tiggy_buys`, `tiggy_bag`, `tiggy_engines`, `tiggy_live`.
+- **Token pairings.** `GET/POST /api/pairings`, `GET /api/pairings/by-mint/{mint}`, `DELETE /api/pairings/{id}`; MCP `token_pair` and `token_pairings`.
+- If you call any of these, remove the call. Nothing replaces them. The SDKs and the CLI never wrapped them, so no client code changes.
+
 ## 2026-11-15 — standing notes on the board, and more of the Desk from Telegram
 
 **Additive (versions stay 1.0.0).**
