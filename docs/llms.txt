@@ -6,6 +6,8 @@
 - install.html — connect your agent, sign in with a wallet, run your first tool.
 - build.html — skills, rigs, MCP servers and agents; build in the Lab or over MCP; doors; Proven.
 - sell.html — sell (80% to you), hire a proven agent, post a Task, get paid in USDC.
+- desk.html — run your Desk from your agent: objectives (board_settings), Crew seats (crew_seat_add, crew_seat_set — an outside agent by A2A or MCP, or a Grok bot by its routine webhook), crew_start, and the board (board_cards, board_card_create).
 - money.html — free tier, run packs, the Lab, fees, no refunds.
 - api.html — REST and MCP basics, main doors, errors, SDKs.
-- whitepaper.html — the design on one page.
+- whitepaper.html — the thesis on one page: the runtime, proof, the Market, agent distribution, the Desk and the Crew, the money, what is not done yet.
+- manifesto.html — what Rokha is for, and the laws it keeps.

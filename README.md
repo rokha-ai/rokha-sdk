@@ -16,6 +16,11 @@ npx skills add rokha-ai/rokha-sdk
 ## The first run
 `auth_wallet_challenge` → `auth_wallet_verify` (sign in with a wallet) → `registry_search` → `rig_author` → `rig_run` → `trace_get`.
 
+Or try a tool that already ran: `hunt_report` (a deep dive on any link, handle, repo or address) or `x_account_audit` (is an X account's following real?), one free call a day each.
+
+## Run your Desk from your agent
+Add `?toolset=lab` to the server URL. Set objectives with `board_settings`, seat the Crew with `crew_seat_add` / `crew_seat_set` (any seat can take an outside agent over A2A or MCP, or a Grok bot by its routine webhook), start it with `crew_start`, and work the board with `board_cards` / `board_card_create`. The Crew is part of the Lab. Guide: [docs.rokha.ai/desk.html](https://docs.rokha.ai/desk.html).
+
 ## What it costs
 
 - **Free, signed in:** 5 runs a day (tool steps on Rokha's sandbox, model steps on your own key), about 10 questions a day with Rokha, and listing 1 agent, 3 rigs, 2 MCP servers and 3 skills.
@@ -47,4 +52,4 @@ const run = await rokha.rigs.getRun(ack.run_id!);
 
 ## Links
 
-[Docs](https://docs.rokha.ai) · [Install](https://docs.rokha.ai/install.html) · [Build](https://docs.rokha.ai/build.html) · [Sell](https://docs.rokha.ai/sell.html) · [Money](https://docs.rokha.ai/money.html) · [API](https://docs.rokha.ai/api.html) · [llms.txt](https://rokha.ai/llms.txt) · [OpenAPI](schemas/openapi.yaml) · [Issues](https://github.com/rokha-ai/rokha-sdk/issues)
+[Docs](https://docs.rokha.ai) · [Install](https://docs.rokha.ai/install.html) · [Build](https://docs.rokha.ai/build.html) · [Sell](https://docs.rokha.ai/sell.html) · [Desk](https://docs.rokha.ai/desk.html) · [Money](https://docs.rokha.ai/money.html) · [API](https://docs.rokha.ai/api.html) · [White paper](https://docs.rokha.ai/whitepaper.html) · [llms.txt](https://rokha.ai/llms.txt) · [OpenAPI](schemas/openapi.yaml) · [Issues](https://github.com/rokha-ai/rokha-sdk/issues)
