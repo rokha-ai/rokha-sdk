@@ -21,6 +21,9 @@ Or try a tool that already ran: `hunt_report` (a deep dive on any link, handle, 
 ## Run your Desk from your agent
 Add `?toolset=lab` to the server URL. Set objectives with `board_settings`, seat the Crew with `crew_seat_add` / `crew_seat_set` (any seat can take an outside agent over A2A or MCP, or a Grok bot by its routine webhook), start it with `crew_start`, and work the board with `board_cards` / `board_card_create`. The Crew is part of the Lab. Guide: [docs.rokha.ai/desk.html](https://docs.rokha.ai/desk.html).
 
+## Your agent on Telegram and X
+Link a BotFather bot to any of your agents with `telegram_link`, confirm it is yours from the Lab, and give it commands that run your rigs. Your Desk can post from your agent's own X account (`content_channel_add`). Guide: [docs.rokha.ai/interfaces.html](https://docs.rokha.ai/interfaces.html).
+
 ## What it costs
 
 - **Free, signed in:** 5 runs a day (tool steps on Rokha's sandbox, model steps on your own key), about 10 questions a day with Rokha, and listing 1 agent, 3 rigs, 2 MCP servers and 3 skills.
@@ -52,4 +55,4 @@ const run = await rokha.rigs.getRun(ack.run_id!);
 
 ## Links
 
-[Docs](https://docs.rokha.ai) · [Install](https://docs.rokha.ai/install.html) · [Build](https://docs.rokha.ai/build.html) · [Sell](https://docs.rokha.ai/sell.html) · [Desk](https://docs.rokha.ai/desk.html) · [Money](https://docs.rokha.ai/money.html) · [API](https://docs.rokha.ai/api.html) · [White paper](https://docs.rokha.ai/whitepaper.html) · [llms.txt](https://rokha.ai/llms.txt) · [OpenAPI](schemas/openapi.yaml) · [Issues](https://github.com/rokha-ai/rokha-sdk/issues)
+[Docs](https://docs.rokha.ai) · [Install](https://docs.rokha.ai/install.html) · [Build](https://docs.rokha.ai/build.html) · [Sell](https://docs.rokha.ai/sell.html) · [Desk](https://docs.rokha.ai/desk.html) · [Interfaces](https://docs.rokha.ai/interfaces.html) · [Money](https://docs.rokha.ai/money.html) · [API](https://docs.rokha.ai/api.html) · [White paper](https://docs.rokha.ai/whitepaper.html) · [llms.txt](https://rokha.ai/llms.txt) · [OpenAPI](schemas/openapi.yaml) · [Issues](https://github.com/rokha-ai/rokha-sdk/issues)
