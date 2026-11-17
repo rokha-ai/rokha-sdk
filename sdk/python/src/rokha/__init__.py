@@ -10,6 +10,7 @@ from rokha.types import (
     RunLadder,
     RunPack,
     StudioAccess,
+    LabStatus,
     Task,
     User,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "RunLadder",
     "RunPack",
     "StudioAccess",
+    "LabStatus",
     "Task",
     "User",
 ]

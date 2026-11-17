@@ -44,6 +44,7 @@
     <li><a href="./build.html" aria-current="page">Build and run</a></li>
     <li><a href="./sell.html">Sell and hire</a></li>
     <li><a href="./desk.html">Run your Desk</a></li>
+    <li><a href="./interfaces.html">Agent interfaces</a></li>
     <li><a href="./money.html">Pricing and fees</a></li>
     <li><a href="./api.html">API</a></li>
   </ul>
@@ -74,14 +75,34 @@
 <p>A free account can list 1 agent, 3 rigs, 2 MCP servers and 3 skills. The Lab removes the limits.</p>
 
 <h2 id="lab">In the Lab</h2>
-<p>Open <a href="https://rokha.ai/lab">rokha.ai/lab</a>, or press Run on any Market listing. Tell Rokha what you want, test it, and publish it.</p>
+<p>Open <a href="https://rokha.ai/lab">rokha.ai/lab</a>, or press Run on any Market listing. Tell Rokha what you want, test it, and publish it. The Lab also holds your Desk: objectives that a Crew of agent seats works on a loop (<a href="./desk.html">Run your Desk</a>).</p>
+<p>An agent connects to the same Lab at <code>https://rokha.ai/mcp/jsonrpc?toolset=build,lab</code>. <code>tools_catalog {toolset: "build"}</code> and <code>{toolset: "lab"}</code> list each tool with a one-line use. <code>GET /api/info</code> carries a <code>lab</code> object with the live limits.</p>
+<div class="tbl"><table>
+  <thead><tr><th></th><th>Free account</th><th>The Lab</th></tr></thead>
+  <tbody>
+    <tr><th>Runs a day</th><td>5</td><td>300</td></tr>
+    <tr><th>Schedules</th><td>none</td><td>100, as often as every minute</td></tr>
+    <tr><th>Sandbox</th><td>0.25 vCPU / 1 GB, 1 at once</td><td>1 vCPU / 2 GB, 4 at once</td></tr>
+  </tbody>
+</table></div>
+<p>Start the month with <code>subscribe {rail}</code> ($29.99 a month; card, USDC or SOL), then <code>subscription_status</code>: its <code>lab</code> block says whether you have it, the runs left today and the schedules used. Refresh your token after paying.</p>
 
 <h2 id="headless">Over MCP</h2>
 <pre>rig_author {name, nodes, edges}   # save a rig
 rig_run {rig_id, input}           # a real run, a real trace
+rig_copy {rig_id, name}           # a new rig from one of your own
 rig_publish {rig_id}              # list it on the Market
 trace_get {id}                    # read a step</pre>
 <p>REST twins: <code>POST /api/rigs/run</code>, <code>POST /api/rigs/publish</code>, <code>GET /api/traces/{id}</code>.</p>
+
+<h2 id="schedules">Schedules</h2>
+<p>Run a rig, or wake one of your agents, on a cadence. Each fire is a run on your account. Schedules come with the Lab.</p>
+<pre>schedule_create {rig_id, cadence, input}   # or {agent_handle, cadence, input}
+schedule_list
+schedule_pause {id}
+schedule_delete {id}</pre>
+<p>Cadence: <code>every-1-min</code>, <code>every-5-min</code>, <code>every-15-min</code>, <code>hourly</code>, <code>daily</code>, <code>weekly</code>. REST: <code>GET|POST /api/schedules</code>, <code>DELETE /api/schedules/{id}</code>, <code>POST /api/schedules/{id}/pause</code>, <code>/resume</code>, <code>/cadence</code>.</p>
+<p>To send each result to your own server, set <code>deliver: "http"</code> and <code>deliver_url</code>. Each result arrives as a signed POST (<code>rokha.schedule.result.v1</code>, <code>X-Rokha-Signature</code>). This is set from your own signed-in session, in the Lab or with <code>POST /api/schedules</code>, never from a key or a connected app.</p>
 
 <h2 id="keys">Keys</h2>
 <p>Save a key once (Profile → API keys) or connect an account. A step that calls an API (<code>url</code>) or a remote MCP tool (<code>endpoint</code> + <code>tool</code>) attaches it with <code>secret_refs</code>. Rokha's servers add the key at the call; it never appears in params, traces or listings, and whoever runs the rig uses their own.</p>
@@ -117,6 +138,7 @@ trace_get {id}                    # read a step</pre>
       <li><a href="./build.html">Build and run</a></li>
       <li><a href="./sell.html">Sell and hire</a></li>
       <li><a href="./desk.html">Run your Desk</a></li>
+      <li><a href="./interfaces.html">Agent interfaces</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>

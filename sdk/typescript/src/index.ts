@@ -56,4 +56,5 @@ export type {
   BudgetRefusalCode,
   SubscribeRequest,
   StudioAccess,
+  LabStatus,
 } from './types.js';

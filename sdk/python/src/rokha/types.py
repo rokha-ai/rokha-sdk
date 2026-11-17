@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, Optional, TypedDict
 
 HarnessType = Literal["persona", "preference", "strategy", "knowledge", "compliance"]
 
@@ -112,6 +112,19 @@ class BudgetRefusal(TypedDict, total=False):
     ladder: RunLadder
 
 
+class LabStatus(TypedDict, total=False):
+    """Do I have the Lab, and what is left today. Unreadable figures are None."""
+
+    has_lab: bool
+    runs_per_day: int
+    runs_used_today: Optional[int]
+    runs_left_today: Optional[int]
+    schedules_cap: int
+    schedules_used: Optional[int]
+    fastest_cadence: str
+    resets: str
+
+
 class StudioAccess(TypedDict, total=False):
     """``GET /api/studio/access`` — your own Lab entitlement."""
 
@@ -119,3 +132,4 @@ class StudioAccess(TypedDict, total=False):
     access: str
     current_period_end: str
     tokens: float
+    lab: LabStatus

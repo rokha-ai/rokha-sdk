@@ -30,6 +30,7 @@ NAV = [
         ("build.html", "Build and run"),
         ("sell.html", "Sell and hire"),
         ("desk.html", "Run your Desk"),
+        ("interfaces.html", "Agent interfaces"),
         ("money.html", "Pricing and fees"),
         ("api.html", "API"),
     ]),
@@ -124,6 +125,7 @@ FOOT = f"""
       <li><a href="./build.html">Build and run</a></li>
       <li><a href="./sell.html">Sell and hire</a></li>
       <li><a href="./desk.html">Run your Desk</a></li>
+      <li><a href="./interfaces.html">Agent interfaces</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>
