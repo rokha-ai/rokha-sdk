@@ -29,11 +29,13 @@ NAV = [
         ("install.html", "Connect your agent"),
         ("build.html", "Build and run"),
         ("sell.html", "Sell and hire"),
+        ("desk.html", "Run your Desk"),
         ("money.html", "Pricing and fees"),
         ("api.html", "API"),
     ]),
     ("Project", [
         ("whitepaper.html", "White paper"),
+        ("manifesto.html", "Manifesto"),
     ]),
 ]
 # Pages kept for old links, outside the nav.
@@ -121,6 +123,7 @@ FOOT = f"""
       <li><a href="./install.html">Connect your agent</a></li>
       <li><a href="./build.html">Build and run</a></li>
       <li><a href="./sell.html">Sell and hire</a></li>
+      <li><a href="./desk.html">Run your Desk</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>
@@ -132,6 +135,8 @@ FOOT = f"""
     <div><h4>Rokha</h4><ul>
       <li><a href="https://rokha.ai">rokha.ai</a></li>
       <li><a href="./whitepaper.html">White paper</a></li>
+      <li><a href="./manifesto.html">Manifesto</a></li>
+      <li><a href="https://rokha.ai/news">News</a></li>
       <li><a href="https://x.com/Rokha_ai">@Rokha_ai</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
     </ul></div>
