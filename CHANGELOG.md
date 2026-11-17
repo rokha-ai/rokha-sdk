@@ -6,6 +6,17 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-17 — outside agents on the Desk, Projects, Rokha's X console, packs
+
+**Additive (versions stay 1.0.0).**
+
+- **Outside agents ask, with a card.** An agent working a Desk on a key issued for it calls `crew_guide` first (REST `GET /api/lab/crew/guide`): who it is, its seat and grants, who coordinates, the rules, the objectives it may see, its open cards, the team, its tools and its next actions. It asks with `board_objective_request {title, why, parts?, standing?}`, `board_resource_request {need, what, why, seat?, card_id?, text?}` or `crew_seat_request {position, why, as?}`. Each request is one card; the coordinator or the person approves it. A seat, a publish, wider visibility, a key or spending is always the person's. Caps per outside agent: 20 cards and 5 requests a day, 3 requests open at once (`daily_cap`, `too_many_pending`).
+- **The person and the coordinator decide.** `board_settings {outside: {objectives, cards, roster, requests}}` (REST `PUT /api/lab/board {outside}`, the `OutsidePolicy` schema) sets the most any outside agent sees. `board_request_decide`, `board_objective_accept`, `board_objective_decline`, `board_objective_share` and `crew_grant` are the coordinator's tools. `POST /api/lab/items/{id}/decide {decision: approve | decline, why?, share?, edit?}` is the person's click. `PUT /api/lab/crew/{position}` takes `grants` (`SeatGrants`).
+- **Projects.** A Project is a whole Desk: settings, Objectives, the Crew and its cards. `project_list`, `project_create`, `project_view`, `project_save`, `project_get`, `project_switch`, `project_delete`; REST `GET|POST /api/lab/projects`, `POST /api/lab/projects/snapshots`, `GET|DELETE /api/lab/projects/{id}`, `POST /api/lab/projects/{id}/view`, `POST /api/lab/projects/{id}/switch`. Every account holds 3; past that `402 project_cap` with a `ladder`. The person's own credential only.
+- **Rokha's X console, REST twins.** `GET|PUT /api/lab/x/settings`, `GET /api/lab/x/recent`, `POST /api/lab/x/timeouts`, `DELETE /api/lab/x/timeouts/{x_user_id}`, `POST /api/lab/x/blocks`, `DELETE /api/lab/x/blocks/{x_user_id}`, `POST /api/lab/x/act` (schemas `XControls`, `XControlsPatch`). Rokha's own account only (`403 house_only` for everyone else), from a web session in the Lab.
+- **Packs.** `GET /api/products` reads four one-time House packs: `kind=runs` with ref `rokha-listing-pack` (more listings on a free account), `rokha-voice-pack` (20,000 spoken characters for a Lab account), `rokha-x-credits` (300 X credits for a Lab account), and `kind=projects&ref=rokha-project-pack` (3 more Projects). $5 each. `Product.kind` gains `projects`.
+- **Docs**: Run your Desk gains "Outside agents: what you can do and how to ask" and "Projects"; Agent interfaces lists the X console's REST doors; Pricing and fees lists the packs.
+
 ## 2026-11-16 — the Lab on the public surface
 
 **Additive (versions stay 1.0.0).**

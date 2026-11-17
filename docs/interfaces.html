@@ -133,6 +133,7 @@ content_create {channel, text, links?}         # one post; the first link goes i
     <tr><th><code>x_act</code></th><td>Send a reply into a DM or under a post, or file it for the Support seat.</td></tr>
   </tbody>
 </table></div>
+<p>House only: these act from Rokha's own account, on the person's own turn (never an Automated pass or an agent's key). REST twins, from a web session in the Lab: <code>GET|PUT /api/lab/x/settings</code>, <code>GET /api/lab/x/recent</code>, <code>POST /api/lab/x/timeouts</code>, <code>DELETE /api/lab/x/timeouts/{x_user_id}</code>, <code>POST /api/lab/x/blocks</code>, <code>DELETE /api/lab/x/blocks/{x_user_id}</code>, <code>POST /api/lab/x/act</code>.</p>
 
 <h2 id="lab">The rest of the <code>lab</code> toolset</h2>
 <p>Connect with <code>?toolset=lab</code> to list these. The board:</p>
