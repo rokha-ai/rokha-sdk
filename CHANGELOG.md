@@ -6,6 +6,10 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-17 (later)
+
+- Projects run concurrently: every Lab door on the board, cards, Crew and communities takes an optional `x-rokha-project` header (MCP: an optional `project` argument); absent means your default Project. A key issued for one agent is bound to its seat's Project.
+
 ## 2026-11-17 — outside agents on the Desk, Projects, Rokha's X console, packs
 
 **Additive (versions stay 1.0.0).**
