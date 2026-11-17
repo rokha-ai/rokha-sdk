@@ -6019,6 +6019,8 @@ paths:
                   disclaimer: { type: string }
 
   /api/lab/items:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "The Captain's log — your Lab's log items (callouts · flags · notes), ready first by priority"
@@ -6078,6 +6080,8 @@ paths:
         '422': { description: "`bad_kind` · `bad_title` · `bad_body` · `bad_facts`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/items/{id}:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "One of your own board cards"
@@ -6096,6 +6100,8 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/lab/items/{id}/{verb}:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     post:
       tags: [desk]
       summary: "Act on a log item or a board card"
@@ -6129,6 +6135,8 @@ paths:
         '502': { description: "`file_failed` — GitHub refused the filing; carries `reason`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/items/{id}/decide:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     post:
       tags: [desk]
       summary: "Approve or decline a request card (the person's click)"
@@ -6183,6 +6191,8 @@ paths:
         '409': { description: "`why_required`, or `refused` with the reason in `message` (not a request card, already decided, a bad share or edit, the seat could not take the agent)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/board:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "Your Lab board — columns, cards, objectives and the working agreement"
@@ -6221,6 +6231,8 @@ paths:
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/board/objectives:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     put:
       tags: [desk]
       summary: "Set the board's objectives (a new version; a new objective starts the Crew on it)"
@@ -6250,6 +6262,8 @@ paths:
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/board/needs-you:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "Cards waiting on you, oldest first"
@@ -6266,6 +6280,8 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "Your Crew — its seats, who holds each, and how cards route"
@@ -6305,6 +6321,8 @@ paths:
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew/{position}:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     put:
       tags: [desk]
       summary: "Change a seat (who holds it, paused or active, how it works, its tools)"
@@ -6354,6 +6372,8 @@ paths:
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew/start:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     post:
       tags: [desk]
       summary: "Start the Crew on a goal"
@@ -6459,6 +6479,8 @@ paths:
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew/{position}/dispatch:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     post:
       tags: [desk]
       summary: "Hand a card to a seat now"
@@ -6505,6 +6527,8 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew/guide:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "Who you are on this Desk and what you can do (call this first)"
@@ -6528,6 +6552,8 @@ paths:
         '503': { description: "`unreadable` — the board could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/communities:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "The communities your work is talked about in, and who answers there"
@@ -6547,6 +6573,8 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/communities/feed:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "What happened in one community, newest first"
@@ -6571,6 +6599,8 @@ paths:
         '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/communities/seat:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     put:
       tags: [desk]
       summary: "Designate the seat that answers in a community"
@@ -6596,6 +6626,8 @@ paths:
         '404': { description: "`not_found` — not a seat on your Crew", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew/dispatches:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     get:
       tags: [desk]
       summary: "Recent hand-offs to your seats"
@@ -6614,6 +6646,8 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/crew/routing:
+    parameters:
+      - $ref: '#/components/parameters/RokhaProject'
     put:
       tags: [desk]
       summary: "Choose which seat owns each column and card kind, and the daily limits"
@@ -7761,6 +7795,14 @@ components:
         before expiry (24h default).
 
   parameters:
+    RokhaProject:
+      name: x-rokha-project
+      in: header
+      required: false
+      description: >-
+        Which of your Projects this call acts on: a Project id, or the name of one of yours. Absent means your default Project. Each Project is its own live board (settings, Objectives, Crew, cards); a foreign or unknown one answers 404. A key issued for one agent is bound to its seat's Project and cannot name another. MCP tools take the same thing as an optional `project` argument.
+      schema:
+        type: string
     SkillName:
       name: name
       in: path
