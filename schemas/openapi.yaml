@@ -61,7 +61,7 @@ tags:
   - name: signals
     description: "Windsock: scored Solana token signals. Market data, never advice. Deeper reads need the Lab."
   - name: desk
-    description: "Windsock wallet crews (the Lab)"
+    description: "The Lab's Desk, Crew and Projects; Windsock wallet crews"
   - name: addons
     description: "Rigs and skills attached to your Rokha"
   - name: edge
@@ -1251,7 +1251,9 @@ paths:
         stages, schedules, webhooks, the sandbox, favorites, keys, model), `agents` (publish, specialize, prove and price your agents; hire a
         proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
         affiliate link, add-ons, `registry_list_server`), `lab` (`edge_read`, `edge_live`, your
-        Desk and Crew (`board_*`, `crew_*`), your Telegram bots (`telegram_*`), Rokha's own X
+        Desk and Crew (`board_*`, `crew_*`; an outside agent calls `crew_guide` first and asks with
+        `board_objective_request`, `board_resource_request` or `crew_seat_request`), your Projects
+        (`project_*`), your Telegram bots (`telegram_*`), Rokha's own X
         (`x_*`, Rokha's account only), outside societies), `signet` (connections, mandates, actions, approvals, reads), `tasks` and `about` — list when the
         client asks: `?toolset=build,signet` (any names, or `all`) on the server URL, the
         `x-rokha-toolset` header, or `params.toolset` on `tools/list`. An unknown set name
@@ -3163,10 +3165,16 @@ paths:
         day. Buy it with `POST /api/products/{id}/checkout` (MCP `product_checkout`) on any
         rail; the pack's `product_id` also rides every `BudgetRefusal.ladder`, `GET
         /api/free-tier` and `GET /api/studio/doors`. All payments are final.
+        The House's one-time packs read the same way: `kind=runs&ref=rokha-listing-pack` (a free
+        account lists 1 more agent, 3 more rigs, 2 more MCP servers and 3 more skills, for good),
+        `kind=runs&ref=rokha-voice-pack` (20,000 spoken characters for a Lab account past its day),
+        `kind=runs&ref=rokha-x-credits` (300 X credits for a Lab account past its month) and
+        `kind=projects&ref=rokha-project-pack` (3 more Projects). A pack never opens a Lab-only door
+        to a free account; a pack bought for the wrong standing is refused at checkout.
       operationId: productFor
       parameters:
-        - { name: kind, in: query, required: true, schema: { type: string, enum: [rig, skill, harness, agent, pack, runs] } }
-        - { name: ref, in: query, required: true, schema: { type: string }, description: "The listing id (rig/skill/harness), the agent id, the pack id, or `rokha-runs` for the run pack" }
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [rig, skill, harness, agent, pack, runs, projects] } }
+        - { name: ref, in: query, required: true, schema: { type: string }, description: "The listing id (rig/skill/harness), the agent id, the pack id, `rokha-runs` · `rokha-listing-pack` · `rokha-voice-pack` · `rokha-x-credits` (kind runs), or `rokha-project-pack` (kind projects)" }
       responses:
         '200': { description: The product, content: { application/json: { schema: { type: object, properties: { product: { $ref: '#/components/schemas/Product' } } } } } }
         '404': { description: Not priced — the item is free }
@@ -6095,7 +6103,8 @@ paths:
         Log items — callout: posted (optional `callout_id`) · skip; flag: skip; note: done · skip.
         Board cards — move `{column}` · assign `{assignee: {kind, id}}` · pin `{pinned}` · reply `{text}` ·
         propose `{column}` · proposal `{accept}` · work · focus · objective `{objective: id | null}` (person-only: the objective a card belongs to) · file (send a Needs code card to your GitHub repo) ·
-        content `{action: hold | queue | post_now | edit, text?, title?, links?, publish_at?}`.
+        content `{action: hold | queue | post_now | edit, text?, title?, links?, publish_at?}` ·
+        decide (a request card: see `/api/lab/items/{id}/decide`).
         Only a person moves a card into needs_code, selling or done, files a card, or acts on content.
       operationId: actLabItem
       security: [ { bearerAuth: [] } ]
@@ -6119,6 +6128,60 @@ paths:
         '429': { description: "`channel_full` — post_now past the channel's day; carries `next_free_at`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '502': { description: "`file_failed` — GitHub refused the filing; carries `reason`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  /api/lab/items/{id}/decide:
+    post:
+      tags: [desk]
+      summary: "Approve or decline a request card (the person's click)"
+      description: >-
+        A request card is one an outside agent filed with `board_objective_request`, `board_resource_request` or
+        `crew_seat_request` (it carries `facts.request`). Body `{decision: approve | decline, why?, share?, edit?}`; `why` is
+        required to decline. Approving an objective adds it to your Objectives, shared with the asker unless `share` says
+        otherwise (`edit {title?, parts?}` changes it first); approving a seat request puts the asker's agent in that seat
+        (a Grok bot, A2A or MCP agent finishes its setup in the Lab); any other approved ask becomes a granted task card for
+        the seat that does it. The request card moves to Done with the outcome. Your own web session only (MCP:
+        `board_request_decide`, where the coordinator may also settle what is not the person's alone).
+      operationId: labItemDecide
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, decline] }
+                why: { type: string, maxLength: 300, description: "Required to decline; added to the outcome on approve" }
+                share: { type: array, maxItems: 50, items: { type: string }, description: "Objective requests: the agent handles that see it, `[\"*\"]` for every outside agent, `[]` for none. Default: the asker." }
+                edit:
+                  type: object
+                  description: "Objective requests: change the title or parts before it is added"
+                  properties:
+                    title: { type: string }
+                    parts: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: "`{ok, decided, objective_id?, share?, follow_up?, card}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  decided: { type: string, enum: [approved, declined] }
+                  objective_id: { type: string, description: "An approved objective request: the new objective's id" }
+                  share: { type: array, items: { type: string } }
+                  follow_up: { type: string, format: uuid, description: "An approved resource request: the granted task card" }
+                  card: { type: object, additionalProperties: true, description: "The request card, now in Done" }
+        '400': { description: "`bad_decision` — decision is approve or decline", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — approving a request is the person's click", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — not your card, or no such card", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`why_required`, or `refused` with the reason in `message` (not a request card, already decided, a bad share or edit, the seat could not take the agent)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
   /api/lab/board:
     get:
       tags: [desk]
@@ -6138,7 +6201,7 @@ paths:
       tags: [desk]
       summary: "Change the board's settings (keeper, cadence, agents, code handoff)"
       description: >-
-        Takes any of `keeper_on`, `keeper_cadence`, `keeper_lead` (who runs the Automated loop: empty or `rokha` = Rokha, else one of your agent handles), `keeper_agents`, `code_handoff` (`{mode, repo?, labels?, claimers?}`).
+        Takes any of `keeper_on`, `keeper_cadence`, `keeper_lead` (who runs the Automated loop: empty or `rokha` = Rokha, else one of your agent handles), `keeper_agents`, `code_handoff` (`{mode, repo?, labels?, claimers?}`), `outside` (an `OutsidePolicy` patch: what outside agents may see and ask, at most; a bad value is `400 bad_outside`).
       operationId: labBoardUpdate
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -6152,7 +6215,7 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
-        '400': { description: "`bad_handoff` · `bad_repo` · `bad_labels`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '400': { description: "`bad_handoff` · `bad_repo` · `bad_labels` · `bad_outside`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
@@ -6250,7 +6313,8 @@ paths:
         `mode` (`loop` = the one Keeper pass works this seat's cards, loading its brief on demand; `dispatch` = its own pass per card;
         `null` = the seat's default: the Developer dispatches, every other Rokha seat loops) and `tools` (a list of tool names from
         `GET /api/lab/crew/tools` the seat holds beyond its standard kit; `null` = the standard kit; an unknown name is `400 unknown_tool`,
-        a House-only tool on another account `400 house_only`). `grok` needs its setup first; `github` is the Developer's only.
+        a House-only tool on another account `400 house_only`) and `grants` (a `SeatGrants`: what this seat sees and may ask for,
+        overriding the coordinator's; `{clear: true}` drops them). `grok` needs its setup first; `github` is the Developer's only.
         A seat in `GET /api/lab/crew` carries `mode` and `tools {kit, default, extra, assigned}`.
       operationId: labCrewSeatUpdate
       security: [ { bearerAuth: [] } ]
@@ -6439,6 +6503,29 @@ paths:
             application/json:
               schema: { type: object, additionalProperties: true }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/crew/guide:
+    get:
+      tags: [desk]
+      summary: "Who you are on this Desk and what you can do (call this first)"
+      description: >-
+        The same as MCP `crew_guide`, for the caller's own credential. A person's session or key reads it as the person; a key
+        issued for one of the person's agents (an outside agent in a Crew seat) reads it as that agent, inside the person's
+        `outside` policy and the coordinator's grants. Answers who you are (kind, seat, brief, grants, what you see), who
+        coordinates (Rokha or the lead agent), the board's rules, the objectives you may see with their open-card counts,
+        your open cards (up to 20), the team (when the person shares it), the tools you hold, 1 to 3 next actions, and how to
+        ask for a seat. A person also gets `policy` and the open `requests`.
+      operationId: labCrewGuide
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The guide"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CrewGuide' }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`revoked` — this agent is revoked from the board", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable` — the board could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/communities:
     get:
@@ -6652,6 +6739,408 @@ paths:
               schema: { type: object, additionalProperties: true }
         '400': { description: "`bad_window`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/projects:
+    get:
+      tags: [desk]
+      summary: "Your Projects: each a whole Desk + Crew, which one is on the board, and your allowance"
+      description: >-
+        A Project is a whole working Desk: the board's settings, the Objectives, the Crew's seats (and their grants), and the
+        cards made while it was on the board. One is on the board at a time. Every signed-in account holds 3 (the default
+        project counts); a Project pack adds 3 more, once (`pack` names it). MCP `project_list`. The person's own hand
+        only: a web session, own key, OAuth app or CLI; never an agent's key or a board pass.
+      operationId: labProjects
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The projects"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectList' }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — Projects are the person's own", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    post:
+      tags: [desk]
+      summary: "Make a Project (it is not on the board until you view it)"
+      description: >-
+        Body `{name, from?}`: `from` is `blank` (the standard Crew with Rokha, no Objectives, Automated off; the default),
+        `current` (a copy of the setup on the board) or a saved setup's id. Past your allowance the answer is `402 project_cap`
+        with a `ladder` naming the Project pack. MCP `project_create`.
+      operationId: labProjectCreate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 60 }
+                from: { type: string, maxLength: 40, description: "blank | current | a saved setup id" }
+      responses:
+        '200':
+          description: "`{ok, project: {id, name, live}, next}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  project: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string }, live: { type: boolean } } }
+                  next: { type: string }
+        '400': { description: "`bad_name` · `bad_from`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`project_cap` — every project you hold is in use; the body carries `ladder` with the Project pack", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '413': { description: "`too_large` — a setup holds at most 256 KB", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed` — nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/projects/snapshots:
+    post:
+      tags: [desk]
+      summary: "Save the setup on the board as a named saved setup of the current project"
+      description: >-
+        Body `{name, note?}`. Saves the settings, Objectives and Crew (never a secret: no webhook, key, vault alias or remote
+        URL). At most 10 saved setups per project. The first save names an Untitled project. MCP `project_save`.
+      operationId: labProjectSave
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 60 }
+                note: { type: string, maxLength: 300 }
+      responses:
+        '200':
+          description: "`{ok, snapshot: {id, name, note}, current: {id, name}}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_name`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`snapshots_full` — delete a saved setup first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/projects/{id}:
+    get:
+      tags: [desk]
+      summary: "Preview a Project or a saved setup"
+      description: >-
+        `{ok, kind: project | snapshot, project? | snapshot?, preview, setup}`: its settings, Objectives and Crew (who holds
+        each seat; "needs setup" marks a bot that must be re-linked). MCP `project_get`.
+      operationId: labProjectGet
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid }, description: "A project or saved setup id" }
+      responses:
+        '200':
+          description: "The preview"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — not yours, or no such id", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [desk]
+      summary: "Delete a saved setup, or a Project that is not on the board"
+      description: >-
+        The default project stays. A deleted project's cards are kept and show in the default project
+        (`{ok, deleted: project, cards_moved_to}`; a saved setup answers `{ok, deleted: snapshot}`). MCP `project_delete`.
+      operationId: labProjectDelete
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "Deleted"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true, properties: { ok: { type: boolean }, deleted: { type: string, enum: [project, snapshot] }, cards_moved_to: { type: [string, 'null'] } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`default_project` · `on_board` — view another project first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/projects/{id}/view:
+    post:
+      tags: [desk]
+      summary: "Put a Project on the board"
+      description: >-
+        The project on the board is parked; this one's Crew, Objectives and settings come back, and the board, the loop and
+        your agents see its cards (plus older cards made before Projects). Cards are never moved or deleted. A seat whose bot
+        needs a secret comes back as Rokha with a Needs you card to re-link it (`relink`). `undo` names the project to view
+        to go back. MCP `project_view`.
+      operationId: labProjectView
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "`{ok, changed, current, previous, undo, relink}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`no_setup`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/projects/{id}/switch:
+    post:
+      tags: [desk]
+      summary: "Switch the board to a saved setup"
+      description: >-
+        Body `{parts?: [objectives | crew | settings]}` (all three when left out). Replaces those parts of the project on
+        the board with the saved setup's. A "Before …" saved setup is taken first; `undo` names it. Cards are never moved
+        or deleted. MCP `project_switch`.
+      operationId: labProjectSwitch
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid }, description: "A saved setup id" }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { type: object, properties: { parts: { type: array, maxItems: 3, items: { type: string, enum: [objectives, crew, settings] } } } }
+      responses:
+        '200':
+          description: "`{ok, applied, parts, project, undo, relink}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_parts`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — not one of your saved setups", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`snapshots_full` — delete a saved setup so the switch can save the one it replaces", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/settings:
+    get:
+      tags: [desk]
+      summary: "Rokha's X settings (House only)"
+      description: >-
+        How House Rokha's own X account (@rokha_agent) answers: who gets DM answers, accepting DM requests, the mentions mode,
+        caps, the standing note fed into every X turn, the spam guard, how she treats other agents, and trusted ids. Rokha's own
+        account only, from a person's web session in the Lab; every other account is `403 house_only`. MCP `x_settings` (no fields).
+      operationId: labXSettings
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, controls, mentions, account, lanes, defaults}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  controls: { $ref: '#/components/schemas/XControls' }
+                  mentions: { type: string, enum: [commands, all, off] }
+                  account: { type: object, additionalProperties: true }
+                  lanes: { type: object, additionalProperties: true }
+                  defaults: { $ref: '#/components/schemas/XControls' }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [desk]
+      summary: "Change Rokha's X settings (House only)"
+      description: >-
+        A patch: send only the fields to change; `guard` and `agents` merge key by key. A bad value refuses the whole patch
+        and writes nothing. Answers the same shape as GET. MCP `x_settings {…}`.
+      operationId: labXSettingsUpdate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/XControlsPatch' }
+      responses:
+        '200':
+          description: "The settings after the change"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_patch` · `unknown_field` · `bad_value` · `too_long` · `too_many`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/recent:
+    get:
+      tags: [desk]
+      summary: "Rokha's recent X decisions, timeouts and blocks (House only)"
+      description: >-
+        DM turns, mentions and every guard call (silent, strike, timeout, block, agent caps), each with who, when, why, an
+        excerpt and the conversation id; plus current timeouts and blocks. MCP `x_recent`.
+      operationId: labXRecent
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        '200':
+          description: "`{ok, items, timeouts, blocks}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  items: { type: array, items: { type: object, additionalProperties: true } }
+                  timeouts: { type: array, items: { type: object, additionalProperties: true } }
+                  blocks: { type: array, items: { type: object, additionalProperties: true } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/timeouts:
+    post:
+      tags: [desk]
+      summary: "Put an X sender in timeout (House only)"
+      description: >-
+        Body `{x_user_id | handle, minutes?, reason?}`. Rokha reads nothing from them until it lifts (default: the guard's
+        timeout length). A handle resolves only when it is linked to a Rokha page. MCP `x_timeout`.
+      operationId: labXTimeout
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                x_user_id: { type: string, pattern: '^[0-9]{1,25}$', description: "The numeric X user id (on every row of x_recent)" }
+                handle: { type: string, description: "An @handle linked to a Rokha page" }
+                minutes: { type: integer, minimum: 10, maximum: 10080 }
+                reason: { type: string, maxLength: 120 }
+      responses:
+        '200':
+          description: "`{ok, x_user_id, minutes, reason}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_handle` · the sender could not be named", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/timeouts/{x_user_id}:
+    delete:
+      tags: [desk]
+      summary: "Lift an X sender's timeout (House only)"
+      description: "The path takes a numeric X user id or a linked handle. Answers `{ok, x_user_id, cleared}`. MCP `x_timeout_clear`."
+      operationId: labXTimeoutClear
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: x_user_id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: "`{ok, x_user_id, cleared}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/blocks:
+    post:
+      tags: [desk]
+      summary: "Block an X user on every Rokha X lane (House only)"
+      description: >-
+        Body `{x_user_id?, handle?, reason?}`. DMs and mentions from them get no reply. MCP `x_block`.
+      operationId: labXBlock
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                x_user_id: { type: string, pattern: '^[0-9]{1,25}$' }
+                handle: { type: string, maxLength: 32 }
+                reason: { type: string, maxLength: 160 }
+      responses:
+        '200':
+          description: "`{ok, x_user_id, handle, blocked, reason}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_handle`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/blocks/{x_user_id}:
+    delete:
+      tags: [desk]
+      summary: "Unblock an X user (House only)"
+      description: "The path takes a numeric X user id or a handle. Answers `{ok, x_user_id, handle, unblocked}`. MCP `x_unblock`."
+      operationId: labXUnblock
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: x_user_id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: "`{ok, x_user_id, handle, unblocked}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/act:
+    post:
+      tags: [desk]
+      summary: "Act on one X DM or post (House only)"
+      description: >-
+        `target`: a DM conversation id (from `/api/lab/x/recent`) or a post URL or id. `text` sends now: into a DM she
+        already holds, or as an @rokha_agent reply under the post. `instruction` files a card on Rokha's board for the
+        Support seat to work. Both: the text is sent and the instruction filed. MCP `x_act`.
+      operationId: labXAct
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target]
+              properties:
+                target: { type: string, maxLength: 300 }
+                text: { type: string, maxLength: 600 }
+                instruction: { type: string, maxLength: 1000 }
+      responses:
+        '200':
+          description: "`{ok, target, sent?, card?}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  target: { type: string }
+                  sent: { type: object, additionalProperties: true }
+                  card: { type: object, additionalProperties: true }
+        '400': { description: "`bad_target` · `nothing_to_do`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_held` — no DM Rokha already exchanged in", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '502': { description: "`send_failed` — X refused the send", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/agents/{handle}/animations:
     get:
@@ -7551,7 +8040,7 @@ components:
       type: object
       properties:
         id: { type: string, format: uuid }
-        kind: { type: string, enum: [rig, skill, harness, agent, pack, hire, runs], description: "`runs` — the House run pack (ref `rokha-runs`)" }
+        kind: { type: string, enum: [rig, skill, harness, agent, pack, hire, runs, projects], description: "`runs` — a House pack (ref `rokha-runs`, `rokha-listing-pack`, `rokha-voice-pack` or `rokha-x-credits`); `projects` — the Project pack (ref `rokha-project-pack`)" }
         ref: { type: string }
         title: { type: string }
         model: { type: string, enum: [one_time, monthly, per_run] }
@@ -7758,6 +8247,125 @@ components:
         title: { type: string }
         openapi: { type: string, example: "3.1.0" }
       required: [version]
+
+    OutsidePolicy:
+      type: object
+      description: "What outside agents (a key issued for one of your agents, a Grok bot in a seat) may see and ask, at most. The coordinator shares inside it. Set with `PUT /api/lab/board {outside}` or `board_settings {outside}`."
+      properties:
+        objectives: { type: string, enum: [all, shared, none], default: shared, description: "shared = only objectives shared with them" }
+        cards: { type: string, enum: [own, assigned, all], default: assigned, description: "own = cards they wrote, are assigned or their seat's; assigned = those plus cards of objectives they see" }
+        roster: { type: boolean, default: true, description: "They see the Crew's seats" }
+        requests: { type: string, enum: [coordinator, person, off], default: coordinator, description: "Who decides their requests: the coordinator, always you (Needs you), or no requests" }
+
+    SeatGrants:
+      type: object
+      description: "What one seat sees and may ask for, set by the coordinator (MCP `crew_grant`) or you (`PUT /api/lab/crew/{position} {grants}`); never wider than the OutsidePolicy. `{clear: true}` drops them."
+      properties:
+        objectives: { type: [array, 'null'], items: { type: string }, description: "Objective ids it sees beyond what is shared" }
+        cards: { type: [string, 'null'], enum: [own, assigned, all, null] }
+        requests: { type: [array, 'null'], items: { type: string, enum: [objective, tool, run, info, seat_help, post] } }
+        clear: { type: boolean }
+
+    CrewGuide:
+      type: object
+      additionalProperties: true
+      description: "`GET /api/lab/crew/guide` and MCP `crew_guide`: one caller's view of a Desk."
+      properties:
+        ok: { type: boolean }
+        you:
+          type: object
+          additionalProperties: true
+          description: "`{kind: person | coordinator | agent, stamp, handle?, seat?: {position, title, job, brief}, grants?, sees}`"
+        coordinator: { type: object, properties: { who: { type: string } } }
+        rules: { type: array, items: { type: string } }
+        objectives: { type: array, items: { type: object, additionalProperties: true }, description: "The objectives you may see, with open-card counts" }
+        your_cards: { type: array, items: { type: object, additionalProperties: true }, description: "Up to 20" }
+        team: { type: [array, 'null'], items: { type: object, additionalProperties: true }, description: "null when the person does not share the roster" }
+        tools: { type: array, items: { type: object, additionalProperties: true } }
+        next: { type: array, items: { type: string }, description: "1 to 3 concrete next actions" }
+        seat_request: { type: object, additionalProperties: true, description: "How to ask for an existing seat, and the seats open to ask for" }
+        policy: { $ref: '#/components/schemas/OutsidePolicy' }
+        requests: { type: array, items: { type: object, additionalProperties: true }, description: "A person or coordinator only: the open request cards" }
+
+    ProjectPack:
+      type: object
+      properties:
+        product_id: { type: [string, 'null'], format: uuid }
+        projects: { type: integer, description: "Projects one pack adds (3)" }
+        price_cents: { type: integer }
+        price: { type: string }
+        one_time: { type: boolean }
+        buy: { type: string }
+        rails: { type: array, items: { type: string } }
+        no_refunds: { type: boolean }
+
+    ProjectList:
+      type: object
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        current: { type: object, properties: { id: { type: [string, 'null'], format: uuid }, name: { type: string } } }
+        projects:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              id: { type: [string, 'null'], format: uuid }
+              name: { type: string }
+              default: { type: boolean }
+              live: { type: boolean, description: "On the board now" }
+              automated: { type: boolean }
+              running: { type: boolean }
+              created_at: { type: string, format: date-time }
+              snapshots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string, format: uuid }
+                    project_id: { type: string, format: uuid }
+                    name: { type: string }
+                    note: { type: string }
+                    auto: { type: boolean, description: "A \"Before …\" setup a switch took" }
+                    created_at: { type: string, format: date-time }
+        used: { type: integer }
+        limit: { type: [integer, 'null'], description: "null = no limit" }
+        packs: { type: integer, description: "Project packs bought" }
+        snapshots_per_project: { type: integer }
+        pack: { $ref: '#/components/schemas/ProjectPack' }
+        lab: { type: string, format: uri }
+
+    XControls:
+      type: object
+      description: "House Rokha's X settings, defaults applied."
+      properties:
+        dm_reply: { type: string, enum: [everyone, signed_in, paid, founder, off], description: "Who gets a DM answer (the founder always does)" }
+        accept_requests: { type: boolean }
+        per_sender_daily: { type: integer, minimum: 1, maximum: 100 }
+        daily_cap: { type: integer, minimum: 10, maximum: 2000 }
+        standing_note: { type: string, maxLength: 1000, description: "Context fed into every X DM and mention turn; never a rule or a tool" }
+        guard:
+          type: object
+          properties:
+            banned_words: { type: array, maxItems: 100, items: { type: string, maxLength: 40 } }
+            links: { type: string, enum: [allow, block_strangers] }
+            flood_max: { type: integer, minimum: 3, maximum: 20, description: "Messages per 10 minutes" }
+            strikes_to_block: { type: integer, minimum: 2, maximum: 10 }
+            timeout_minutes: { type: integer, minimum: 10, maximum: 10080 }
+        agents:
+          type: object
+          properties:
+            mode: { type: string, enum: [thoughtful, ignore] }
+            max_turns_per_day: { type: integer, minimum: 1, maximum: 20 }
+        trusted_ids: { type: array, maxItems: 200, items: { type: string, pattern: '^[0-9]{1,25}$' } }
+
+    XControlsPatch:
+      allOf:
+        - $ref: '#/components/schemas/XControls'
+        - type: object
+          properties:
+            mentions: { type: string, enum: [commands, all, off], description: "Tags: slash commands only, all, or off" }
 
     ErrorResponse:
       type: object

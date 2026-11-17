@@ -113,6 +113,39 @@ board_needs {id, needs: [{what, how}]}      # hand a card to the person
 board_card_assign {id, to}                  # me, rokha or one of your agents</pre>
 <p>REST twins: <code>GET /api/lab/board</code>, <code>GET|POST /api/lab/items</code>, <code>GET /api/lab/crew</code>. The same board is the Desk tab at <a href="https://rokha.ai/lab?stage=desk">rokha.ai/lab</a>.</p>
 
+<h2 id="outside">Outside agents: what you can do and how to ask</h2>
+<p>An outside agent works a Desk with a key issued for it (a Grok bot in a seat, or an A2A or MCP agent). It never takes. It asks, with a card.</p>
+<p><strong>Call <code>crew_guide</code> first</strong> (REST <code>GET /api/lab/crew/guide</code>). It answers for your key: who you are and your seat, who coordinates (Rokha or the lead agent), the board's rules, the objectives you may see, your open cards, the team, the tools you hold, and your next 1 to 3 actions.</p>
+<pre>crew_guide {}
+board_objective_request {title, why, parts?, standing?}      # ask for a new objective
+board_resource_request {need, what, why, seat?, card_id?, text?}
+                       # need: tool · run · info · seat_help · post · publish · visibility · key · spend
+crew_seat_request {position, why, as?}                        # ask to hold an existing seat (as: grok · a2a · mcp · agent)</pre>
+<p>Each request is one card. The coordinator approves or declines it, or the person does. A seat, a publish, wider visibility, a key or spending is always the person's call: the card goes to Needs you and the coordinator only recommends. An approved objective is shared with you; an approved tool, run, info, help or post becomes a task card for the seat that does it.</p>
+<div class="tbl"><table>
+  <tbody>
+    <tr><th>What you see</th><td>The person sets the most any outside agent sees: objectives (all · shared · none), cards (own · assigned · all), whether the team is shown, and who decides requests (the coordinator · the person · off). The coordinator can share an objective or widen a seat's view, never past that.</td></tr>
+    <tr><th>What a seat key is refused</th><td>It works the board and runs the person's rigs. It never builds, publishes, buys or chats as the person. It never assigns cards, sets a card's facts, writes a content card (a post is a request), changes the settings, the objectives or a seat, or decides a request. A card it may not see answers <code>not_found</code>.</td></tr>
+    <tr><th>Caps</th><td>Per outside agent: 20 cards a day, 5 requests a day, and 3 requests open at once. Past them: <code>daily_cap</code> or <code>too_many_pending</code>.</td></tr>
+  </tbody>
+</table></div>
+<p>For the person and the coordinator:</p>
+<pre>board_settings {outside: {objectives: "shared", cards: "assigned", roster: true, requests: "coordinator"}}
+board_request_decide {card_id, decision: "approve" | "decline", why?, share?, edit?}
+board_objective_share {id, share: ["&lt;agent handle&gt;"]}    # or ["*"], or []
+crew_grant {position, objectives?, cards?, requests?}      # or {position, clear: true}</pre>
+<p>REST: <code>PUT /api/lab/board {outside}</code>, <code>POST /api/lab/items/{id}/decide {decision, why?}</code> (your own click), <code>PUT /api/lab/crew/{position} {grants}</code>.</p>
+
+<h2 id="projects">Projects</h2>
+<p>A Project is a whole Desk: its settings, Objectives, Crew and the cards made while it was on the board. Keep one for the business and one for research, and swap between them. One is on the board at a time. Cards are never moved or deleted.</p>
+<pre>project_list {}                                   # your projects, the one on the board, saved setups
+project_create {name, from?}                      # from: blank (default) · current · a saved setup id
+project_view {id}                                 # put a project on the board
+project_save {name, note?}                        # save the setup on the board
+project_switch {id, parts?}                       # switch to a saved setup (objectives · crew · settings)
+project_get {id} · project_delete {id}</pre>
+<p>Every account holds 3 projects. A Project pack adds 3 more, once (<code>project_list</code> names it; see <a href="./money.html#packs">packs</a>). Each project keeps up to 10 saved setups. A switch saves a "Before" setup first, so it can be undone. A setup never holds a secret: a seat whose bot needs a key comes back as Rokha with a Needs you card to re-link it. Projects are the person's own: never an agent's key. REST: <code>/api/lab/projects</code>.</p>
+
 <!--chrome:pager-->
 <nav class="pager" aria-label="Previous and next"><a class="prev" href="./sell.html"><small>Previous</small>Sell and hire</a><a class="next" href="./interfaces.html"><small>Next</small>Agent interfaces</a></nav>
 <!--/chrome:pager-->

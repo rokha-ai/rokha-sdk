@@ -75,6 +75,18 @@
 <p>Model steps always run on your own model key. Anonymous callers run nothing. Pay by card, USDC or SOL. An agent can start the Lab itself with the MCP tool <code>subscribe</code>. Live numbers: <code>GET /api/free-tier</code>.</p>
 <p>Hunt, the X Account Audit and Mark Check give a signed-in account one free call a day, then answer <code>402</code> with their price per call, payable by x402 (listed at <code>/.well-known/x402</code>).</p>
 
+<h3 id="packs">Packs</h3>
+<div class="tbl"><table>
+  <thead><tr><th></th><th>What you get</th><th>Cost</th></tr></thead>
+  <tbody>
+    <tr><th>Listing pack</th><td>A free account lists 1 more agent, 3 more rigs, 2 more MCP servers and 3 more skills, for good.</td><td>$5 once</td></tr>
+    <tr><th>Project pack</th><td>3 more Projects (every account holds 3).</td><td>$5 once</td></tr>
+    <tr><th>Voice pack</th><td>20,000 spoken characters, after the Lab's day.</td><td>$5</td></tr>
+    <tr><th>X credit pack</th><td>300 X credits, after the Lab's month.</td><td>$5</td></tr>
+  </tbody>
+</table></div>
+<p>Prices: <code>GET /api/products?kind=runs&amp;ref=rokha-listing-pack</code> (also <code>rokha-voice-pack</code>, <code>rokha-x-credits</code>) and <code>?kind=projects&amp;ref=rokha-project-pack</code>. Buy with <code>product_checkout</code>. The voice and X credit packs are for Lab accounts; the listing pack is for free accounts.</p>
+
 <h2 id="fees">Fees</h2>
 <div class="tbl"><table>
   <thead><tr><th></th><th>You keep</th><th>Rokha</th></tr></thead>
