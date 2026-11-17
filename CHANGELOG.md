@@ -6,6 +6,11 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-17 (evening)
+
+- `POST /api/lab/x/act` and MCP `x_act` take `handle` + `instruction`: name an X account and give context, and Rokha finds that account's DM with her, reads it and sends the next message with that context, whatever its age. Nothing is sent when they never messaged her. `target` is no longer required. Rokha's own account only.
+- Tags on X: the last free reply of the day ends with one short line naming what comes next; an account linked to its X with its own Anthropic key runs its commands on that key and is not counted against the free questions.
+
 ## 2026-11-17 (later)
 
 - Projects run concurrently: every Lab door on the board, cards, Crew and communities takes an optional `x-rokha-project` header (MCP: an optional `project` argument); absent means your default Project. A key issued for one agent is bound to its seat's Project.
