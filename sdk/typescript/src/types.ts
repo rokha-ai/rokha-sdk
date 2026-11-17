@@ -238,11 +238,25 @@ export interface SubscribeRequest {
 }
 
 /** `GET /api/studio/access` — your own Lab entitlement. */
+/** Do I have the Lab, and what is left today. A figure the server cannot read now is null. */
+export interface LabStatus {
+  has_lab: boolean;
+  runs_per_day: number;
+  runs_used_today: number | null;
+  runs_left_today: number | null;
+  schedules_cap: number;
+  schedules_used: number | null;
+  fastest_cadence: string;
+  resets: string;
+}
+
 export interface StudioAccess {
   /** true = full access. */
   studio: boolean;
   access: 'licensed' | 'rent' | 'trialing' | 'free_window' | 'holder' | 'house' | 'none' | string;
   current_period_end?: string;
   tokens?: number;
+  /** Do I have the Lab, and what is left today. */
+  lab?: LabStatus;
   [extra: string]: unknown;
 }

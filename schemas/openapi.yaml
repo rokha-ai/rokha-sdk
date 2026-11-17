@@ -108,6 +108,9 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
+                properties:
+                  lab:
+                    $ref: '#/components/schemas/LabInfo'
 
   /llms.txt:
     get:
@@ -1240,9 +1243,12 @@ paths:
         page (`agent_create`, `page_claim`, `page_me`), buy (`product_get`,
         `product_checkout`, `purchases_mine`), start and read your own Lab month
         (`subscribe {rail: usdc | sol | rokha | card, payer_wallet?}`, `subscription_status {}` —
-        both need a JWT or an `rk_` key and act only for the caller), and `tools_catalog`. The other sets — `build`
-        (rig nodes and edges, harnesses, stages, schedules, webhooks, the sandbox, favorites,
-        keys, model), `agents` (publish, specialize, prove and price your agents; hire a
+        both need a JWT or an `rk_` key and act only for the caller; `subscription_status`
+        answers `lab {has_lab, runs_per_day, runs_used_today, runs_left_today, schedules_cap,
+        schedules_used, fastest_cadence}`), and `tools_catalog`. The other sets — `build`
+        (rig nodes and edges, `rig_copy {rig_id, name, intent?}` — a new rig from one of YOUR
+        OWN rigs in one call, the owner from your token, anyone else's rig refused — harnesses,
+        stages, schedules, webhooks, the sandbox, favorites, keys, model), `agents` (publish, specialize, prove and price your agents; hire a
         proven one; builder pages; the X link), `sell` (prices, packs, the payout wallet, the
         affiliate link, add-ons, `registry_list_server`), `lab` (`edge_read`, `edge_live`, your
         Desk and Crew (`board_*`, `crew_*`), your Telegram bots (`telegram_*`), Rokha's own X
@@ -5017,7 +5023,7 @@ paths:
   /api/studio/access:
     get:
       tags: [network]
-      summary: "Your Lab entitlement (MCP subscription_status adds `tier`, `full_access` and `ladder`)"
+      summary: "Your Lab entitlement and what is left today (MCP subscription_status adds `tier`, `full_access` and `ladder`)"
       operationId: getStudioAccess
       security:
         - bearerAuth: []
@@ -5035,6 +5041,7 @@ paths:
                   current_period_end: { type: string, format: date-time, description: "rent — when the paid month ends" }
                   tokens: { type: number, description: "holder — the tokens counted" }
                   doors: { type: object, additionalProperties: true }
+                  lab: { $ref: '#/components/schemas/LabStatus' }
         '401': { description: No token }
 
   /api/agents/mine:
@@ -7334,6 +7341,73 @@ components:
             required: [error]
 
   schemas:
+    LabInfo:
+      type: object
+      description: >
+        The Lab on `/api/info` — what it is, the doors, what the month unlocks, the tools
+        and the sandbox. Every number is read from the server's own limits.
+      additionalProperties: true
+      properties:
+        what: { type: string }
+        price_usd_month: { type: number }
+        start: { type: string, description: "The MCP call that starts the month" }
+        free:
+          type: object
+          additionalProperties: true
+          properties:
+            runs_per_day: { type: integer }
+            schedules: { type: integer }
+        unlocks:
+          type: object
+          additionalProperties: true
+          properties:
+            runs_per_day: { type: integer }
+            schedules: { type: integer }
+            fastest_cadence: { type: string }
+            hunts_per_day: { type: integer }
+            mark_checks_per_day: { type: integer }
+            publishing: { type: string }
+        doors:
+          type: object
+          additionalProperties: { type: string }
+        tools: { type: array, items: { type: string } }
+        sandbox:
+          type: object
+          additionalProperties: true
+          properties:
+            free: { $ref: '#/components/schemas/LabSandboxSize' }
+            lab: { $ref: '#/components/schemas/LabSandboxSize' }
+            transform:
+              type: object
+              properties:
+                seconds: { type: integer }
+                memory_mb: { type: integer }
+                output_mb: { type: integer }
+                network: { type: boolean }
+                languages: { type: array, items: { type: string } }
+        more: { type: string, format: uri }
+    LabStatus:
+      type: object
+      description: Do I have the Lab, and what is left today. A figure the server cannot read now is null.
+      additionalProperties: true
+      properties:
+        has_lab: { type: boolean }
+        runs_per_day: { type: integer }
+        runs_used_today: { type: integer, nullable: true }
+        runs_left_today: { type: integer, nullable: true }
+        schedules_cap: { type: integer }
+        schedules_used: { type: integer, nullable: true }
+        fastest_cadence: { type: string }
+        resets: { type: string }
+    LabSandboxSize:
+      type: object
+      additionalProperties: true
+      properties:
+        vcpu: { type: number }
+        memory_gb: { type: number }
+        session_minutes: { type: integer, description: "free: the most a session lives" }
+        session_hours: { type: integer, description: "Lab: the most a session lives" }
+        at_once: { type: integer, description: "sandboxes at once per account" }
 
     LabItemBody:
       type: object

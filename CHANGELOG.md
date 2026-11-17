@@ -6,6 +6,16 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-16 — the Lab on the public surface
+
+**Additive (versions stay 1.0.0).**
+
+- **`GET /api/info` carries a `lab` object** (`LabInfo`): what the Lab is, the doors (web, MCP `?toolset=build,lab`, `tools_catalog`, the CLI, `/api/schedules`), the price, what free and the month give (runs a day, schedules, the fastest cadence, Hunts and Mark Checks), the Lab tools by name, and the sandbox (CPU, memory, session length and sandboxes at once, free and Lab; the transform step's limits). Every number is read from the server's own limits.
+- **"Do I have the Lab, and what is left today."** `GET /api/studio/access` and MCP `subscription_status` answer a `lab` block (`LabStatus`): `has_lab`, `runs_per_day`, `runs_used_today`, `runs_left_today`, `schedules_cap`, `schedules_used`, `fastest_cadence`, `resets`. The TypeScript and Python SDKs type it (`LabStatus`, `StudioAccess.lab`).
+- **`rig_copy` on the public MCP door** (toolset `build`): `rig_copy {rig_id, name, intent?}` makes a new rig from one of your own rigs in one call: the build, the contract and its designed page travel as they are. The owner comes from your token; a rig that is not yours (a public one included) is refused.
+- **`llms.txt` has a short "The Lab" section; `llms-full.txt` has the full one**: the build path (author, run, read the trace, publish, schedule), schedules (the tools, the REST doors, the caps, `deliver: "http"`), the sandbox sizes, the Desk and the Crew, and how to start the month.
+- **Docs**: Build and run gains the Lab limits, schedules and `rig_copy`; a new Agent interfaces page covers Telegram bots (linking, owner verification, commands, Guardian, Autopilot, the buy bot) and X (Rokha's own X tools `x_settings`, `x_recent`, `x_timeout`, `x_timeout_clear`, `x_block`, `x_unblock`, `x_act`, for Rokha's account only for now); the Desk page names every card tool and seat tools.
+
 ## 2026-11-16 — the Crew works the whole board, and a seat can publish
 
 **Additive (versions stay 1.0.0).** No new doors; these change what the Desk and the Crew do with the tools you already call.
