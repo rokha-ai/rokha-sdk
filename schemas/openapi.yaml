@@ -7140,9 +7140,12 @@ paths:
       tags: [desk]
       summary: "Act on one X DM or post (House only)"
       description: >-
-        `target`: a DM conversation id (from `/api/lab/x/recent`) or a post URL or id. `text` sends now: into a DM she
-        already holds, or as an @rokha_agent reply under the post. `instruction` files a card on Rokha's board for the
-        Support seat to work. Both: the text is sent and the instruction filed. MCP `x_act`.
+        Either `handle` + `instruction`: name an X account and give context; Rokha finds that account's DM with her,
+        reads it and sends the next message with that context, whatever its age (`queued: true`; nothing is sent when
+        they never messaged her). Or `target`: a DM conversation id (from `/api/lab/x/recent`) or a post URL or id.
+        `text` sends now: into a DM she already holds, or as an @rokha_agent reply under the post. `instruction` files
+        a card on Rokha's board for the Support seat to work. Both: the text is sent and the instruction filed. MCP
+        `x_act`.
       operationId: labXAct
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -7151,14 +7154,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [target]
               properties:
+                handle: { type: string, maxLength: 100, description: "an X account name, `@name` or its x.com link; use with `instruction`" }
                 target: { type: string, maxLength: 300 }
                 text: { type: string, maxLength: 600 }
                 instruction: { type: string, maxLength: 1000 }
       responses:
         '200':
-          description: "`{ok, target, sent?, card?}`"
+          description: "`{ok, target, sent?, card?}` · with `handle`: `{ok, target, handle, x_user_id, queued, note}`"
           content:
             application/json:
               schema:
@@ -7169,7 +7172,7 @@ paths:
                   target: { type: string }
                   sent: { type: object, additionalProperties: true }
                   card: { type: object, additionalProperties: true }
-        '400': { description: "`bad_target` · `nothing_to_do`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '400': { description: "`bad_target` · `bad_handle` · `not_found` · `nothing_to_do`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
