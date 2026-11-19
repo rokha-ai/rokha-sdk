@@ -6286,7 +6286,7 @@ paths:
       tags: [desk]
       summary: "Your Crew — its seats, who holds each, and how cards route"
       description: >-
-        Each seat: `{position, title, job, brief, standard, sort, occupant_kind, occupant, status, setup, verified, dispatchable}`. Also `keeper_on`, `model_key` and `crew_routing` (`{column_owners, kind_owners, limits}`).
+        Each seat: `{position, title, job, brief, standard, sort, occupant_kind, occupant, status, setup, verified, dispatchable, spec, spec_source}`. `spec` is what the seat does and needs (`{does, when, needs, delivers, limits}`); `spec_source` is `seat` (written for it), `standard` (a standard seat's built-in spec) or `missing` (a seat made before specs, which every Keeper pass flags). Also `keeper_on`, `model_key`, `crew_routing` (`{column_owners, kind_owners, limits}`), `spec_schema` (the JSON Schema of a spec) and `how_work_arrives` (how a seat is handed cards).
       operationId: labCrew
       security: [ { bearerAuth: [] } ]
       responses:
@@ -6300,7 +6300,7 @@ paths:
       tags: [desk]
       summary: "Add a seat"
       description: >-
-        Body `{title, job, ...}`. Answers `{ok, seat}`.
+        Body `{title, job, spec, ...}`. `spec` says what the seat does and needs: `{when, needs, delivers}` required, `does` and `limits` optional (text, `spec_schema` in `GET /api/lab/crew`). Every Keeper pass reads every seat's spec and hands it the cards that fit its `when`. Answers `{ok, seat}`.
       operationId: labCrewSeatAdd
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -6314,6 +6314,7 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
+        '400': { description: "`needs_spec` — `when`, `needs` and `delivers` are required · `bad_spec` — an unknown field or a field that is not text", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '409': { description: "`duplicate` · `reserved` · `bad_title` · `bad_job`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: "`seats_full`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
@@ -6332,7 +6333,7 @@ paths:
         `null` = the seat's default: the Developer dispatches, every other Rokha seat loops) and `tools` (a list of tool names from
         `GET /api/lab/crew/tools` the seat holds beyond its standard kit; `null` = the standard kit; an unknown name is `400 unknown_tool`,
         a House-only tool on another account `400 house_only`) and `grants` (a `SeatGrants`: what this seat sees and may ask for,
-        overriding the coordinator's; `{clear: true}` drops them). `grok` needs its setup first; `github` is the Developer's only.
+        overriding the coordinator's; `{clear: true}` drops them). `spec` changes the seat's spec field by field (`null` on a field clears it; `spec: null` puts back the standard spec). `grok` needs its setup first; `github` is the Developer's only.
         A seat in `GET /api/lab/crew` carries `mode` and `tools {kit, default, extra, assigned}`.
       operationId: labCrewSeatUpdate
       security: [ { bearerAuth: [] } ]

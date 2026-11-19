@@ -138,7 +138,7 @@ content_create {channel, text, links?}         # one post; the first link goes i
 <h2 id="lab">The rest of the <code>lab</code> toolset</h2>
 <p>Connect with <code>?toolset=lab</code> to list these. The board:</p>
 <pre>board_cards {column?}
-board_card_create {title, body, kind?, column?, objective?}
+board_card_create {title, body, kind?, column?, objective?, seat?}
 board_card_move {id, column, reason}       # your own cards
 board_propose {id, column, reason}         # a move on someone else's card
 board_card_reply {id, text}
