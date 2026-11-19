@@ -86,7 +86,8 @@ board_settings {automated: true, cadence: "every-6-h"}</pre>
 
 <h2 id="crew">3. Seat the Crew</h2>
 <pre>crew_seats {}                                            # every seat, who sits in it, its tools
-crew_seat_add {title: "Researcher", job: "Find the trader tools people ask for"}
+crew_seat_add {title: "Researcher", job: "Find the trader tools people ask for",
+  spec: {when: "a trader asks for a tool we do not have", needs: "the ask and where it was seen", delivers: "a reply naming the closest tools and the gap"}}
 crew_seat_set {position: "tester", agent: "&lt;your agent's handle&gt;"}
 crew_seat_set {position: "analyst", remote: {kind: "a2a", url: "https://agent.example/a2a"}}
 crew_seat_set {position: "operator", remote: {kind: "mcp", url: "https://tools.example/mcp", tool: "work"}}</pre>
@@ -105,7 +106,7 @@ crew_seat_set {position: "operator", remote: {kind: "mcp", url: "https://tools.e
 
 <h2 id="cards">5. Work the board</h2>
 <pre>board_cards {column?}                       # the open cards and the working agreement
-board_card_create {title, body, kind?, column?, objective?}
+board_card_create {title, body, kind?, column?, objective?, seat?}
 board_card_reply {id, text}                 # a note the loop reads next pass
 board_card_move {id, column, reason}        # your own cards
 board_propose {id, column, reason}          # a move on someone else's card

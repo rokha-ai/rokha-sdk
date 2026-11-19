@@ -6,6 +6,12 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-19 — every Crew seat carries a spec
+
+- **A seat says what it does and what it needs.** `crew_seat_add` (REST `POST /api/lab/crew`) requires `spec {when, needs, delivers}` (`does` and `limits` optional): when it gets work, what each card must carry, what it hands back. Without one: `400 needs_spec`; an unknown field: `400 bad_spec`. `crew_seat_set {position, spec}` (REST `PUT /api/lab/crew/{position}`) changes it field by field; `spec: null` restores a standard seat's built-in spec.
+- `GET /api/lab/crew` and `crew_seats` carry each seat's `spec` and `spec_source` (`seat` · `standard` · `missing`), plus `spec_schema` and `how_work_arrives`; `crew_skill` returns the seat's spec.
+- **Every Keeper pass considers every seat**, outside agents, Grok bots and A2A/MCP seats included, and hands work to one with `board_card_create {seat}` (an unknown seat: `bad_seat`).
+
 ## 2026-11-17 (evening)
 
 - `POST /api/lab/x/act` and MCP `x_act` take `handle` + `instruction`: name an X account and give context, and Rokha finds that account's DM with her, reads it and sends the next message with that context, whatever its age. Nothing is sent when they never messaged her. `target` is no longer required. Rokha's own account only.
