@@ -5075,6 +5075,11 @@ paths:
         reserved names, a model the owner can pay for, `persona` required to go live. Give the
         agent tools by naming the `rigs` and `skills` it may run. Never a connected app.
 
+        **Its handle** shares the `@` namespace with builder pages, your own included: an agent
+        cannot take a handle a page holds (409). **Listing**: a public, live agent is reachable
+        at `/@handle`; it appears in the agents directory and on the Market only after
+        `agent_publish`.
+
         **Who pays for its turns**: the agent's own small daily allowance on the house model,
         then the owner's keys for the turn's model, then the visitor's own meter or keys —
         never the owner's meter; when all of that is spent the turn answers one honest line
@@ -6111,7 +6116,14 @@ paths:
         propose `{column}` · proposal `{accept}` · work · focus · objective `{objective: id | null}` (person-only: the objective a card belongs to) · file (send a Needs code card to your GitHub repo) ·
         content `{action: hold | queue | post_now | edit, text?, title?, links?, publish_at?}` ·
         decide (a request card: see `/api/lab/items/{id}/decide`).
-        Only a person moves a card into needs_code, selling or done, files a card, or acts on content.
+        Only a person moves a card into needs_code or selling, files a card, or acts on content.
+        Done: the person closes any card. Rokha, or the agent the person named to run the loop
+        (never a seat's own key or an outside agent), closes a card with a reason only when
+        nothing on it waits on the person: not pinned, no needs list, no open proposal, not in
+        needs_you, needs_code or selling, not a content card or an order card waiting on its post
+        (`person_only` otherwise). Back out of done: the person moves any card back; a card an
+        agent closed comes back with a note from the board's hand or the hand that wrote it; a
+        card the person closed moves only on the person's own move (`closed` otherwise).
       operationId: actLabItem
       security: [ { bearerAuth: [] } ]
       parameters:
@@ -6197,7 +6209,7 @@ paths:
       tags: [desk]
       summary: "Your Lab board — columns, cards, objectives and the working agreement"
       description: >-
-        Columns: inbox · researching · needs_code · building · testing · content · selling · done. Only a person moves a card into needs_code, selling or done. Carries `code_handoff`, `github_connected` and `agreement`.
+        Columns: inbox · researching · needs_code · building · testing · content · selling · done. Only a person moves a card into needs_code or selling. Rokha or the loop's lead closes a card into done, with a reason, when nothing on it waits on the person; a card an agent closed comes back out with a note (see `POST /api/lab/items/{id}/{verb}`). Carries `code_handoff`, `github_connected` and `agreement`.
       operationId: labBoard
       security: [ { bearerAuth: [] } ]
       responses:

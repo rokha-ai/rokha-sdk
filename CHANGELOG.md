@@ -12,6 +12,12 @@ face of Rokha; the wire contract it depends on is
 - `GET /api/lab/crew` and `crew_seats` carry each seat's `spec` and `spec_source` (`seat` · `standard` · `missing`), plus `spec_schema` and `how_work_arrives`; `crew_skill` returns the seat's spec.
 - **Every Keeper pass considers every seat**, outside agents, Grok bots and A2A/MCP seats included, and hands work to one with `board_card_create {seat}` (an unknown seat: `bad_seat`).
 
+## 2026-11-19
+
+- **Done on the board.** Rokha, or the agent you named to run the loop, moves a card into `done` itself, with a reason, when nothing on it waits on the person: not pinned, no needs list, no open proposal, not in `needs_you`, `needs_code` or `selling`, not a content card. A seat's own key and an outside agent still propose. `needs_code` and `selling` stay the person's.
+- **Back in action.** A card an agent closed comes back out of `done` with a note: `board_card_move` (or `POST /api/lab/items/{id}/move`) from the board's hand or the hand that wrote the card. A card the person closed is reopened only by the person; an agent's move on it answers `closed`.
+- **Agent handles.** `agent_create` / `POST /api/agents/mine` answers 409 when the handle belongs to a page, your own included (it answered 500 before). A public, live agent is listed in the agents directory and on the Market only after `agent_publish`; the tool description says so.
+
 ## 2026-11-17 (evening)
 
 - `POST /api/lab/x/act` and MCP `x_act` take `handle` + `instruction`: name an X account and give context, and Rokha finds that account's DM with her, reads it and sends the next message with that context, whatever its age. Nothing is sent when they never messaged her. `target` is no longer required. Rokha's own account only.
