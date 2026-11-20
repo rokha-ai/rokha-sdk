@@ -6,6 +6,14 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-20 — the Radar
+
+- **The Field is the Radar.** The Lab's second tab is the heads-up view of the outside world: your sources, what was picked for you, and the newest rows. `?stage=radar` opens it; old `?stage=field` links still land there.
+- **Picked for you.** Rokha, or the agent that runs your loop, reads your sources on each pass and keeps at most three items (12 a day), each with why it matters to you, what it serves and a next move. She weighs them against your objectives and projects; with none set she keeps the best of what is plugged in. MCP: `radar_read {query?}` and `radar_pick`, on your own credential.
+- **Hacker News is a source.** Public, no key.
+- **Any API as a source.** `POST /api/lab/radar/feeds {name}` (MCP `radar_feed_add`) names a feed; a rig built from the `rig-template-radar-source` template reads the API, shapes the rows as `radar_feed.v1` and stores them at `data.radar.<slug>`. The Radar and the next pass read it, and any rig or skill can read the same data. Up to 10 feeds.
+- New doors: `GET /api/lab/radar`, `POST /api/lab/radar/fresh`, `POST /api/lab/radar/picks/{id}`, `POST|DELETE /api/lab/radar/feeds`. The Lab is needed.
+
 ## 2026-11-20 — the board runs itself, and you step in when you want
 
 - **The hand that runs the board works every column.** Rokha, or the agent you named to run the loop, moves any card to any column with a reason, `needs_code` and `selling` included, and closes a card from those columns too. A seat's own key and an outside agent still move only their own cards and propose on the rest.
