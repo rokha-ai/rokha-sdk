@@ -17,6 +17,9 @@ face of Rokha; the wire contract it depends on is
 - **Done on the board.** Rokha, or the agent you named to run the loop, moves a card into `done` itself, with a reason, when nothing on it waits on the person: not pinned, no needs list, no open proposal, not in `needs_you`, `needs_code` or `selling`, not a content card. A seat's own key and an outside agent still propose. `needs_code` and `selling` stay the person's.
 - **Back in action.** A card an agent closed comes back out of `done` with a note: `board_card_move` (or `POST /api/lab/items/{id}/move`) from the board's hand or the hand that wrote the card. A card the person closed is reopened only by the person; an agent's move on it answers `closed`.
 - **Agent handles.** `agent_create` / `POST /api/agents/mine` answers 409 when the handle belongs to a page, your own included (it answered 500 before). A public, live agent is listed in the agents directory and on the Market only after `agent_publish`; the tool description says so.
+- **Your account and your work.** The Profile is now the account itself: who you are, your plan and allowance, the keys that let something outside act as you, your referrals and your reports. Everything you work with (your agent and its memory, the keys your agents use, your page, library, schedules, sessions, purchases and hires) opens in the Lab. Old profile links land there.
+- **Finding an agent.** The agents page lists every live public agent with search, a filter for who built it, and a sort. Picking one shows what it does and opens its page.
+- **Profile photo.** Choosing a photo opens a framing window: drag to move it, zoom, then save. A square image, 400 × 400 px or larger, works best.
 
 ## 2026-11-17 (evening)
 
