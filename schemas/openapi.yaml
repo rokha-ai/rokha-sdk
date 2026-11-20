@@ -6116,11 +6116,17 @@ paths:
         propose `{column}` · proposal `{accept}` · work · focus · objective `{objective: id | null}` (person-only: the objective a card belongs to) · file (send a Needs code card to your GitHub repo) ·
         content `{action: hold | queue | post_now | edit, text?, title?, links?, publish_at?}` ·
         decide (a request card: see `/api/lab/items/{id}/decide`).
-        Only a person moves a card into needs_code or selling, files a card, or acts on content.
+        The person moves any card. Rokha, or the agent the person named to run the loop, moves
+        any card to any column with a reason, needs_code and selling included, unless the person
+        holds it: a pinned card, a card in needs_you or with an open needs list, or a card another
+        hand claimed. A card that hand moves into needs_code is handed off at once (a GitHub issue
+        carrying the card's notes, or the Developer seat). A seat's own key and an outside agent
+        move only a card they wrote, never into needs_code or selling, and propose on the rest.
+        Only a person files a card by hand or acts on content. A column never moves money.
         Done: the person closes any card. Rokha, or the agent the person named to run the loop
         (never a seat's own key or an outside agent), closes a card with a reason only when
         nothing on it waits on the person: not pinned, no needs list, no open proposal, not in
-        needs_you, needs_code or selling, not a content card or an order card waiting on its post
+        needs_you, not a content card or an order card waiting on its post
         (`person_only` otherwise). Back out of done: the person moves any card back; a card an
         agent closed comes back with a note from the board's hand or the hand that wrote it; a
         card the person closed moves only on the person's own move (`closed` otherwise).
@@ -6209,7 +6215,7 @@ paths:
       tags: [desk]
       summary: "Your Lab board — columns, cards, objectives and the working agreement"
       description: >-
-        Columns: inbox · researching · needs_code · building · testing · content · selling · done. Only a person moves a card into needs_code or selling. Rokha or the loop's lead closes a card into done, with a reason, when nothing on it waits on the person; a card an agent closed comes back out with a note (see `POST /api/lab/items/{id}/{verb}`). Carries `code_handoff`, `github_connected` and `agreement`.
+        Columns: inbox · researching · needs_code · building · testing · content · selling · done. Rokha or the loop's lead moves any card to any column with a reason, needs_code and selling included, and closes a card into done when nothing on it waits on the person; a pinned card, a card in needs_you and another hand's claim stay the person's; every other agent hand moves only its own cards; a card an agent closed comes back out with a note (see `POST /api/lab/items/{id}/{verb}`). Carries `code_handoff`, `github_connected` and `agreement`.
       operationId: labBoard
       security: [ { bearerAuth: [] } ]
       responses:

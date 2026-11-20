@@ -6,6 +6,15 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-20 — the board runs itself, and you step in when you want
+
+- **The hand that runs the board works every column.** Rokha, or the agent you named to run the loop, moves any card to any column with a reason, `needs_code` and `selling` included, and closes a card from those columns too. A seat's own key and an outside agent still move only their own cards and propose on the rest.
+- **Needs code is sent for you.** A card that hand moves into `needs_code` is handed off at once: a GitHub issue that now carries the card's notes, or the Developer seat.
+- **Your hold stands.** A pinned card, a card in `needs_you` or with an open needs list, and a card another hand claimed do not move. Needs you is only for what a person must settle: no decision path, a hard block such as a key or an account, or a card you asked to stay on.
+- **A column never moves money.** Every send, price or purchase still runs through Signet and its approvals.
+- **Your Desk from a tag on X.** When the X account that tags Rokha is linked to your Rokha account, she can add a card, add or change an objective, or start the Crew from that tag; in your own 1:1 DM with her every Desk setting works. An account that is not linked has no Desk to reach.
+- `board_card_move` accepts `needs_code` and `selling` as columns.
+
 ## 2026-11-19 — every Crew seat carries a spec
 
 - **A seat says what it does and what it needs.** `crew_seat_add` (REST `POST /api/lab/crew`) requires `spec {when, needs, delivers}` (`does` and `limits` optional): when it gets work, what each card must carry, what it hands back. Without one: `400 needs_spec`; an unknown field: `400 bad_spec`. `crew_seat_set {position, spec}` (REST `PUT /api/lab/crew/{position}`) changes it field by field; `spec: null` restores a standard seat's built-in spec.
