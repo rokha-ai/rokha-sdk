@@ -6,6 +6,11 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-21
+
+- **The Radar never opens empty.** With no live source linked, `POST /api/lab/radar/fresh` and `radar_read` read Hacker News by default; both answers and `GET /api/lab/radar` carry `live_default: true` while that holds. Link a live source of your own and it reads that instead.
+- **One wall at every door.** `radar_read`, `radar_pick` and `radar_feed_add` over MCP answer `studio_required` without the Lab, the same as the REST doors.
+
 ## 2026-11-20 — the Radar
 
 - **The Field is the Radar.** The Lab's second tab is the heads-up view of the outside world: your sources, what was picked for you, and the newest rows. `?stage=radar` opens it; old `?stage=field` links still land there.
