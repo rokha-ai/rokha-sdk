@@ -6,6 +6,13 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-21 — pay per call on Base and Solana
+
+- **One payment, one call, no account.** `GET /api/hunt`, `GET /api/mark/check` and `GET /api/x/audit/{handle}` answer a standard x402 challenge for one call ($0.02, USDC): `accepts` in the 402 body (x402 v1, networks `base` and `solana`) and a `PAYMENT-REQUIRED` header (x402 v2, `eip155:8453` and `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`). Pay one and retry the same request with `X-PAYMENT` or `PAYMENT-SIGNATURE`; the answer carries `X-PAYMENT-RESPONSE` or `PAYMENT-RESPONSE`.
+- The payment settles before the work. A call that did no work is retried on the same payment. A chain is listed only while it can settle; the pack of 50 and the free daily call are unchanged.
+- `GET /api/hunt` with no `q`, signed out, now answers the 402 with the price instead of a usage note.
+- elizaOS connects through its MCP plugin; the snippet is on the install page.
+
 ## 2026-11-21
 
 - **The Radar never opens empty.** With no live source linked, `POST /api/lab/radar/fresh` and `radar_read` read Hacker News by default; both answers and `GET /api/lab/radar` carry `live_default: true` while that holds. Link a live source of your own and it reads that instead.

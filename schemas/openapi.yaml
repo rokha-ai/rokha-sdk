@@ -186,7 +186,7 @@ paths:
   /.well-known/x402:
     get:
       tags: [meta]
-      summary: "x402 discovery — the doors that answer an x402 402 (USDC on Solana, scheme exact)"
+      summary: "x402 discovery — the doors that answer an x402 402 (USDC on Base and Solana, scheme exact)"
       description: |
         Public, no auth. `resources` lists only doors that answer HTTP 402 with an x402
         `accepts` today: a paid rig's run (`POST /api/rigs/run`, anonymous callers too),
@@ -195,6 +195,8 @@ paths:
         free call a day on a signed-in account; the 402 carries the pack and the caller's own
         open x402 order). `instructions` also names the checkouts that return `accepts` in a
         200 body (products, hires).
+        The proof calls and `GET /api/x/audit/{handle}` also take one standard x402 payment per
+        call (`per_call` on their entry): USDC on Base or Solana, no account.
         `ownershipProofs` are origin signatures for x402scan (empty until set).
       operationId: getX402Discovery
       responses:
@@ -4855,7 +4857,7 @@ paths:
                   recent: { type: array, items: { type: object, additionalProperties: true } }
                   receipts_wall: { type: array, items: { type: object, additionalProperties: true } }
         '402':
-          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
+          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work. PAY PER CALL: when `accepts` is present on the 402 (and in the `PAYMENT-REQUIRED` header, x402 v2), one standard x402 `exact` payment of exactly that amount (USDC on Base, an EIP-3009 authorization; or on Solana, a signed transfer with `extra.feePayer`) pays ONE call with no account: retry the same request with `X-PAYMENT` or `PAYMENT-SIGNATURE`. It settles before the work; a call that did no work is retried on the same payment."
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
@@ -4973,7 +4975,7 @@ paths:
                   note: { type: string }
 
         '402':
-          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
+          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work. PAY PER CALL: when `accepts` is present on the 402 (and in the `PAYMENT-REQUIRED` header, x402 v2), one standard x402 `exact` payment of exactly that amount (USDC on Base, an EIP-3009 authorization; or on Solana, a signed transfer with `extra.feePayer`) pays ONE call with no account: retry the same request with `X-PAYMENT` or `PAYMENT-SIGNATURE`. It settles before the work; a call that did no work is retried on the same payment."
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
