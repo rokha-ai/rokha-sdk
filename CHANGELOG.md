@@ -6,6 +6,11 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-22 — the coin's address and link on a gated agent's page
+
+- `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) takes `buy_url`: one https link to where the coin is got; `null` clears it. `GET /api/agents/{handle}/hold` returns it as `buy_url`.
+- A gated agent's page shows the coin's address with a copy button once the coin is live, and the owner's link beside it.
+
 ## 2026-11-22 — an insider list on the hold gate
 
 - **Turn insiders away.** `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) takes `deny: {account, program, offset, stride, label?, url?}`: an on-chain list account, such as a coin platform's KOL blacklist. A visitor whose own wallet is on it is refused the agent's chat with `403 insider_denied`, even holding the coin. `deny: null` removes it.
