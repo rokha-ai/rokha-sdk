@@ -6666,7 +6666,7 @@ paths:
       tags: [agents]
       summary: "Set or change the hold gate on an agent you own"
       description: >-
-        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?, deny?}`; only the fields named change. `deny: {account, program, offset, stride, label?, url?}` links an insider list:
+        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?, buy_url?, deny?}`; only the fields named change. `deny: {account, program, offset, stride, label?, url?}` links an insider list:
         an on-chain account owned by `program` whose data holds 32-byte wallets from `offset`, one every `stride` bytes; a visitor whose wallet is on it is turned away (`403 insider_denied`), holder or not. `deny: null` removes it. Visitors whose own wallets (the sign-in wallet, or one proved on the Profile) hold at least
         `min_usd` dollars of the Solana coin `mint` get the agent in full; everyone else gets `free_per_day` free questions a day without its tools. `mint: null` clears the coin and keeps the gate.
         Live at once. Over MCP: `agent_hold_set {agent, ...}`.
