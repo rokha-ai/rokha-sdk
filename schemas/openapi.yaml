@@ -6646,6 +6646,59 @@ paths:
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — not a seat on your Crew", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  /api/agents/{handle}/hold:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [agents]
+      summary: "An agent's hold gate, and where you stand at it"
+      description: >-
+        Public. `{ok, gate: {gated, live, mint, symbol, min_usd, free_per_day, holder_per_day, how}}`; `gated: false` = none. With a bearer it adds
+        `you: {holder, state, usd?}` (`owner` · `holder` · `short` · `no_wallet` · `unreadable` · `not_launched`). `live: false` = the gate is set and its coin is not yet.
+      operationId: agentHoldGet
+      responses:
+        '200':
+          description: "The gate"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    put:
+      tags: [agents]
+      summary: "Set or change the hold gate on an agent you own"
+      description: >-
+        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?}`; only the fields named change. Visitors whose own wallets (the sign-in wallet, or one proved on the Profile) hold at least
+        `min_usd` dollars of the Solana coin `mint` get the agent in full; everyone else gets `free_per_day` free questions a day without its tools. `mint: null` clears the coin and keeps the gate.
+        Live at once. Over MCP: `agent_hold_set {agent, ...}`.
+      operationId: agentHoldSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: "`{ok, gate}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_mint` · `bad_gate`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no such agent of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [agents]
+      summary: "Remove the hold gate"
+      operationId: agentHoldClear
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, gate: {gated: false}}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
   /api/lab/radar:
     get:
       tags: [desk]

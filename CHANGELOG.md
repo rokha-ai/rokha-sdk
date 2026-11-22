@@ -6,6 +6,14 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-21 — a hold gate on any agent
+
+- **Open your agent in full to holders of a coin.** `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) sets `{mint, symbol, min_usd, free_per_day, holder_per_day}` on an agent you own. A visitor whose own wallets hold at least `min_usd` dollars of the Solana coin gets the agent and its tools; everyone else gets `free_per_day` free questions a day without its tools. The wallets that count are the one a visitor signed in with and the ones they proved on their Profile.
+- It changes live. `mint: null` holds the place before a coin exists: the page says the coin is being created and linked, and everyone signed in is on the free questions. `DELETE` (MCP `off: true`) removes the gate. `GET /api/agents/{handle}/hold` is public and tells a signed-in caller where they stand; MCP `agent_hold_get` reads your own.
+- A refused turn answers `402` with `hold_required` (the free questions are used) or `hold_day_spent`.
+- Every agent's page opens on its hero and closes with how a project gets its own agent and page.
+- A rig whose every step is a plain HTTP fetch is no longer refused when the day's free questions are used: it calls no model.
+
 ## 2026-11-21 — pay per call on Base and Solana
 
 - **One payment, one call, no account.** `GET /api/hunt`, `GET /api/mark/check` and `GET /api/x/audit/{handle}` answer a standard x402 challenge for one call ($0.02, USDC): `accepts` in the 402 body (x402 v1, networks `base` and `solana`) and a `PAYMENT-REQUIRED` header (x402 v2, `eip155:8453` and `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`). Pay one and retry the same request with `X-PAYMENT` or `PAYMENT-SIGNATURE`; the answer carries `X-PAYMENT-RESPONSE` or `PAYMENT-RESPONSE`.
