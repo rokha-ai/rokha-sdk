@@ -6666,7 +6666,8 @@ paths:
       tags: [agents]
       summary: "Set or change the hold gate on an agent you own"
       description: >-
-        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?}`; only the fields named change. Visitors whose own wallets (the sign-in wallet, or one proved on the Profile) hold at least
+        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?, deny?}`; only the fields named change. `deny: {account, program, offset, stride, label?, url?}` links an insider list:
+        an on-chain account owned by `program` whose data holds 32-byte wallets from `offset`, one every `stride` bytes; a visitor whose wallet is on it is turned away (`403 insider_denied`), holder or not. `deny: null` removes it. Visitors whose own wallets (the sign-in wallet, or one proved on the Profile) hold at least
         `min_usd` dollars of the Solana coin `mint` get the agent in full; everyone else gets `free_per_day` free questions a day without its tools. `mint: null` clears the coin and keeps the gate.
         Live at once. Over MCP: `agent_hold_set {agent, ...}`.
       operationId: agentHoldSet
@@ -6682,7 +6683,7 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
-        '400': { description: "`bad_mint` · `bad_gate`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '400': { description: "`bad_mint` · `bad_gate` · `bad_deny`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — no such agent of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     delete:
@@ -6698,6 +6699,26 @@ paths:
               schema: { type: object, additionalProperties: true }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/agents/{handle}/insider:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+      - { name: wallet, in: query, required: true, schema: { type: string }, description: "a Solana wallet address" }
+    get:
+      tags: [agents]
+      summary: "Is this wallet on the agent's insider list?"
+      description: >-
+        Public, any wallet. `{ok, configured, wallet, listed, label, url, list_size, account, verdict}`; `configured: false` = the agent keeps no list. The list is read from its account on chain,
+        at most five minutes old. A listed wallet is turned away from the agent's chat. Over MCP: `agent_insider_check {agent, wallet}`.
+      operationId: agentInsiderCheck
+      responses:
+        '200':
+          description: "The verdict"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_wallet`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable` — the list could not be read from the chain just now", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/radar:
     get:

@@ -6,6 +6,11 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-22 — an insider list on the hold gate
+
+- **Turn insiders away.** `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) takes `deny: {account, program, offset, stride, label?, url?}`: an on-chain list account, such as a coin platform's KOL blacklist. A visitor whose own wallet is on it is refused the agent's chat with `403 insider_denied`, even holding the coin. `deny: null` removes it.
+- **Anyone checks any wallet.** `GET /api/agents/{handle}/insider?wallet=` and the public MCP tool `agent_insider_check {agent, wallet}` answer `listed`, the list's name and size. The agent's page shows the same check as "Am I an insider?".
+
 ## 2026-11-21 — a hold gate on any agent
 
 - **Open your agent in full to holders of a coin.** `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) sets `{mint, symbol, min_usd, free_per_day, holder_per_day}` on an agent you own. A visitor whose own wallets hold at least `min_usd` dollars of the Solana coin gets the agent and its tools; everyone else gets `free_per_day` free questions a day without its tools. The wallets that count are the one a visitor signed in with and the ones they proved on their Profile.
