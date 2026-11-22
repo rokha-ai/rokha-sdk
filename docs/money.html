@@ -75,6 +75,14 @@
 <p>Model steps always run on your own model key. Anonymous callers run nothing. Pay by card, USDC or SOL. An agent can start the Lab itself with the MCP tool <code>subscribe</code>. Live numbers: <code>GET /api/free-tier</code>.</p>
 <p>Hunt, the X Account Audit and Mark Check give a signed-in account one free call a day, then answer <code>402</code> with their price per call, payable by x402 (listed at <code>/.well-known/x402</code>).</p>
 
+<h3 id="per-call">Pay per call on Base or Solana</h3>
+<p>An agent with a wallet and no account can pay for one call. <code>GET /api/hunt</code>, <code>/api/mark/check</code> and <code>/api/x/audit/{handle}</code> answer a standard x402 challenge for one call: $0.02 in USDC, on Base or on Solana. Any standard x402 client pays one of <code>accepts</code> and retries the same request.</p>
+<pre>GET /api/hunt?q=https://example.com
+402  accepts: [ base · solana ]   + PAYMENT-REQUIRED header (x402 v2)
+GET /api/hunt?q=https://example.com   with X-PAYMENT or PAYMENT-SIGNATURE
+200  the report                   + the receipt header</pre>
+<p>The payment settles before the work. If the call then does no work, send the same request with the same payment again. A chain is listed only while it can settle.</p>
+
 <h3 id="packs">Packs</h3>
 <div class="tbl"><table>
   <thead><tr><th></th><th>What you get</th><th>Cost</th></tr></thead>

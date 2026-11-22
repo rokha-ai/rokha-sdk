@@ -186,7 +186,7 @@ paths:
   /.well-known/x402:
     get:
       tags: [meta]
-      summary: "x402 discovery — the doors that answer an x402 402 (USDC on Solana, scheme exact)"
+      summary: "x402 discovery — the doors that answer an x402 402 (USDC on Base and Solana, scheme exact)"
       description: |
         Public, no auth. `resources` lists only doors that answer HTTP 402 with an x402
         `accepts` today: a paid rig's run (`POST /api/rigs/run`, anonymous callers too),
@@ -195,6 +195,8 @@ paths:
         free call a day on a signed-in account; the 402 carries the pack and the caller's own
         open x402 order). `instructions` also names the checkouts that return `accepts` in a
         200 body (products, hires).
+        The proof calls and `GET /api/x/audit/{handle}` also take one standard x402 payment per
+        call (`per_call` on their entry): USDC on Base or Solana, no account.
         `ownershipProofs` are origin signatures for x402scan (empty until set).
       operationId: getX402Discovery
       responses:
@@ -4855,7 +4857,7 @@ paths:
                   recent: { type: array, items: { type: object, additionalProperties: true } }
                   receipts_wall: { type: array, items: { type: object, additionalProperties: true } }
         '402':
-          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
+          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work. PAY PER CALL: when `accepts` is present on the 402 (and in the `PAYMENT-REQUIRED` header, x402 v2), one standard x402 `exact` payment of exactly that amount (USDC on Base, an EIP-3009 authorization; or on Solana, a signed transfer with `extra.feePayer`) pays ONE call with no account: retry the same request with `X-PAYMENT` or `PAYMENT-SIGNATURE`. It settles before the work; a call that did no work is retried on the same payment."
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
@@ -4973,7 +4975,7 @@ paths:
                   note: { type: string }
 
         '402':
-          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work."
+          description: "`purchase_required` — Rokha's own price for the call, never the target site's. A Lab account (the month) never meets it. Anyone else gets one free call a day on a signed-in account; after that the call is $0.02, sold as a pack of 50 for $1 (`per_run` on the House listing — `product.price_cents` and `runs_per_pack` are the live numbers). Pay it over x402 (a caller with a session gets `x402Version` + `accepts` on its own open order: transfer exactly `maxAmountRequired`, then call again), or buy the pack with `product_checkout` / `checkout_url`, then call again. The gate runs before any work. PAY PER CALL: when `accepts` is present on the 402 (and in the `PAYMENT-REQUIRED` header, x402 v2), one standard x402 `exact` payment of exactly that amount (USDC on Base, an EIP-3009 authorization; or on Solana, a signed transfer with `extra.feePayer`) pays ONE call with no account: retry the same request with `X-PAYMENT` or `PAYMENT-SIGNATURE`. It settles before the work; a call that did no work is retried on the same payment."
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
@@ -6643,6 +6645,59 @@ paths:
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only` — only the signed-in person may do this", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — not a seat on your Crew", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/agents/{handle}/hold:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [agents]
+      summary: "An agent's hold gate, and where you stand at it"
+      description: >-
+        Public. `{ok, gate: {gated, live, mint, symbol, min_usd, free_per_day, holder_per_day, how}}`; `gated: false` = none. With a bearer it adds
+        `you: {holder, state, usd?}` (`owner` · `holder` · `short` · `no_wallet` · `unreadable` · `not_launched`). `live: false` = the gate is set and its coin is not yet.
+      operationId: agentHoldGet
+      responses:
+        '200':
+          description: "The gate"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    put:
+      tags: [agents]
+      summary: "Set or change the hold gate on an agent you own"
+      description: >-
+        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?}`; only the fields named change. Visitors whose own wallets (the sign-in wallet, or one proved on the Profile) hold at least
+        `min_usd` dollars of the Solana coin `mint` get the agent in full; everyone else gets `free_per_day` free questions a day without its tools. `mint: null` clears the coin and keeps the gate.
+        Live at once. Over MCP: `agent_hold_set {agent, ...}`.
+      operationId: agentHoldSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: "`{ok, gate}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_mint` · `bad_gate`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no such agent of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [agents]
+      summary: "Remove the hold gate"
+      operationId: agentHoldClear
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, gate: {gated: false}}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/radar:
     get:
