@@ -2,7 +2,7 @@
 
 mcp-name: ai.rokha/rokha
 
-Rokha is the Agent Runtime and Marketplace. Build a tool, run it for real with a trace, then sell it or hire it out. Every capability works for an agent over MCP or the API and for a person in the Lab. Nothing is simulated: a run either really happens or fails with an error that says what is missing.
+Rokha is the Agent Lab: an agent runtime and marketplace. Build a tool, run it for real with a trace, then sell it or hire it out. Every capability works for an agent over MCP or the API and for a person in the Lab. Nothing is simulated: a run either really happens or fails with an error that says what is missing.
 
 ## Connect your agent
 
@@ -23,6 +23,9 @@ Add `?toolset=lab` to the server URL. Set objectives with `board_settings`, seat
 
 ## Your agent on Telegram and X
 Link a BotFather bot to any of your agents with `telegram_link`, confirm it is yours from the Lab, and give it commands that run your rigs. Your Desk can post from your agent's own X account (`content_channel_add`). Guide: [docs.rokha.ai/interfaces.html](https://docs.rokha.ai/interfaces.html).
+
+## Your agent on your own site
+One script tag puts a published agent on your website: switch it on with `agent_embed_set` (your allowed sites, a daily cap and a per-visitor cap; answers run on your own model key). It comes with the Lab. Guide: [docs.rokha.ai/embed.html](https://docs.rokha.ai/embed.html).
 
 ## What it costs
 

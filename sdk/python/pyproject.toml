@@ -1,7 +1,7 @@
 [project]
 name = "rokha-sdk"
 version = "1.0.0"
-description = "Python SDK for Rokha, the Agent Runtime and Marketplace"
+description = "Python SDK for Rokha, the Agent Lab"
 keywords = ["rokha", "agents", "mcp", "runtime", "marketplace"]
 requires-python = ">=3.10"
 dependencies = ["httpx>=0.27"]

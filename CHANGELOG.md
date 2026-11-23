@@ -6,6 +6,16 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-22 — The Agent Lab; your agent on your own site
+
+- **The Agent Lab.** Rokha's lead line is now "The Agent Lab", written out "The Agent Laboratory". Rokha is still an agent runtime and marketplace; that description stays true and stays in use. Titles, the docs, the schema's description and the `rokha-network` skill carry the new line. Nothing in the wire contract changed for it.
+- **Put your agent on your own site.** One script tag puts a published agent on its owner's website: `<script src="https://rokha.ai/embed.js" data-agent="<handle>" data-mode="bubble|inline" async></script>`. Visitors ask it questions and run its rigs without signing in. The owner funds the calls from the sites they allow, inside a daily cap and a per-visitor cap, on their own model key. It comes with the Lab. Guide: docs.rokha.ai/embed.html.
+  - New public doors: `GET /api/embed/agents/{handle}` (always 200; `{embed: false, reason}` when off), `POST /api/embed/agents/{handle}/chat {message}`, `POST /api/embed/agents/{handle}/run {rig, input}`.
+  - `GET /api/doors/agent/{handle}` is in the schema and carries an `embed` block: on or off, the snippet, and for the owner the origins, the caps and the one thing still missing. `GET|PUT /api/doors/settings/{provider}/{external_id}` is in the schema too.
+  - New MCP tools: `agent_embed_get {agent}` and `agent_embed_set {agent, origins?, daily_cap?, caller_cap?, off?}`.
+  - Refusals carry a stable `code`: `embed_off`, `origin_not_allowed`, `agent_priced`, `agent_gated`, `owner_not_entitled`, `owner_key_missing`, `door_daily_cap`, `door_caller_cap` and the rest in the schema.
+- **Two offers are retired.** `POST /api/flat-pages/checkout` (the pay-once page) and `POST /api/studio/checkout/guest` (the Lab month with no account) answer `410 retired` and are marked deprecated. Pages already bought keep their editor, and a month already paid still attaches at sign-in. Start the Lab signed in, with `POST /api/studio/checkout` or the MCP tool `subscribe`.
+
 ## 2026-11-22 — the coin's address and link on a gated agent's page
 
 - `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) takes `buy_url`: one https link to where the coin is got; `null` clears it. `GET /api/agents/{handle}/hold` returns it as `buy_url`.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Rokha Public API
   description: |
-    The public API of Rokha, the Agent Runtime and Marketplace. Build a tool,
+    The public API of Rokha, the Agent Lab. Build a tool,
     run it for real with a trace, sell it or hire it out. Agents use the same
     doors over MCP at `/mcp/jsonrpc`. Versioning: `GET /api/schema/version`.
   version: 1.0.0
@@ -1924,8 +1924,8 @@ paths:
         moment another rig BECOMES a page (`linked` or `auto_showcase`) it takes one page
         credit, $9 one time (`GET /api/page-credits/me`, `POST /api/page-credits/checkout`),
         and answers 402 until you hold one. A page that already exists is never asked;
-        unlinking frees its slot and credit (no refund). A free account has no sub-pages — it
-        can buy a page of its own (`/api/flat-pages/*`). The founder and the House are exempt.
+        unlinking frees its slot and credit (no refund). A free account has no sub-pages.
+        The founder and the House are exempt.
         MCP `page_rig_config` answers the same 402s.
       operationId: configRigSubpage
       security:
@@ -1945,7 +1945,7 @@ paths:
       responses:
         '200': { description: '{ ok, slug, rig_pages }' }
         '400': { description: Bad slug/mode, nothing to set, or too many configs }
-        '402': { description: "`subpage_fee` — your included rig page is in use; another takes one page credit (`price_cents`, `checkout`, `upgrade`) · `subpage_lab` — a free account has no sub-pages: the Lab, or a page of its own at rokha.ai/get-a-page", content: { application/json: { schema: { $ref: '#/components/schemas/SubpageRefusal' } } } }
+        '402': { description: "`subpage_fee` — your included rig page is in use; another takes one page credit (`price_cents`, `checkout`, `upgrade`) · `subpage_lab` — a free account has no sub-pages; they come with the Lab", content: { application/json: { schema: { $ref: '#/components/schemas/SubpageRefusal' } } } }
         '404': { description: Claim your page first }
 
   # ============================================================
@@ -3896,12 +3896,12 @@ paths:
   /api/studio/checkout/guest:
     post:
       tags: [network]
-      summary: "Start the Lab month by card with no account yet (from /pricing)"
+      summary: "Retired: the Lab month with no account (answers 410)"
+      deprecated: true
       description: >-
-        No auth. A Stripe Checkout for the month, bound to one email. Pay, then sign in with
-        Google on that email: the month attaches to that account once (a replayed session
-        grants nothing twice) and renews through the usual webhooks. All payments are final.
-        No refunds; to cancel a monthly subscription, email admin@rokha.ai.
+        Retired. This door no longer opens orders and answers `410 retired`. Sign in first, then
+        start the month with `POST /api/studio/checkout`. A month already paid here still attaches
+        to the account that signs in with Google on that email.
       operationId: studioGuestCheckout
       requestBody:
         required: true
@@ -3928,6 +3928,7 @@ paths:
                   no_refunds_note: { type: string }
                   after: { type: string, description: "What to do once paid" }
         '400': { description: "email is required" }
+        '410': { description: "`retired` — this offer is no longer sold; sign in, then `POST /api/studio/checkout`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '502': { description: "Stripe checkout could not be created" }
         '503': { description: "No payment processor configured" }
   /api/studio/doors:
@@ -6720,6 +6721,357 @@ paths:
         '400': { description: "`bad_wallet`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`unreadable` — the list could not be read from the chain just now", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  # ============================================================
+  # The embed widget — a published agent on its owner's own site
+  # ============================================================
+
+  /api/embed/agents/{handle}:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [agents]
+      summary: "What an agent's embed widget shows, or why it is off"
+      description: >-
+        Public, always 200. On: `{ok, embed: true, chat: true, agent: {handle, name, tagline, greeting, accent, glyph, avatar_url, builder_page}, rigs: [{slug, title, input: {label, hint, default}}],
+        origins, message_max, built_on: {label, href}}`. `rigs` are the agent's own rigs a visitor may run (each rig's own listing must be owner-funded); `origins` are the sites the owner allowed.
+        Off: `{ok, embed: false, reason, message, origins: []}` with `reason` one of `embed_off` (not switched on, or no such public agent) · `agent_priced` · `agent_gated` · `owner_not_entitled` · `unavailable`.
+        The owner switches it on with `agent_embed_set` over MCP or `PUT /api/doors/settings/rokha/agent-{handle}`.
+      operationId: embedAgentRead
+      responses:
+        '200':
+          description: "The widget's face, or `embed: false` with the reason"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                required: [ok, embed]
+                properties:
+                  ok: { type: boolean }
+                  embed: { type: boolean }
+                  reason: { type: string, enum: [embed_off, agent_priced, agent_gated, owner_not_entitled, unavailable] }
+                  message: { type: string }
+                  origins: { type: array, items: { type: string } }
+                  message_max: { type: integer, example: 800 }
+
+  /api/embed/agents/{handle}/chat:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+      - { $ref: '#/components/parameters/EmbedOrigin' }
+      - { name: x-anon-session-id, in: header, required: false, schema: { type: string, format: uuid }, description: "The visitor's session; one is made when absent" }
+    post:
+      tags: [agents]
+      summary: "Ask an embedded agent one question (no sign-in)"
+      description: >-
+        For a visitor on the owner's site: one question, one answer, `{ok, reply, agent: {handle, name}}`. The agent answers from its persona and what its creator attached, with no tools, on its
+        owner's own model key. The call is admitted by the page's `Origin` (one of the origins the owner allowed) or by one of the owner's site keys sent as a bearer, and counts against the owner's
+        daily cap and per-visitor cap. `message` is 1 to 800 characters; a longer one is refused, not cut. Nothing else in the body is read. A refusal is `{ok: false, error, code, message}`.
+      operationId: embedAgentChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string, minLength: 1, maxLength: 800 }
+      responses:
+        '200':
+          description: "`{ok, reply, agent: {handle, name}}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  reply: { type: string }
+                  agent: { type: object, properties: { handle: { type: string }, name: { type: string } } }
+        '400': { description: "`bad_message` — send `{message}` · `message_too_long` — over 800 characters", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`key_required` — this widget takes one of its owner's site keys", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`embed_off` — not switched on, or no such public agent · `origin_not_allowed` — not one of the owner's allowed sites · `agent_priced` · `agent_gated` · `owner_not_entitled` — the owner's Lab is not active · `owner_key_missing` — the owner has no model key saved · `site_key_off_listing` — the site key belongs to another listing · `door_caller_unknown` — the caller's network address could not be read, so the per-visitor cap cannot hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: "`door_daily_cap` — the owner's calls for today are used (`daily_cap`) · `door_caller_cap` — this visitor's calls for today are used (`caller_cap`); both reset at 00:00 UTC", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '502': { description: "`agent_unavailable` — the agent could not answer just now", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unavailable` · `door_cap_unreadable` — a check could not be read, so nothing ran", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/embed/agents/{handle}/run:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+      - { $ref: '#/components/parameters/EmbedOrigin' }
+      - { name: x-anon-session-id, in: header, required: false, schema: { type: string, format: uuid } }
+    post:
+      tags: [agents]
+      summary: "Run one of an embedded agent's own rigs (no sign-in)"
+      description: >-
+        Starts one of the rigs on the agent (`rig` is its slug, from `rigs` on `GET /api/embed/agents/{handle}`) with `input` as its first input (up to 800 characters). The agent's widget must be on
+        for the calling site, as on the chat door, and the rig must be the agent owner's own and attached to the agent. From there it is the run door: the answers of `POST /api/rigs/run`
+        (202 with `run_id` and a `poll` block, then the rig's own refusals and caps), decided by the rig's own listing.
+      operationId: embedAgentRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rig]
+              properties:
+                rig: { type: string, description: "The rig's slug" }
+                input: { type: string, maxLength: 800 }
+      responses:
+        '202': { description: "Run started — the same body as `POST /api/rigs/run`" }
+        '401': { description: "`key_required`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`embed_off` · `origin_not_allowed` · `agent_priced` · `agent_gated` · `owner_not_entitled` · `site_key_off_listing`, as on the chat door", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`rig_not_on_agent` — not one of this agent's rigs", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '429': { description: "The rig's own caps, as on `POST /api/rigs/run`" }
+        '503': { description: "`unavailable` — a check could not be read, so nothing ran", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/doors/agent/{handle}:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [agents]
+      summary: "A published agent's doors: how to call it, and its embed widget"
+      description: >-
+        Public; a private agent answers 404 to anyone but its owner. The card names the agent's doors (`kind`, `title`, `ref`, `canonical`, `access`, `who_pays`, `owner_lane_on`, `auth`, `rest`, `mcp`,
+        `chat`, `hire`, `site`, `docs`, `agent_handle`) and carries `embed`: `{on, snippet, snippet_inline, frame, read, chat, how, mcp}`. `snippet` is the one script tag to paste into a site
+        (`snippet_inline` puts the widget in the page instead of a corner button). With the owner's bearer `embed` adds `origins`, `daily_cap`, `caller_cap`, `checks: {lab, model_key}`,
+        `settings_url` and `blocker`: `{code, message}` for the one thing still missing (`not_published` · `agent_priced` · `agent_gated` · `owner_not_entitled` · `owner_key_missing` · `lane_off` ·
+        `no_origin` · `unavailable`), or `null` when the widget is on. Over MCP: `agent_embed_get {agent}` reads the same block for one of your own agents, and
+        `agent_embed_set {agent, origins?, daily_cap?, caller_cap?, off?}` switches it on, changes it or switches it off.
+      operationId: agentDoorsCard
+      responses:
+        '200':
+          description: "The card"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  embed:
+                    type: object
+                    additionalProperties: true
+                    properties:
+                      on: { type: boolean }
+                      snippet: { type: string, example: '<script src="https://rokha.ai/embed.js" data-agent="scout" data-mode="bubble" async></script>' }
+                      snippet_inline: { type: string }
+                      frame: { type: string, format: uri }
+                      read: { type: string, format: uri }
+                      chat: { type: string, format: uri }
+                      how: { type: string }
+                      mcp: { type: array, items: { type: string } }
+                      origins: { type: array, items: { type: string }, description: "Owner only" }
+                      daily_cap: { type: integer, description: "Owner only" }
+                      caller_cap: { type: integer, description: "Owner only" }
+                      checks: { type: object, description: "Owner only", properties: { lab: { type: boolean }, model_key: { type: boolean } } }
+                      blocker: { type: [object, 'null'], description: "Owner only", properties: { code: { type: string }, message: { type: string } } }
+                      settings_url: { type: string, description: "Owner only" }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/doors/settings/{provider}/{external_id}:
+    parameters:
+      - { name: provider, in: path, required: true, schema: { type: string }, description: "`rokha` for what you published on Rokha" }
+      - { name: external_id, in: path, required: true, schema: { type: string }, description: "The listing's slug; an agent's listing is `agent-<handle>`" }
+    get:
+      tags: [agents]
+      summary: "Read the door settings of a listing you own"
+      description: "`{ok, settings: {access, who_pays, origins, daily_cap, caller_cap, owner_lane_on}, checks: {lab, model_key}}`."
+      operationId: doorSettingsGet
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The settings"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "Sign in" }
+        '404': { description: "`not_found` — no such listing of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [agents]
+      summary: "Change who may call a listing you own, and who pays"
+      description: >-
+        Only the fields named change. `who_pays: owner` means you fund calls from the `origins` you allow, up to `daily_cap` calls a day and `caller_cap` a day for one visitor; a cap of 0 is off.
+        On an agent's listing (`rokha/agent-<handle>`) this is the switch for its embed widget: `{access: "public", who_pays: "owner", origins, daily_cap, caller_cap}` turns it on and
+        `{who_pays: "caller"}` turns it off. A priced listing or agent is never owner-funded, and neither is a rig that uses saved keys, stored data or Signet steps. A person's sign-in only:
+        an `rk_` key can read, not change. Over MCP for an agent's widget: `agent_embed_set`.
+      operationId: doorSettingsSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access: { type: string, enum: [public, key, private] }
+                who_pays: { type: string, enum: [caller, owner] }
+                origins: { type: array, maxItems: 10, items: { type: string, maxLength: 200 }, description: "`https://host`, nothing after the host (`http://localhost:<port>` for a dev site); replaces the list" }
+                daily_cap: { type: integer, minimum: 0, maximum: 10000 }
+                caller_cap: { type: integer, minimum: 0, maximum: 1000 }
+      responses:
+        '200':
+          description: "`{ok, settings, checks}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_setting` — the message names the field · `priced` — a priced listing or agent is not owner-funded · `unfundable` — the rig uses saved keys, stored data or value", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "Sign in" }
+        '403': { description: "`key_cannot` — sign in to change a listing's doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no such listing of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unavailable` — the listing could not be read; nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ============================================================
+  # Your own domain — point a domain you control at one of your pages
+  # ============================================================
+
+  /api/domains:
+    get:
+      tags: [pages]
+      summary: "Your domains"
+      description: >-
+        `{ok, lab, limit, cname_target, domains: [Domain]}`. `lab` says whether your account has the Lab right now; `limit` is how many domains an account holds (5). Each `Domain` is
+        `{domain, page, status, live, tls, records, next}`: `status` is `pending` · `verified` · `lapsed`, and `records` are the two DNS records to add, a TXT at `_rokha.<domain>` that proves the
+        domain is yours (keep it in place) and a CNAME that sends visitors to your page. Over MCP: `page_domain_status {}` lists the same. Your own sign-in only: a key issued for one agent
+        answers `403 owner_only`.
+      operationId: domainsMine
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "Your domains"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  lab: { type: boolean }
+                  limit: { type: integer, example: 5 }
+                  cname_target: { type: string }
+                  domains: { type: array, items: { $ref: '#/components/schemas/PageDomain' } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [pages]
+      summary: "Point a domain at one of your pages, or move it to another"
+      description: >-
+        Body `{domain, page}`. `domain` is a host name like `www.example.com`; `page` is one of your own pages, `@handle` (your page or one of your agents) or `@handle/<rig-slug>`. Included with
+        the Lab. One domain shows one page. The answer carries the two DNS records to add at your DNS host; then check with `POST /api/domains/verify`. Calling again with a new `page` moves a
+        domain already set and keeps its proof. Sign-in and payment stay on rokha.ai, and the page keeps a small Built on Rokha line. Over MCP: `page_domain_set {domain, page}`
+        (`off: true` removes it).
+      operationId: domainSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain, page]
+              properties:
+                domain: { type: string, maxLength: 253, example: "www.example.com" }
+                page: { type: string, maxLength: 130, example: "@handle" }
+      responses:
+        '200':
+          description: "`{ok, domain}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  domain: { $ref: '#/components/schemas/PageDomain' }
+        '400': { description: "`bad_domain` — not a plain host name · `reserved_domain` — not available · `bad_page` — not `@handle` or `@handle/<rig-slug>`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no page or agent of yours by that handle", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`too_many` — an account holds up to 5 domains; remove one first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/domains/verify:
+    post:
+      tags: [pages]
+      summary: "Check a domain's DNS now"
+      description: >-
+        Body `{domain}`. Reads the TXT record at `_rokha.<domain>` and answers `{ok, domain, checked?}`. With the record in place the domain becomes `verified` and is yours alone: any other
+        account's claim on it is removed. `checked` is a note when nothing changed: the record is not there yet, or DNS could not be read just now. A verified domain is checked again from time
+        to time; if the record stays gone it becomes `lapsed` until you put it back. Over MCP: `page_domain_status {domain}`.
+      operationId: domainVerify
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain]
+              properties:
+                domain: { type: string, maxLength: 253 }
+      responses:
+        '200':
+          description: "`{ok, domain, checked?}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  domain: { $ref: '#/components/schemas/PageDomain' }
+                  checked: { type: string }
+        '400': { description: "`bad_domain` · `reserved_domain`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no domain of yours by that name", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/domains/{host}:
+    parameters:
+      - { name: host, in: path, required: true, schema: { type: string }, description: "The domain, like www.example.com" }
+    delete:
+      tags: [pages]
+      summary: "Remove one of your domains"
+      operationId: domainRemove
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, removed}`"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, removed: { type: string } } }
+        '400': { description: "`bad_domain` · `reserved_domain`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no domain of yours by that name", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/domains/resolve:
+    get:
+      tags: [pages]
+      summary: "Which page does this domain show? (public)"
+      description: >-
+        `{ok, mapped: false}`, or `{ok, mapped: true, host, page, ref}` for a verified domain whose owner has the Lab right now. `page` is the path it shows (`/@handle` or
+        `/@handle/<rig-slug>`) and `ref` the page's handle. It says nothing about who owns the domain. A domain that shows a page is read-only: on it, sign-in, payment and account doors, and any
+        request carrying a credential, answer `403 use_rokha_ai`.
+      operationId: domainResolve
+      parameters:
+        - { name: host, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: "The mapping"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                required: [ok, mapped]
+                properties:
+                  ok: { type: boolean }
+                  mapped: { type: boolean }
+                  host: { type: string }
+                  page: { type: string }
+                  ref: { type: string }
+
   /api/lab/radar:
     get:
       tags: [desk]
@@ -7474,19 +7826,19 @@ paths:
         '404': { description: "`not_found`" }
 
   # ============================================================
-  # Pages for sale — a page of its own ($99, the free login) and sub-page credits ($9)
+  # Pages — pages bought before the pay-once page was retired, and sub-page credits ($9)
   # ============================================================
 
   /api/flat-pages/info:
     get:
       tags: [pages]
-      summary: "A page of its own — the price, what it includes, the limits and the doors (public)"
+      summary: "A bought page — what it includes, the limits and the doors (public)"
       description: >-
-        One payment buys a page at rokha.ai/@handle with an agent on it (Rokha, or any public
-        unpriced agent its owner allows), on the FREE login — no subscription. $99 one time
-        (`price_cents` is the live number): the page stays, 30 days of chat with its agent are
-        included from the day it goes live, and 30 more cost the same again. All payments are
-        final. No refunds.
+        The pay-once page is no longer sold: `POST /api/flat-pages/checkout` answers 410. Pages
+        already bought stay up, with their editor, their order status and their chat extensions.
+        This read describes such a page: a page at rokha.ai/@handle with an agent on it (Rokha, or
+        any public unpriced agent its owner allows), 30 days of chat with its agent from the day
+        it went live, and 30 more for the same price again. All payments are final. No refunds.
       operationId: flatPageInfo
       responses:
         '200':
@@ -7520,14 +7872,12 @@ paths:
   /api/flat-pages/checkout:
     post:
       tags: [pages]
-      summary: "Buy a page of its own (JWT — the free login is enough)"
+      summary: "Retired: buy a pay-once page (answers 410)"
+      deprecated: true
       description: >-
-        Opens the order on the caller's account: `card` → a Stripe `checkout_url`; `usdc`, `sol`
-        or `rokha` + `payer_wallet` → exact pay instructions (SOL and `rokha` quoted live, held 60
-        seconds). Nothing exists until the payment settles; then `GET /api/flat-pages/order`
-        answers the new `page_id` and the editor opens on this login. `email` is the receipt
-        address, asked only when the account has none. All payments are final. No refunds; a
-        late or unmatched payment creates nothing and is not returned.
+        Retired. This door no longer opens orders and answers `410 retired`. Pages are built in
+        the Lab and hosted with it. A page already bought keeps its editor
+        (`GET /api/flat-pages/editor`), its order status and its extensions.
       operationId: flatPageCheckout
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -7545,6 +7895,7 @@ paths:
         '200': { description: "The order: `reference`, `kind: page`, `price_cents`, `no_refunds: true`, and the rail's payment details (`checkout_url`, or the exact amount, `pay_to` and `expires_at`)" }
         '400': { description: "`bad_rail` · `bad_payer` · `bad_email`" }
         '401': { description: Sign in }
+        '410': { description: "`retired` — this offer is no longer sold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '429': { description: "`too_many_orders` — 12 open checkouts an hour" }
   /api/flat-pages/order:
     get:
@@ -7829,7 +8180,7 @@ paths:
     post:
       tags: [pages]
       summary: "Buy one sub-page credit (JWT, a Lab account)"
-      description: "The same rails and order shape as `/api/flat-pages/checkout` (`kind: credit`). The credit is written to your account when the payment settles, never before. All payments are final."
+      description: "Opens an order on your account (`kind: credit`): `card` answers a Stripe `checkout_url`; `usdc`, `sol` or `rokha` with `payer_wallet` answer exact pay instructions. The credit is written to your account when the payment settles, never before. All payments are final."
       operationId: pageCreditCheckout
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -7845,7 +8196,7 @@ paths:
       responses:
         '200': { description: The order }
         '400': { description: "`bad_rail` · `bad_payer`" }
-        '402': { description: "`subpage_lab` — page credits are for Lab accounts; a free account buys a page of its own" }
+        '402': { description: "`subpage_lab` — page credits are for Lab accounts" }
         '429': { description: "`too_many_orders`" }
 
   # ============================================================
@@ -8003,6 +8354,15 @@ components:
         before expiry (24h default).
 
   parameters:
+    EmbedOrigin:
+      name: x-embed-origin
+      in: header
+      required: false
+      description: >-
+        Sent by Rokha's own widget frame to name the page it stands on (`https://host`). It is read only when the request's `Origin` is rokha.ai itself; from any other origin it is ignored and
+        the browser's `Origin` decides. A builder calling the embed doors from their own page sends nothing extra.
+      schema:
+        type: string
     RokhaProject:
       name: x-rokha-project
       in: header
@@ -8616,6 +8976,27 @@ components:
         - type: object
           properties:
             mentions: { type: string, enum: [commands, all, off], description: "Tags: slash commands only, all, or off" }
+
+    PageDomain:
+      type: object
+      additionalProperties: true
+      description: "One domain on your account, with the DNS records to add"
+      properties:
+        domain: { type: string, example: "www.example.com" }
+        page: { type: string, example: "/@handle" }
+        status: { type: string, enum: [pending, verified, lapsed] }
+        live: { type: boolean, description: "true once verified" }
+        tls: { type: string, description: "`covered` when its certificate is in place, `pending` while it is being set up" }
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { type: string, enum: [TXT, CNAME] }
+              name: { type: string }
+              value: { type: string }
+              why: { type: string }
+        next: { type: string, description: "The next step, in words" }
 
     ErrorResponse:
       type: object

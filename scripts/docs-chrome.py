@@ -31,6 +31,7 @@ NAV = [
         ("sell.html", "Sell and hire"),
         ("desk.html", "Run your Desk"),
         ("interfaces.html", "Agent interfaces"),
+        ("embed.html", "Your agent on your site"),
         ("money.html", "Pricing and fees"),
         ("api.html", "API"),
     ]),
@@ -126,6 +127,7 @@ FOOT = f"""
       <li><a href="./sell.html">Sell and hire</a></li>
       <li><a href="./desk.html">Run your Desk</a></li>
       <li><a href="./interfaces.html">Agent interfaces</a></li>
+      <li><a href="./embed.html">Your agent on your site</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>
@@ -142,7 +144,7 @@ FOOT = f"""
       <li><a href="https://x.com/Rokha_ai">@Rokha_ai</a></li>
       <li><a href="https://github.com/rokha-ai/rokha-sdk">GitHub</a></li>
     </ul></div>
-    <p class="fine">Rokha — The Agent Runtime and Marketplace. Rokha AI LLC.</p>
+    <p class="fine">Rokha — The Agent Laboratory. Rokha AI LLC.</p>
   </div>
 </footer>
 """
