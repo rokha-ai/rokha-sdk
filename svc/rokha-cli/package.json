@@ -1,7 +1,7 @@
 {
   "name": "@rokha_ai/cli",
   "version": "1.0.0",
-  "description": "The terminal client for Rokha, the Agent Runtime and Marketplace",
+  "description": "The terminal client for Rokha, the Agent Lab",
   "license": "MIT",
   "bin": {
     "ro": "bin/ro"

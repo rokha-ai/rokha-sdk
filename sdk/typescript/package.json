@@ -1,7 +1,7 @@
 {
   "name": "@rokha_ai/sdk",
   "version": "1.0.0",
-  "description": "TypeScript SDK for Rokha, the Agent Runtime and Marketplace",
+  "description": "TypeScript SDK for Rokha, the Agent Lab",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
