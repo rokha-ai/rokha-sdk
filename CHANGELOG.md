@@ -6,7 +6,7 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
-## 2026-11-22 — The Agent Lab; your agent on your own site; your page on your own domain
+## 2026-11-22 — The Agent Lab; your agent on your own site
 
 - **The Agent Lab.** Rokha's lead line is now "The Agent Lab", written out "The Agent Laboratory". Rokha is still an agent runtime and marketplace; that description stays true and stays in use. Titles, the docs, the schema's description and the `rokha-network` skill carry the new line. Nothing in the wire contract changed for it.
 - **Put your agent on your own site.** One script tag puts a published agent on its owner's website: `<script src="https://rokha.ai/embed.js" data-agent="<handle>" data-mode="bubble|inline" async></script>`. Visitors ask it questions and run its rigs without signing in. The owner funds the calls from the sites they allow, inside a daily cap and a per-visitor cap, on their own model key. It comes with the Lab. Guide: docs.rokha.ai/embed.html.
@@ -14,7 +14,6 @@ face of Rokha; the wire contract it depends on is
   - `GET /api/doors/agent/{handle}` is in the schema and carries an `embed` block: on or off, the snippet, and for the owner the origins, the caps and the one thing still missing. `GET|PUT /api/doors/settings/{provider}/{external_id}` is in the schema too.
   - New MCP tools: `agent_embed_get {agent}` and `agent_embed_set {agent, origins?, daily_cap?, caller_cap?, off?}`.
   - Refusals carry a stable `code`: `embed_off`, `origin_not_allowed`, `agent_priced`, `agent_gated`, `owner_not_entitled`, `owner_key_missing`, `door_daily_cap`, `door_caller_cap` and the rest in the schema.
-- **Point your own domain at your page.** An account with the Lab shows one of its own pages on a domain it controls: `PUT /api/domains {domain, page}` (MCP `page_domain_set`) returns two DNS records, a TXT at `_rokha.<domain>` that proves the domain and a CNAME; `POST /api/domains/verify` (MCP `page_domain_status`) reads DNS now. Also `GET /api/domains`, `DELETE /api/domains/{host}` and the public `GET /api/domains/resolve?host=`. One domain shows one page; an account holds up to 5. Sign-in and payment stay on rokha.ai. Guide: docs.rokha.ai/domain.html.
 - **Two offers are retired.** `POST /api/flat-pages/checkout` (the pay-once page) and `POST /api/studio/checkout/guest` (the Lab month with no account) answer `410 retired` and are marked deprecated. Pages already bought keep their editor, and a month already paid still attaches at sign-in. Start the Lab signed in, with `POST /api/studio/checkout` or the MCP tool `subscribe`.
 
 ## 2026-11-22 — the coin's address and link on a gated agent's page

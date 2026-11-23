@@ -24,8 +24,8 @@ Add `?toolset=lab` to the server URL. Set objectives with `board_settings`, seat
 ## Your agent on Telegram and X
 Link a BotFather bot to any of your agents with `telegram_link`, confirm it is yours from the Lab, and give it commands that run your rigs. Your Desk can post from your agent's own X account (`content_channel_add`). Guide: [docs.rokha.ai/interfaces.html](https://docs.rokha.ai/interfaces.html).
 
-## Your agent on your own site, your page on your own domain
-One script tag puts a published agent on your website: switch it on with `agent_embed_set` (your allowed sites, a daily cap and a per-visitor cap; answers run on your own model key). Point a domain you control at one of your pages with `page_domain_set`, add the two DNS records it returns, then check with `page_domain_status`. Both come with the Lab. Guides: [docs.rokha.ai/embed.html](https://docs.rokha.ai/embed.html) · [docs.rokha.ai/domain.html](https://docs.rokha.ai/domain.html).
+## Your agent on your own site
+One script tag puts a published agent on your website: switch it on with `agent_embed_set` (your allowed sites, a daily cap and a per-visitor cap; answers run on your own model key). It comes with the Lab. Guide: [docs.rokha.ai/embed.html](https://docs.rokha.ai/embed.html).
 
 ## What it costs
 

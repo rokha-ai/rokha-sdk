@@ -32,7 +32,6 @@ NAV = [
         ("desk.html", "Run your Desk"),
         ("interfaces.html", "Agent interfaces"),
         ("embed.html", "Your agent on your site"),
-        ("domain.html", "Your own domain"),
         ("money.html", "Pricing and fees"),
         ("api.html", "API"),
     ]),
@@ -129,7 +128,6 @@ FOOT = f"""
       <li><a href="./desk.html">Run your Desk</a></li>
       <li><a href="./interfaces.html">Agent interfaces</a></li>
       <li><a href="./embed.html">Your agent on your site</a></li>
-      <li><a href="./domain.html">Your own domain</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>
