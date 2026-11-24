@@ -9,11 +9,12 @@ face of Rokha; the wire contract it depends on is
 ## 2026-11-24 — rename a project; project templates
 
 - **Rename a project.** `PATCH /api/lab/projects/{id} {name}` (MCP `project_rename {id, name}`). Only the name changes.
-- **Start a project from a template.** A template is a project's setup listed on the Market. `GET /api/lab/projects/templates?q=` (MCP `project_templates {q?}`) lists them: slug, title, what each covers, its price, and `from`. `POST /api/lab/projects {name, from: "template:<slug>"}` (MCP `project_create`) starts a project from one; the answer now carries `needs`, the listings the template's seats lean on.
+- **Start a project from a template.** A template is a project's setup listed on the Market. `GET /api/lab/projects/templates?q=` (MCP `project_templates {q?}`) lists them: slug, title, what each covers, its price, and `from`. `POST /api/lab/projects {name, from: "template:<slug>"}` (MCP `project_create`) starts a project from one; the answer now carries `needs`, the listings the template's seats lean on, each with a `status`: `yours`, `free`, `buy` or `gone`.
 - **List your own.** `POST /api/lab/projects/templates {name, description, title?, project?, id?, needs?, price_usd?}` (MCP `project_template_publish`) lists a project's setup, or a saved setup, as a template. It is listed and priced like any other listing, and answers like `POST /api/marketplace/registry/publish`.
 - **What a template carries.** Objectives and Crew seats only. Every seat arrives as Rokha, and the project starts with Automated off. A template never carries a key, an outside agent or a card.
 - **A priced template must be bought first.** Until then `project_create` answers `402 template_unpaid` with `ladder: {product_id, listing}`.
 - Refusals carry a stable code: `bad_name`, `bad_description`, `bad_needs`, `needs_not_found`, `empty_template`, `template_unpaid`, `bad_from`, `too_large`, `not_found`, `store_failed`.
+- **Documentation correction, not a behaviour change.** The schema said `POST /api/lab/projects` answers `project: {id, name, live}`. It answers `project: {id, name, viewing, automated}` plus `relink`, and always has. The schema now says so.
 - Additive: nothing existing changed. Like every project door, these are the person's own hand only, never an agent's key. Guide: docs.rokha.ai/desk.html#templates.
 
 ## 2026-11-24 — the media library

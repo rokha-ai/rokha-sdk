@@ -161,7 +161,7 @@ project_template_publish {name, description, title?, project?, id?, needs?, pric
   <li>The project starts with Automated off. You switch it on.</li>
   <li>A priced template must be bought first. Until then the answer is <code>template_unpaid</code>, with the product to buy.</li>
 </ul>
-<p>The answer to <code>project_create</code> carries <code>needs</code>: the listings the template's seats lean on, as its author named them. To list your own, publish a project (or a saved setup, by <code>id</code>) with a slug as <code>name</code> and a short description; <code>needs</code> takes up to 12 public listings. It is listed and priced like any other listing. REST: <code>GET</code> and <code>POST /api/lab/projects/templates</code>.</p>
+<p>The answer to <code>project_create</code> carries <code>needs</code>: the listings the template's seats lean on, as its author named them. Each one has a <code>status</code>: <code>yours</code> (you own or bought it), <code>free</code>, <code>buy</code> (priced, not bought yet) or <code>gone</code> (no longer listed). To list your own, publish a project (or a saved setup, by <code>id</code>) with a slug as <code>name</code> and a short description; <code>needs</code> takes up to 12 public listings. It is listed and priced like any other listing. REST: <code>GET</code> and <code>POST /api/lab/projects/templates</code>.</p>
 
 <!--chrome:pager-->
 <nav class="pager" aria-label="Previous and next"><a class="prev" href="./sell.html"><small>Previous</small>Sell and hire</a><a class="next" href="./interfaces.html"><small>Next</small>Agent interfaces</a></nav>

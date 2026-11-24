@@ -7696,7 +7696,9 @@ paths:
         Body `{name, from?}`: `from` is `blank` (the standard Crew with Rokha, no Objectives, Automated off; the default),
         `current` (a copy of the setup on the board), a saved setup's id, or `template:<slug>` (a template from the Market;
         `GET /api/lab/projects/templates` lists them). A project made from a template starts with Automated off and every
-        seat held by Rokha; the answer's `needs` names the listings its seats lean on (empty for every other `from`). A
+        seat held by Rokha; the answer's `needs` names the listings its seats lean on (empty for every other `from`), each
+        with a `status` saying where you stand on it: `yours`, `free`, `buy` or `gone`. The status only tells you; running
+        a listing is still decided when you run it. `relink` lists any seat that came back as Rokha and needs re-linking. A
         priced template must be bought first: `402 template_unpaid`, with `ladder: {product_id, listing}`; the Lab does
         not open a builder's priced template. Past your allowance the answer is `402 project_cap` with a `ladder` naming
         the Project pack. MCP `project_create`.
@@ -7717,7 +7719,7 @@ paths:
               template: { value: { name: "Launch week", from: "template:launch-week-crew" } }
       responses:
         '200':
-          description: "`{ok, project: {id, name, live}, needs, next}`"
+          description: "`{ok, project: {id, name, viewing, automated}, relink, needs, next}`"
           content:
             application/json:
               schema:
@@ -7725,10 +7727,14 @@ paths:
                 additionalProperties: true
                 properties:
                   ok: { type: boolean }
-                  project: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string }, live: { type: boolean } } }
+                  project: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string }, viewing: { type: boolean, description: "False: a new project is not shown until you view it" }, automated: { type: boolean, description: "False: a new project starts with Automated off" } } }
+                  relink:
+                    type: array
+                    description: "Seats that came back as Rokha because their bot needs a key; each has a Needs you card"
+                    items: { type: object, properties: { position: { type: string }, title: { type: string }, occupant: { type: string }, needs_you: { type: boolean } } }
                   needs:
                     type: array
-                    description: "The listings a template's seats lean on, as its author named them. Empty unless `from` was a template."
+                    description: "The listings a template's seats lean on, as its author named them, each with your `status` on it. Empty unless `from` was a template."
                     items: { $ref: '#/components/schemas/ProjectTemplateNeed' }
                   next: { type: string }
         '400': { description: "`bad_name` · `bad_from`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
@@ -9399,6 +9405,10 @@ components:
         slug: { type: string }
         type: { type: string, description: "The listing's type, such as rig or skill" }
         title: { type: string }
+        status:
+          type: string
+          enum: [yours, free, buy, gone]
+          description: "Only on the `POST /api/lab/projects` answer, never on a template row's `covers.needs`. `yours` = you own or bought it · `free` = anyone runs it · `buy` = priced and not bought · `gone` = no longer a listing you can read. It tells you where you stand; it is not the gate."
 
     ProjectTemplate:
       type: object
