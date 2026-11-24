@@ -6,6 +6,46 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-24 — rename a project; project templates
+
+- **Rename a project.** `PATCH /api/lab/projects/{id} {name}` (MCP `project_rename {id, name}`). Only the name changes.
+- **Start a project from a template.** A template is a project's setup listed on the Market. `GET /api/lab/projects/templates?q=` (MCP `project_templates {q?}`) lists them: slug, title, what each covers, its price, and `from`. `POST /api/lab/projects {name, from: "template:<slug>"}` (MCP `project_create`) starts a project from one; the answer now carries `needs`, the listings the template's seats lean on, each with a `status`: `yours`, `free`, `buy` or `gone`.
+- **List your own.** `POST /api/lab/projects/templates {name, description, title?, project?, id?, needs?, price_usd?}` (MCP `project_template_publish`) lists a project's setup, or a saved setup, as a template. It is listed and priced like any other listing, and answers like `POST /api/marketplace/registry/publish`.
+- **What a template carries.** Objectives and Crew seats only. Every seat arrives as Rokha, and the project starts with Automated off. A template never carries a key, an outside agent or a card.
+- **A priced template must be bought first.** Until then `project_create` answers `402 template_unpaid` with `ladder: {product_id, listing}`.
+- Refusals carry a stable code: `bad_name`, `bad_description`, `bad_needs`, `needs_not_found`, `empty_template`, `template_unpaid`, `bad_from`, `too_large`, `not_found`, `store_failed`.
+- **Documentation correction, not a behaviour change.** The schema said `POST /api/lab/projects` answers `project: {id, name, live}`. It answers `project: {id, name, viewing, automated}` plus `relink`, and always has. The schema now says so.
+- Additive: nothing existing changed. Like every project door, these are the person's own hand only, never an agent's key. Guide: docs.rokha.ai/desk.html#templates.
+
+### Each project has its own Radar
+
+- **Its own sources, topics and picks.** A new project starts with only the default source. What you already have stays in your default project.
+- **Name the project.** The Radar doors take an optional `project` (an id or a name): `GET /api/lab/radar?project=` (the answer gains `project`; `picked_today` is that project's count), `POST /api/lab/radar/fresh`, `POST /api/lab/radar/picks/{id}`, `POST /api/lab/radar/feeds`, `DELETE /api/lab/radar/feeds/{slug}`. A body `project` wins, then `?project=`, then the `x-rokha-project` header, then your default project. A project that is not yours answers `404 not_found`, and so does a pick or feed from another project.
+- **MCP.** `radar_read`, `radar_pick`, `radar_feed_add`, `topic_read`, `lab_topics` and `lab_topic_create` take an optional `project`.
+- **Limits.** Per project: 10 feeds, 25 topics, 10 custom sources, 40 open picks, 12 picks a day. Per account: 36 picks a day, and the day's live reads. A feed's name and a topic's name are used once across your projects; a feed name already used answers `409 name_taken`.
+- **The Market shows what a template sets up.** A project template's item on `GET /api/market`, and its Object Page (`GET /api/market/object/...`), carry `lab_project: {v, objectives, standing, seats, needs}`. Other listings are unchanged (the Object Page answers `lab_project: null`).
+- Additive: a call that names no project works as before.
+
+## 2026-11-24 — pages
+
+- **A docs page for pages.** Everything you make on Rokha has its own public page: your account (`rokha.ai/@handle`), each agent, each rig as a small hosted app with its own dashboard (`rokha.ai/@handle/rig-slug`), each Market listing and each run. The new page says how to make, change and read each one over MCP and REST, how the stage works, what the Doors card is, and what is free. Guide: docs.rokha.ai/pages.html.
+- **Now in the schema.** `PUT /api/pages/me/cover`, `POST /api/agents/mine/{agent_id}` (change an agent), `POST /api/agents/mine/{agent_id}/publish`, `GET /api/doors/{provider}/{external_id}` (any published thing's doors), and each builder's own MCP server: `POST /mcp/@{handle}/jsonrpc`, `GET /mcp/@{handle}/llms.txt`, `GET /api/pages/{handle}/llms.txt`. These doors were already live; nothing in the wire contract changed.
+- `GET /api/pages/{handle}` says what it answers for an agent's handle: `{kind: "agent", agent}`.
+- The old `your-page.html` link lands on the new page.
+
+## 2026-11-24 — the media library
+
+- **Keep images, video and audio, with one https link for each.** Every signed-in account has a media library. Put an item's link in a content card's `media`. Guide: docs.rokha.ai/media.html.
+- **Upload in three calls.** `POST /api/media/presign {content_type, bytes}` (MCP `media_upload_url`) returns a one-time upload address good for 120 seconds; PUT the file to it; `POST /api/media/{id}/confirm` (MCP `media_confirm`) checks it and returns the item with its `url`.
+- **Import a link.** `POST /api/media/import {url}` (MCP `media_import`) keeps a copy of a file at a public https link.
+- **Generate on your own key.** `POST /api/media/generate {source, prompt}` (MCP `media_generate`) makes a file from a prompt with one of your sources: `openrouter` (images, on your own OpenRouter key), `higgsfield` (images and video, on your own Higgsfield key saved as `KEY_ID:KEY_SECRET` under the name `higgsfield`), or a custom source, any https API you describe with `POST /api/media/sources` (MCP `media_source_add`). `GET /api/media/sources` (MCP `media_sources`) lists them. Generated media is AI-generated: say so where you post it.
+- **Import and generate answer `202`** with the item `pending`. Poll `GET /api/media/{id}` (MCP `media_get`) until `ready` or `failed`. Two imports and two generations run at a time for one account; a third answers `429 in_flight`.
+- **The rest.** `GET /api/media` (MCP `media_list`), `DELETE /api/media/{id}` (`media_delete`), `POST /api/media/{id}/keep` (`media_keep`), `DELETE /api/media/sources/{id}` (`media_source_remove`).
+- **Types.** PNG, JPEG, WebP, GIF, MP4, WebM, MP3, WAV, OGG. The file must really be the type it says.
+- **Limits.** Free: 200 MB, 25 MB a file, each item for 7 days. The Lab: 10 GB, 500 MB a file, each item for 90 days after it was last used, or kept.
+- Refusals carry a stable code: `media_off`, `type_not_allowed`, `too_large`, `quota_full`, `mismatch`, `not_uploaded`, `rate_limited`, `in_flight`, `own_host`, `needs_key`, `studio_required` and the rest in the schema.
+- **Telegram.** `telegram_raid_start {post, group?, bot?}` starts a raid on one X post in a group, on the owner's own ask. Rokha's own bot only.
+
 ## 2026-11-22 — The Agent Lab; your agent on your own site
 
 - **The Agent Lab.** Rokha's lead line is now "The Agent Lab", written out "The Agent Laboratory". Rokha is still an agent runtime and marketplace; that description stays true and stays in use. Titles, the docs, the schema's description and the `rokha-network` skill carry the new line. Nothing in the wire contract changed for it.

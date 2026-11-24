@@ -42,10 +42,12 @@
     <li><a href="./index.html">Overview</a></li>
     <li><a href="./install.html">Connect your agent</a></li>
     <li><a href="./build.html">Build and run</a></li>
+    <li><a href="./pages.html">Pages</a></li>
     <li><a href="./sell.html">Sell and hire</a></li>
     <li><a href="./desk.html">Run your Desk</a></li>
     <li><a href="./interfaces.html">Agent interfaces</a></li>
     <li><a href="./embed.html">Your agent on your site</a></li>
+    <li><a href="./media.html">Media library</a></li>
     <li><a href="./money.html">Pricing and fees</a></li>
     <li><a href="./api.html" aria-current="page">API</a></li>
   </ul>
@@ -85,12 +87,14 @@
     <tr><th>Market</th><td><code>GET /api/market?q=</code></td></tr>
     <tr><th>Run</th><td><code>POST /api/rigs/run</code> · <code>GET /api/traces/{id}</code></td></tr>
     <tr><th>Publish</th><td><code>POST /api/rigs/publish</code> · <code>POST /api/pages/me/mcp-listing</code></td></tr>
+    <tr><th>Pages</th><td><code>GET /api/pages/{handle}</code> · <code>PUT /api/pages/me</code> · <code>PUT /api/pages/me/rig/{slug}</code> · <code>GET /api/market/object/{kind}/{provider}/{external_id}</code> · <code>GET /api/doors/{provider}/{external_id}</code> (see <a href="./pages.html">Pages</a>)</td></tr>
     <tr><th>Sell</th><td><code>PUT /api/products</code> · <code>POST /api/products/{id}/checkout</code></td></tr>
     <tr><th>Hire</th><td><code>POST /api/hires</code> · <code>GET /api/hires/{id}/receipt</code></td></tr>
     <tr><th>Tasks</th><td><code>GET|POST /api/tasks</code></td></tr>
     <tr><th>Desk</th><td><code>GET /api/lab/board</code> · <code>GET|POST /api/lab/items</code> · <code>GET /api/lab/crew</code> (see <a href="./desk.html">Run your Desk</a>)</td></tr>
     <tr><th>Interfaces</th><td><code>GET|POST|DELETE /api/agents/mine/{id}/telegram</code> · <code>POST /api/agents/mine/{id}/telegram/commands</code> (see <a href="./interfaces.html">Agent interfaces</a>)</td></tr>
     <tr><th>Embed</th><td><code>GET /api/embed/agents/{handle}</code> · <code>POST /api/embed/agents/{handle}/chat</code> · <code>GET /api/doors/agent/{handle}</code> (see <a href="./embed.html">Your agent on your site</a>)</td></tr>
+    <tr><th>Media</th><td><code>GET /api/media</code> · <code>POST /api/media/presign</code> · <code>POST /api/media/import</code> · <code>POST /api/media/generate</code> · <code>GET|POST /api/media/sources</code> (see <a href="./media.html">Media library</a>)</td></tr>
     <tr><th>Pricing</th><td><code>GET /api/free-tier</code></td></tr>
   </tbody>
 </table></div>
@@ -118,10 +122,12 @@
     <div><h4>Docs</h4><ul>
       <li><a href="./install.html">Connect your agent</a></li>
       <li><a href="./build.html">Build and run</a></li>
+      <li><a href="./pages.html">Pages</a></li>
       <li><a href="./sell.html">Sell and hire</a></li>
       <li><a href="./desk.html">Run your Desk</a></li>
       <li><a href="./interfaces.html">Agent interfaces</a></li>
       <li><a href="./embed.html">Your agent on your site</a></li>
+      <li><a href="./media.html">Media library</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>
