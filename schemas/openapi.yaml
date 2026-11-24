@@ -7072,6 +7072,345 @@ paths:
                   page: { type: string }
                   ref: { type: string }
 
+  # ============================================================
+  # The media library — keep images, video and audio; one stable link each
+  # ============================================================
+
+  /api/media:
+    get:
+      tags: [data]
+      summary: "Your media library, newest first"
+      description: >-
+        `{ok, media: [MediaItem], next_cursor, used_bytes, limit_bytes, file_limit_bytes, lab}`, 50 a page. `kind` narrows to one kind; `cursor` is the `next_cursor` of the page before.
+        A free account holds 200 MB, 25 MB a file, each item for 7 days after it was added. With the Lab it holds 10 GB, 500 MB a file, each item for 90 days after it was last used, or kept.
+        Every media door takes your own sign-in: a key issued for one agent answers `403 owner_only`. Over MCP: `media_list {kind?, cursor?}`.
+      operationId: mediaList
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: kind, in: query, required: false, schema: { type: string, enum: [image, video, audio] } }
+        - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 80 } }
+      responses:
+        '200':
+          description: "One page of your items"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  media: { type: array, items: { $ref: '#/components/schemas/MediaItem' } }
+                  next_cursor: { type: [string, 'null'] }
+                  used_bytes: { type: integer }
+                  limit_bytes: { type: integer }
+                  file_limit_bytes: { type: integer }
+                  lab: { type: boolean }
+        '400': { description: "`bad_request` — `kind` or `cursor` is not valid", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` — the library is not switched on here · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/presign:
+    post:
+      tags: [data]
+      summary: "Upload, step 1: get a one-time upload address for one file"
+      description: >-
+        Body `{content_type, bytes, title?}`: the file's type and its exact size in bytes. Types: `image/png`, `image/jpeg`, `image/webp`, `image/gif`, `video/mp4`, `video/webm`, `audio/mpeg`,
+        `audio/wav`, `audio/ogg`. The answer is `{ok, id, method: "PUT", upload_url, headers, expires_in: 120, next}`. PUT the file's bytes to `upload_url` with exactly the returned `headers`
+        within 120 seconds, then call `POST /api/media/{id}/confirm`. The address takes one file of that type and size, once. Nothing is public until it is confirmed.
+        Over MCP: `media_upload_url {content_type, bytes, title?}`.
+      operationId: mediaPresign
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content_type, bytes]
+              properties:
+                content_type: { type: string, maxLength: 40 }
+                bytes: { type: integer, minimum: 1, description: "The file's exact size in bytes" }
+                title: { type: string, maxLength: 120 }
+      responses:
+        '200':
+          description: "The upload address"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  id: { type: string, format: uuid }
+                  method: { type: string, const: PUT }
+                  upload_url: { type: string, format: uri }
+                  headers: { type: object, additionalProperties: { type: string } }
+                  expires_in: { type: integer, example: 120 }
+                  next: { type: string }
+        '400': { description: "`bad_request` — `bytes` is the file's exact size", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '402': { description: "On a free account, `too_large` or `quota_full` with the `ladder`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '409': { description: "`quota_full` — the library is full; delete something first", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '413': { description: "`too_large` — over the size for one file", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '415': { description: "`type_not_allowed`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '429': { description: "`rate_limited` — too many uploads and imports this hour", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [data]
+      summary: "One of your items"
+      description: >-
+        `{ok, media: MediaItem}`. Poll this after an import or a generation until `status` is `ready` (the item then has its `url`) or `failed` (`error` says why; a failed item holds no room).
+        Over MCP: `media_get {id}`.
+      operationId: mediaGet
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The item"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, media: { $ref: '#/components/schemas/MediaItem' } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '404': { description: "`not_found` — no media of yours by that id", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+    delete:
+      tags: [data]
+      summary: "Delete one of your items for good"
+      description: "The file is removed and its link stops working. `{ok, deleted}`. Over MCP: `media_delete {id}`."
+      operationId: mediaDelete
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, deleted}`"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, deleted: { type: string, format: uuid } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/{id}/confirm:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [data]
+      summary: "Upload, step 3: confirm the file you PUT"
+      description: >-
+        No body. The stored file must be the declared size and really be the declared type; one that is not is removed (`mismatch`). The answer is `{ok, media: MediaItem}` with `status: ready`
+        and its public https `url`. Confirming an item that is already ready answers it again. Over MCP: `media_confirm {id}`.
+      operationId: mediaConfirm
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "The ready item"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, media: { $ref: '#/components/schemas/MediaItem' } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '409': { description: "`not_uploaded` — nothing has been uploaded for this id yet", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '422': { description: "`mismatch` — the file is not the declared size or type; it was removed", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/{id}/keep:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [data]
+      summary: "Keep an item past its expiry, or let it expire again"
+      description: >-
+        Body `{keep}`. `keep: true` stops a ready item from expiring; it still counts against the library's room. `keep: false` lets it expire again. Keeping comes with the Lab.
+        `{ok, media: MediaItem}`. Over MCP: `media_keep {id, keep}`.
+      operationId: mediaKeep
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [keep]
+              properties:
+                keep: { type: boolean }
+      responses:
+        '200':
+          description: "The item"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, media: { $ref: '#/components/schemas/MediaItem' } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '402': { description: "`studio_required` — keeping comes with the Lab; the body carries the `ladder`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '409': { description: "`not_uploaded` — the item is not ready yet", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/import:
+    post:
+      tags: [data]
+      summary: "Keep a copy of a file at a public https link"
+      description: >-
+        Body `{url, title?}`. Answers `202 {ok, media: MediaItem, next}` at once with the item `pending`; the file is then fetched, checked for what it really is and stored. Poll
+        `GET /api/media/{id}` until `ready` or `failed`. The link must be https and public; a link to Rokha itself is refused (`own_host`). It counts against the same size and room limits
+        as an upload. Two imports run at a time for one account: a third answers `429 in_flight` and can be sent again when one finishes. Over MCP: `media_import {url, title?}`.
+      operationId: mediaImport
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, maxLength: 2000, description: "A public https link to the file itself" }
+                title: { type: string, maxLength: 120 }
+      responses:
+        '202':
+          description: "Started: the pending item to poll"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaPending' }
+        '400': { description: "`own_host` — the link points at Rokha itself · `invalid_url` · `scheme_not_allowed` — only https links", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '402': { description: "On a free account, `quota_full` with the `ladder`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '409': { description: "`quota_full`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '429': { description: "`in_flight` — two imports are still running · `rate_limited` — too many this hour, or imports are busy", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/generate:
+    post:
+      tags: [data]
+      summary: "Make an image, video or audio from a prompt with one of your sources"
+      description: >-
+        Body `{source, prompt, kind?, model?, image_url?, title?}`. `source` is an id from `GET /api/media/sources`: a built-in, which runs on your own saved key, or one of your custom
+        sources. `prompt` is 1 to 2,000 characters. `model` picks one of a built-in's models; `image_url` is the starting picture for a model that needs one (one of your own library items,
+        or a public https link). Answers `202 {ok, media: MediaItem, next, estimate_usd?}` at once with the item `pending`; poll `GET /api/media/{id}` until `ready` or `failed`.
+        `estimate_usd` is the provider's own price estimate, when it gives one. A source that is not ready answers `409 needs_key` with what to add and `settings_path`.
+        Two generations run at a time for one account: a third answers `429 in_flight`. The result is AI-generated: say so where you post it. Over MCP: `media_generate`.
+      operationId: mediaGenerate
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source, prompt]
+              properties:
+                source: { type: string, maxLength: 80, description: "A source id from `GET /api/media/sources`" }
+                prompt: { type: string, minLength: 1, maxLength: 2000 }
+                kind: { type: string, enum: [image, video, audio] }
+                model: { type: string, maxLength: 100 }
+                image_url: { type: string, maxLength: 2000 }
+                title: { type: string, maxLength: 120 }
+      responses:
+        '202':
+          description: "Started: the pending item to poll"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaPending' }
+        '400': { description: "`bad_request` — the message names what is wrong · `own_host`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '402': { description: "On a free account, `quota_full` with the `ladder`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '404': { description: "`not_found` — no source of yours by that id", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '409': { description: "`needs_key` — the source's key is not saved yet (`settings_path`) · `alias_host_mismatch` · `quota_full`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '429': { description: "`in_flight` — two generations are still running · `rate_limited` — generations are busy", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/sources:
+    get:
+      tags: [data]
+      summary: "What can generate media for you"
+      description: >-
+        `{ok, sources: [MediaSource], custom_used, custom_limit}`: the built-in sources and the custom ones you plugged in. Each has `ready`; one that is not says in `needs` what to add.
+        Built-ins: `openrouter` (images, on your own OpenRouter key) and `higgsfield` (images and video, on your own Higgsfield key saved as `KEY_ID:KEY_SECRET` under the name `higgsfield`).
+        No key or address is ever returned. Over MCP: `media_sources {}`.
+      operationId: mediaSources
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "Your sources"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  sources: { type: array, items: { $ref: '#/components/schemas/MediaSource' } }
+                  custom_used: { type: integer }
+                  custom_limit: { type: integer, description: "5 on a free account, 20 with the Lab" }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+    post:
+      tags: [data]
+      summary: "Plug in a custom source: any https API that makes media from a prompt"
+      description: >-
+        Body `{name, makes, url, method?, body, result_path, secret_alias?, confirm_host?}`. `url` is called with POST and `body`, a JSON object (up to 8 KB) in which the text `{{prompt}}`
+        inside a string value is replaced by the prompt; never in the address. `result_path` is the dot path in the JSON reply (for example `data.0.url`) to an https link to the file, or to
+        the file in base64. `secret_alias` names a key you saved; it is sent as a Bearer header to this source's host only, and a key already used with another host needs `confirm_host`
+        naming the new one. The address must be `https://` on a public host; a key in the address and Rokha's own hosts are refused. A free account plugs in 5, the Lab 20.
+        `{ok, source: MediaSource}`. Over MCP: `media_source_add`.
+      operationId: mediaSourceAdd
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, makes, url, body, result_path]
+              properties:
+                name: { type: string, maxLength: 60 }
+                makes: { type: array, minItems: 1, items: { type: string, enum: [image, video, audio] } }
+                url: { type: string, maxLength: 512 }
+                method: { type: string, enum: [POST] }
+                body: { type: object, additionalProperties: true }
+                result_path: { type: string, maxLength: 128 }
+                secret_alias: { type: string, maxLength: 64 }
+                confirm_host: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: "The new source"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, source: { $ref: '#/components/schemas/MediaSource' } } }
+        '400': { description: "`bad_name` · `bad_method` · `bad_makes` · `bad_link` · `bad_body` · `bad_result_path` · `bad_alias` · `key_in_link` · `bad_request`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '402': { description: "On a free account, `source_cap` with the `ladder`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '409': { description: "`name_taken` · `source_cap` · `alias_host_mismatch` — the key is used with another host (`bound_host`, `host`); send `confirm_host`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
+  /api/media/sources/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [data]
+      summary: "Remove one of your custom sources"
+      description: "`{ok, removed}`. Items it already made stay. Over MCP: `media_source_remove {id}`."
+      operationId: mediaSourceRemove
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, removed}`"
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean }, removed: { type: string } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+        '503': { description: "`media_off` · `unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/MediaRefusal' } } } }
+
   /api/lab/radar:
     get:
       tags: [desk]
@@ -8997,6 +9336,74 @@ components:
               value: { type: string }
               why: { type: string }
         next: { type: string, description: "The next step, in words" }
+
+    MediaItem:
+      type: object
+      description: "One item in a media library"
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [image, video, audio] }
+        content_type: { type: [string, 'null'] }
+        bytes: { type: integer }
+        status: { type: string, enum: [pending, ready, failed] }
+        source: { type: string, enum: [upload, import, generate, run], description: "`run` = a rig step made it" }
+        source_ref: { type: [string, 'null'], description: "The link it was imported from, or the name of the source that made it" }
+        title: { type: [string, 'null'] }
+        error: { type: [string, 'null'], description: "Why a failed item failed" }
+        kept: { type: boolean }
+        created_at: { type: string, format: date-time }
+        last_used_at: { type: [string, 'null'], format: date-time }
+        expires_at: { type: [string, 'null'], format: date-time, description: "null on a kept item" }
+        url: { type: [string, 'null'], format: uri, description: "The item's public https link, once it is ready" }
+    MediaPending:
+      type: object
+      description: "The answer to an import or a generation: the pending item to poll"
+      properties:
+        ok: { type: boolean }
+        media: { $ref: '#/components/schemas/MediaItem' }
+        next: { type: string, description: "What to do next, in words" }
+        estimate_usd: { type: string, description: "A generation only: the provider's own price estimate, when it gives one" }
+    MediaSource:
+      type: object
+      description: "Something that makes media from a prompt"
+      properties:
+        id: { type: string, description: "`openrouter`, `higgsfield`, or a custom source's id" }
+        kind: { type: string, enum: [builtin, custom] }
+        name: { type: string }
+        makes: { type: array, items: { type: string, enum: [image, video, audio] } }
+        models:
+          type: array
+          description: "Built-ins only"
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              makes: { type: string }
+              needs_image: { type: boolean, description: "true = send `image_url`" }
+        ready: { type: boolean }
+        needs: { type: [string, 'null'], description: "What to add when it is not ready" }
+        note: { type: [string, 'null'], description: "Built-ins only" }
+        host: { type: string, description: "Custom sources only: the host it calls" }
+        has_key: { type: boolean, description: "Custom sources only" }
+    MediaRefusal:
+      type: object
+      description: "A media door's refusal. Branch on `error`."
+      required: [ok, error, message]
+      properties:
+        ok: { type: boolean, const: false }
+        error:
+          type: string
+          description: >-
+            `media_off` · `sign_in` · `owner_only` · `type_not_allowed` · `too_large` · `quota_full` · `not_found` · `mismatch` · `not_uploaded` · `rate_limited` · `in_flight` · `own_host` ·
+            `studio_required` · `needs_key` · `alias_host_mismatch` · `source_cap` · `name_taken` · `bad_request` · `bad_name` · `bad_method` · `bad_makes` · `bad_link` · `bad_body` ·
+            `bad_result_path` · `bad_alias` · `key_in_link` · `invalid_url` · `scheme_not_allowed` · `unreadable`
+        code: { type: string, description: "The same value as `error`" }
+        message: { type: string }
+        ladder: { type: object, additionalProperties: true, description: "On a free account's size, room or source wall, and on `studio_required`: what a free account holds and what the Lab holds" }
+        doors: { type: object, additionalProperties: true, description: "Where to get the Lab" }
+        settings_path: { type: string, description: "On `needs_key`: where to save the key" }
+        bound_host: { type: string, description: "On `alias_host_mismatch`: the host the key is already used with" }
+        host: { type: string, description: "On `alias_host_mismatch`: the host this source would call" }
 
     ErrorResponse:
       type: object
