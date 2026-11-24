@@ -6,6 +6,13 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-24 — pages
+
+- **A docs page for pages.** Everything you make on Rokha has its own public page: your account (`rokha.ai/@handle`), each agent, each rig as a small hosted app with its own dashboard (`rokha.ai/@handle/rig-slug`), each Market listing and each run. The new page says how to make, change and read each one over MCP and REST, how the stage works, what the Doors card is, and what is free. Guide: docs.rokha.ai/pages.html.
+- **Now in the schema.** `PUT /api/pages/me/cover`, `POST /api/agents/mine/{agent_id}` (change an agent), `POST /api/agents/mine/{agent_id}/publish`, `GET /api/doors/{provider}/{external_id}` (any published thing's doors), and each builder's own MCP server: `POST /mcp/@{handle}/jsonrpc`, `GET /mcp/@{handle}/llms.txt`, `GET /api/pages/{handle}/llms.txt`. These doors were already live; nothing in the wire contract changed.
+- `GET /api/pages/{handle}` says what it answers for an agent's handle: `{kind: "agent", agent}`.
+- The old `your-page.html` link lands on the new page.
+
 ## 2026-11-24 — the media library
 
 - **Keep images, video and audio, with one https link for each.** Every signed-in account has a media library. Put an item's link in a content card's `media`. Guide: docs.rokha.ai/media.html.

@@ -1681,9 +1681,11 @@ paths:
   /api/pages/{handle}:
     get:
       tags: [pages]
-      summary: A builder's public page
+      summary: A public page, a builder's or an agent's
       description: >-
-        What /@handle renders — profile, links, badge, public creations,
+        An agent's handle answers `{kind: "agent", agent}`: the agent, its rigs and its doors
+        (a draft or private agent reads only for its owner). A builder's handle answers
+        what /@handle renders — profile, links, badge, public creations,
         30-day activity heartbeat, view counts, rig sub-pages. Carries the
         builder's linked X when they have one: `x_handle` (no `@`, empty
         when unlinked), `x_verified` (X's own paid check — a NARROWER
@@ -1702,6 +1704,50 @@ paths:
               schema: { type: object }
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /api/pages/{handle}/llms.txt:
+    get:
+      tags: [pages]
+      summary: "What a builder published, as text (public)"
+      description: "One line per public rig, agent, skill and MCP server the builder published, each with its REST door and its MCP tool. The same text as `GET /mcp/@{handle}/llms.txt`."
+      operationId: pageLlms
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: "Plain text", content: { text/plain: { schema: { type: string } } } }
+        '404': { description: "No such page" }
+
+  /api/pages/me/cover:
+    put:
+      tags: [pages]
+      summary: "Set your page's cover (MCP page_cover_set)"
+      description: >-
+        The cover is the first thing a visitor to `/@handle` sees. Body `{html}`: one self-contained HTML fragment with inline CSS (a `<style>` tag is fine), no scripts, iframes, forms or
+        event handlers, up to 64 KB, images by https link. An empty `html` clears it back to the default welcome. Claim your page first.
+      operationId: pageCoverSet
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [html]
+              properties:
+                html: { type: string }
+      responses:
+        '200':
+          description: "Saved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  bytes: { type: integer, description: "The size of the cover as stored" }
+                  cleared: { type: boolean }
+        '400': { description: "The cover was refused; the message names what to remove", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "Claim your page first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/pages/{handle}/avatar:
     get:
@@ -5126,6 +5172,56 @@ paths:
         '404': { description: "listing_not_found — unknown, private or blocked", content: { application/json: { schema: { $ref: '#/components/schemas/HireRefusal' } } } }
         '503': { description: unavailable, content: { application/json: { schema: { $ref: '#/components/schemas/HireRefusal' } } } }
 
+  /api/agents/mine/{agent_id}:
+    parameters:
+      - { name: agent_id, in: path, required: true, schema: { type: string, format: uuid }, description: "The agent's id (`GET /api/agents/mine`)" }
+    post:
+      tags: [agents]
+      summary: "Change one of your agents (MCP agent_update)"
+      description: >-
+        The same body and checks as `POST /api/agents/mine` (`AgentCreate`). Taking an agent live and public makes its page at `/@handle`; on the Lab the first agent page is included
+        and each further one takes a page credit (402 `subpage_fee`).
+      operationId: updateAgent
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AgentCreate' }
+      responses:
+        '200':
+          description: "The agent as saved"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "A field was refused; the message names it", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`publish_cap` · `subpage_fee`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "No agent of yours by that id", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "The handle is taken", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/agents/mine/{agent_id}/publish:
+    parameters:
+      - { name: agent_id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [agents]
+      summary: "List one of your agents in the directory and on the Market (MCP agent_publish)"
+      description: "The agent must be live and public first (400 otherwise). It lists as `agent-<handle>`. No body."
+      operationId: publishAgent
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: "Listed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  slug: { type: string, example: "agent-scout" }
+                  registry_url: { type: string }
+        '400': { description: "The agent is a draft or private", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "No agent of yours by that id", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
   /api/agents/mine/{agent_id}/specialties:
     get:
       tags: [hire]
@@ -6867,6 +6963,65 @@ paths:
                       blocker: { type: [object, 'null'], description: "Owner only", properties: { code: { type: string }, message: { type: string } } }
                       settings_url: { type: string, description: "Owner only" }
         '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/doors/{provider}/{external_id}:
+    parameters:
+      - { name: provider, in: path, required: true, schema: { type: string }, description: "`rokha` for what was published on Rokha" }
+      - { name: external_id, in: path, required: true, schema: { type: string }, description: "The listing's slug; may hold `/`" }
+    get:
+      tags: [pages]
+      summary: "A published thing's doors: how to call it over REST and MCP (public)"
+      description: >-
+        The Doors card every rig, skill and MCP server page shows. Public; a private listing answers 404 to anyone but its owner (send your bearer to read your own).
+        The card: `kind` (rig · skill · mcp), `title`, `ref: {provider, external_id, handle}`, `canonical` (its Market page), `access` (public · key · private),
+        `who_pays` (caller · owner), `owner_lane_on`, `price` (`{model, usd, runs_per_pack, product_id}` or null), `auth` (one line on what to send), `rest` (the REST door and a ready request),
+        `mcp` (the MCP door, the tool name, a ready `tools/call`, and the owner's own server at `/mcp/@{handle}/jsonrpc`), `hire`, `hook`, `skill_md`, `site` (a snippet for a website when the owner funds calls),
+        `llms` and `docs`. An agent's card is `GET /api/doors/agent/{handle}`.
+      operationId: doorsCard
+      responses:
+        '200':
+          description: "The card"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: "`not_found` — unknown or private", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unavailable` — the listing could not be read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /mcp/@{handle}/jsonrpc:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string }, description: "A claimed page's handle" }
+    post:
+      tags: [mcp]
+      summary: "A builder's own MCP server: everything they published, as tools"
+      description: >-
+        MCP JSON-RPC (`initialize`, `tools/list`, `tools/call`) over only that builder's published rigs, agents, skills and MCP servers. Tool names: `rig__<slug>` runs the rig
+        (`{input}`; answers `run_id` and where to poll), `agent__<handle>` talks to the agent (`{message}`), `skill__<slug>` reads its SKILL.md, `mcp__<slug>` names a listed MCP server and its tools.
+        Every call goes through the same door as its REST twin, so the same access, price and caps apply. `tools/list` needs no token and shows what is public; send a bearer
+        (a session token or an `rk_` key) to call, and to see your own private items. An unknown handle answers a JSON-RPC error.
+      operationId: ownerMcpJsonrpc
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: "A JSON-RPC response"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /mcp/@{handle}/llms.txt:
+    parameters:
+      - { name: handle, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [mcp]
+      summary: "A builder's published things as text (public)"
+      description: "One line per public rig, agent, skill and MCP server the builder published, each with its REST door and its MCP tool. The same text is at `GET /api/pages/{handle}/llms.txt`."
+      operationId: ownerMcpLlms
+      responses:
+        '200': { description: "Plain text", content: { text/plain: { schema: { type: string } } } }
+        '404': { description: "No such page" }
 
   /api/doors/settings/{provider}/{external_id}:
     parameters:
