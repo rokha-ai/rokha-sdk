@@ -7694,8 +7694,12 @@ paths:
       summary: "Make a Project (it is not on the board until you view it)"
       description: >-
         Body `{name, from?}`: `from` is `blank` (the standard Crew with Rokha, no Objectives, Automated off; the default),
-        `current` (a copy of the setup on the board) or a saved setup's id. Past your allowance the answer is `402 project_cap`
-        with a `ladder` naming the Project pack. MCP `project_create`.
+        `current` (a copy of the setup on the board), a saved setup's id, or `template:<slug>` (a template from the Market;
+        `GET /api/lab/projects/templates` lists them). A project made from a template starts with Automated off and every
+        seat held by Rokha; the answer's `needs` names the listings its seats lean on (empty for every other `from`). A
+        priced template must be bought first: `402 template_unpaid`, with `ladder: {product_id, listing}`; the Lab does
+        not open a builder's priced template. Past your allowance the answer is `402 project_cap` with a `ladder` naming
+        the Project pack. MCP `project_create`.
       operationId: labProjectCreate
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -7707,10 +7711,13 @@ paths:
               required: [name]
               properties:
                 name: { type: string, minLength: 1, maxLength: 60 }
-                from: { type: string, maxLength: 40, description: "blank | current | a saved setup id" }
+                from: { type: string, maxLength: 80, description: "blank | current | a saved setup id | template:<slug>" }
+            examples:
+              blank: { value: { name: "Research" } }
+              template: { value: { name: "Launch week", from: "template:launch-week-crew" } }
       responses:
         '200':
-          description: "`{ok, project: {id, name, live}, next}`"
+          description: "`{ok, project: {id, name, live}, needs, next}`"
           content:
             application/json:
               schema:
@@ -7719,11 +7726,16 @@ paths:
                 properties:
                   ok: { type: boolean }
                   project: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string }, live: { type: boolean } } }
+                  needs:
+                    type: array
+                    description: "The listings a template's seats lean on, as its author named them. Empty unless `from` was a template."
+                    items: { $ref: '#/components/schemas/ProjectTemplateNeed' }
                   next: { type: string }
         '400': { description: "`bad_name` · `bad_from`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`project_cap` — every project you hold is in use; the body carries `ladder` with the Project pack", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`project_cap` — every project you hold is in use; the body carries `ladder` with the Project pack · `template_unpaid` — buy the template first; the body carries `ladder: {product_id, listing}`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no such saved setup or template, or one you may not read", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '413': { description: "`too_large` — a setup holds at most 256 KB", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`store_failed` — nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
@@ -7756,6 +7768,103 @@ paths:
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '409': { description: "`snapshots_full` — delete a saved setup first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/projects/templates:
+    get:
+      tags: [desk]
+      summary: "Project templates on the Market: ready-made setups to start a project from"
+      description: >-
+        A template is a project's setup listed on the Market: its Objectives and its Crew seats, each seat with its job,
+        spec and tools. It carries nothing else: no key, no outside agent, no code handoff and no cards. Every seat
+        arrives held by Rokha, and the project starts with Automated off. Newest first, 40 at most; `q` looks in the
+        title and description. Each row's `covers` is a summary (counts and seat titles, never the Objectives' words);
+        pass its `from` to `POST /api/lab/projects`. MCP `project_templates`. The person's own hand only: a web session,
+        own key, OAuth app or CLI; never an agent's key or a board pass.
+      operationId: labProjectTemplates
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 60 }, description: "Words to look for in the title or description" }
+      responses:
+        '200':
+          description: "`{ok, templates: [{slug, title, description, author, covers, price_usd, from}], next}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  templates: { type: array, items: { $ref: '#/components/schemas/ProjectTemplate' } }
+                  next: { type: string }
+              example:
+                ok: true
+                templates:
+                  - slug: launch-week-crew
+                    title: "Launch week"
+                    description: "A Crew and Objectives for a product launch week."
+                    author: "sage"
+                    covers: { v: 1, objectives: 3, standing: 1, seats: ["Marketer", "Support"], needs: [ { slug: "hunt", type: "rig", title: "Hunt" } ] }
+                    price_usd: null
+                    from: "template:launch-week-crew"
+                next: "project_create {name, from: \"template:<slug>\"} starts a project from one"
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    post:
+      tags: [desk]
+      summary: "List a Project's setup on the Market as a template"
+      description: >-
+        Body `{name, description, title?, project?, id?, needs?, price_usd?}`. Publishes the setup of the project named
+        (`project`, else the one on the board), or of a saved setup (`id`). `name` is the listing's slug. A template
+        carries Objectives and Crew seats only, each seat as Rokha with its job, spec and tools; a tool that publishes
+        or sends for the person is left out, and so is every key, outside agent, code handoff and card. `needs` names up
+        to 12 public listings (rigs, skills) the seats lean on. It is an ordinary `harness` listing tagged `lab-project`,
+        published through the same door as `POST /api/marketplace/registry/publish`: the same slug rules, publish
+        allowance and checks, and the same answer. Publishing the same `name` again updates it. MCP
+        `project_template_publish`. The person's own hand only.
+      operationId: labProjectTemplatePublish
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, description]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 64, description: "The listing slug: lowercase letters, digits and dashes" }
+                description: { type: string, minLength: 1, maxLength: 600, description: "What the template sets up, in a sentence or two" }
+                title: { type: string, maxLength: 60 }
+                project: { type: string, description: "The project to publish; the one on the board when left out" }
+                id: { type: string, format: uuid, description: "A saved setup's id, to publish that instead of a live project" }
+                needs: { type: array, maxItems: 12, items: { type: string, maxLength: 64 }, description: "Slugs of public listings the seats lean on" }
+                price_usd: { type: number, minimum: 0, maximum: 999 }
+            example: { name: "launch-week-crew", title: "Launch week", description: "A Crew and Objectives for a product launch week.", needs: ["hunt"] }
+      responses:
+        '200':
+          description: "Published — the registry publish answer: `{ok, provider, id, listing_id, source_id, external_id, listing_type, registry_ref, message}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  provider: { type: string }
+                  id: { type: string, format: uuid }
+                  listing_id: { type: string, format: uuid }
+                  external_id: { type: string, description: "The slug; start a project from it with `from: template:<external_id>`" }
+                  listing_type: { type: string }
+                  registry_ref: { type: object, properties: { provider_id: { type: string }, external_id: { type: string } } }
+                  message: { type: string }
+        '400': { description: "`bad_name` · `bad_description` · `bad_needs` — at most 12, each a listing slug · and the publish door's own refusals (`reserved_name`, `invalid_price`, `secret_material`, `too_large`)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`publish_cap` — your listing allowance is used", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no such project or saved setup · `needs_not_found` — a listing in `needs` is not public on Rokha", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`empty_template` — the project has no Objectives and no Crew yet · `name_taken` — the slug is another builder's", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '413': { description: "`too_large` — a setup holds at most 256 KB", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed` — nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/projects/{id}:
     get:
@@ -7797,6 +7906,41 @@ paths:
         '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '409': { description: "`default_project` · `on_board` — view another project first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    patch:
+      tags: [desk]
+      summary: "Rename a Project"
+      description: >-
+        Body `{name}`. Only the name changes; the default project is renamed like any other. MCP `project_rename`.
+      operationId: labProjectRename
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid }, description: "A project id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 60 }
+            example: { name: "Launch week" }
+      responses:
+        '200':
+          description: "`{ok, project: {id, name}}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  project: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string } } }
+        '400': { description: "`bad_name`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — not yours, or no such project", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed` — nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/projects/{id}/view:
     post:
@@ -9247,6 +9391,34 @@ components:
         buy: { type: string }
         rails: { type: array, items: { type: string } }
         no_refunds: { type: boolean }
+
+    ProjectTemplateNeed:
+      type: object
+      description: "A listing a template's seats lean on"
+      properties:
+        slug: { type: string }
+        type: { type: string, description: "The listing's type, such as rig or skill" }
+        title: { type: string }
+
+    ProjectTemplate:
+      type: object
+      additionalProperties: true
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        description: { type: string }
+        author: { type: [string, 'null'] }
+        covers:
+          type: object
+          description: "A summary of what the template sets up"
+          properties:
+            v: { type: integer }
+            objectives: { type: integer, description: "How many Objectives" }
+            standing: { type: integer, description: "How many of them are standing" }
+            seats: { type: array, items: { type: string }, description: "The Crew seats' titles" }
+            needs: { type: array, items: { $ref: '#/components/schemas/ProjectTemplateNeed' } }
+        price_usd: { type: [number, 'null'], description: "Null or 0 = free" }
+        from: { type: string, description: "Pass this as `from` to `POST /api/lab/projects`: `template:<slug>`" }
 
     ProjectList:
       type: object

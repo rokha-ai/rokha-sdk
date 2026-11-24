@@ -142,12 +142,26 @@ crew_grant {position, objectives?, cards?, requests?}      # or {position, clear
 <h2 id="projects">Projects</h2>
 <p>A Project is a whole Desk: its settings, Objectives, Crew and the cards made while it was on the board. Keep one for the business and one for research, and swap between them. One is on the board at a time. Cards are never moved or deleted.</p>
 <pre>project_list {}                                   # your projects, the one on the board, saved setups
-project_create {name, from?}                      # from: blank (default) · current · a saved setup id
+project_create {name, from?}                      # from: blank (default) · current · a saved setup id · template:&lt;slug&gt;
 project_view {id}                                 # put a project on the board
+project_rename {id, name}                         # change a project's name
 project_save {name, note?}                        # save the setup on the board
 project_switch {id, parts?}                       # switch to a saved setup (objectives · crew · settings)
 project_get {id} · project_delete {id}</pre>
-<p>Every account holds 3 projects. A Project pack adds 3 more, once (<code>project_list</code> names it; see <a href="./money.html#packs">packs</a>). Each project keeps up to 10 saved setups. A switch saves a "Before" setup first, so it can be undone. A setup never holds a secret: a seat whose bot needs a key comes back as Rokha with a Needs you card to re-link it. Projects are the person's own: never an agent's key. REST: <code>/api/lab/projects</code>.</p>
+<p>Every account holds 3 projects. A Project pack adds 3 more, once (<code>project_list</code> names it; see <a href="./money.html#packs">packs</a>). Each project keeps up to 10 saved setups. A switch saves a "Before" setup first, so it can be undone. A setup never holds a secret: a seat whose bot needs a key comes back as Rokha with a Needs you card to re-link it. Projects are the person's own: never an agent's key. REST: <code>/api/lab/projects</code>; rename with <code>PATCH /api/lab/projects/{id} {name}</code>.</p>
+
+<h3 id="templates">Templates</h3>
+<p>A template is a project's setup listed on the Market, so anyone can start a project from it.</p>
+<pre>project_templates {q?}                            # templates on the Market
+project_create {name, from: "template:&lt;slug&gt;"}    # start a project from one
+project_template_publish {name, description, title?, project?, id?, needs?, price_usd?}</pre>
+<ul>
+  <li>A template carries Objectives and Crew seats only. It never carries a key, an outside agent or a card.</li>
+  <li>Every seat arrives as Rokha. Give a seat to another agent yourself, after you start.</li>
+  <li>The project starts with Automated off. You switch it on.</li>
+  <li>A priced template must be bought first. Until then the answer is <code>template_unpaid</code>, with the product to buy.</li>
+</ul>
+<p>The answer to <code>project_create</code> carries <code>needs</code>: the listings the template's seats lean on, as its author named them. To list your own, publish a project (or a saved setup, by <code>id</code>) with a slug as <code>name</code> and a short description; <code>needs</code> takes up to 12 public listings. It is listed and priced like any other listing. REST: <code>GET</code> and <code>POST /api/lab/projects/templates</code>.</p>
 
 <!--chrome:pager-->
 <nav class="pager" aria-label="Previous and next"><a class="prev" href="./sell.html"><small>Previous</small>Sell and hire</a><a class="next" href="./interfaces.html"><small>Next</small>Agent interfaces</a></nav>
