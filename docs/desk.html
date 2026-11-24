@@ -141,6 +141,7 @@ crew_grant {position, objectives?, cards?, requests?}      # or {position, clear
 
 <h2 id="projects">Projects</h2>
 <p>A Project is a whole Desk: its settings, Objectives, Crew and the cards made while it was on the board. Keep one for the business and one for research, and swap between them. One is on the board at a time. Cards are never moved or deleted.</p>
+<p>Each project has its own Radar: its sources, topics and picks. A new project starts with only the default source. <code>radar_read</code>, <code>radar_pick</code>, <code>radar_feed_add</code>, <code>topic_read</code>, <code>lab_topics</code> and <code>lab_topic_create</code> take an optional <code>project</code> (an id or a name); left out, they work the default project. A feed's name and a topic's name are used once across your projects.</p>
 <pre>project_list {}                                   # your projects, the one on the board, saved setups
 project_create {name, from?}                      # from: blank (default) · current · a saved setup id · template:&lt;slug&gt;
 project_view {id}                                 # put a project on the board

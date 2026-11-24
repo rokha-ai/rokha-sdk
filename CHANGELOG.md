@@ -17,6 +17,15 @@ face of Rokha; the wire contract it depends on is
 - **Documentation correction, not a behaviour change.** The schema said `POST /api/lab/projects` answers `project: {id, name, live}`. It answers `project: {id, name, viewing, automated}` plus `relink`, and always has. The schema now says so.
 - Additive: nothing existing changed. Like every project door, these are the person's own hand only, never an agent's key. Guide: docs.rokha.ai/desk.html#templates.
 
+### Each project has its own Radar
+
+- **Its own sources, topics and picks.** A new project starts with only the default source. What you already have stays in your default project.
+- **Name the project.** The Radar doors take an optional `project` (an id or a name): `GET /api/lab/radar?project=` (the answer gains `project`; `picked_today` is that project's count), `POST /api/lab/radar/fresh`, `POST /api/lab/radar/picks/{id}`, `POST /api/lab/radar/feeds`, `DELETE /api/lab/radar/feeds/{slug}`. A body `project` wins, then `?project=`, then the `x-rokha-project` header, then your default project. A project that is not yours answers `404 not_found`, and so does a pick or feed from another project.
+- **MCP.** `radar_read`, `radar_pick`, `radar_feed_add`, `topic_read`, `lab_topics` and `lab_topic_create` take an optional `project`.
+- **Limits.** Per project: 10 feeds, 25 topics, 10 custom sources, 40 open picks, 12 picks a day. Per account: 36 picks a day, and the day's live reads. A feed's name and a topic's name are used once across your projects; a feed name already used answers `409 name_taken`.
+- **The Market shows what a template sets up.** A project template's item on `GET /api/market`, and its Object Page (`GET /api/market/object/...`), carry `lab_project: {v, objectives, standing, seats, needs}`. Other listings are unchanged (the Object Page answers `lab_project: null`).
+- Additive: a call that names no project works as before.
+
 ## 2026-11-24 — the media library
 
 - **Keep images, video and audio, with one https link for each.** Every signed-in account has a media library. Put an item's link in a content card's `media`. Guide: docs.rokha.ai/media.html.
