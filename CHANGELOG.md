@@ -6,6 +6,21 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-25 — your own domain; white label
+
+- **A page on a domain you own.** With the Lab, point a domain you own at one of your pages: your own page, an agent's page or a rig page. One domain shows one page, at the root of the domain; up to 5 domains an account. A free account has no custom domain.
+- **The doors.** `PUT /api/domains {domain, page}` (MCP `page_domain_set`) answers the DNS records to add: a TXT at `_rokha.<domain>` that proves the domain is yours and a CNAME that points it at the page. `POST /api/domains/verify {domain}` (MCP `page_domain_status {domain}`) reads the DNS now. `GET /api/domains` lists yours, `DELETE /api/domains/{host}` removes one, and `GET /api/domains/resolve?host=` is the public read of which page a domain shows. These doors were in the schema already; this is their first entry here.
+- **A third record for some domains.** A verified domain outside Rokha's certificates gains a certificate CNAME in `records` and `certificate: {status}` (`requested` · `validating` · `issued` · `failed`). Add that record too; the domain answers once the certificate is issued. `next` says what is left.
+- **On your domain.** Sign-in and payment stay on rokha.ai, and the page keeps a small Built on Rokha line. A bare apex (example.com with no www) needs a DNS host that offers ALIAS or CNAME flattening.
+- **White label: remove Rokha's branding from one domain.** A one-time purchase for that domain. It needs the Lab on the account and is kept if the Lab lapses and returns. All payments are final.
+  - The price is read, never assumed: `GET /api/domains/white-label` (public, new) answers `{product_id, price_cents, price, list_cents, list, promo_cents?, promo_until?, per, removes, needs, buy, no_refunds}`. The same block is `white_label_price` on `GET /api/domains` and on `page_domain_status` (with `paid_unused`), and `domains.white_label` on `GET /api/page-credits/me`.
+  - Buy it with `POST /api/products/{id}/checkout {rail, domain}` (MCP `product_checkout {product_id, domain, rail}`). `domain` is new on the checkout body and is used only by this product. A payment already made and not yet used on a domain is used first: the call answers `{ok, status: "applied", purchase_id, domain, white_label: true}` and charges nothing.
+  - Refusals, none of which charges: `400 domain_required`, `404 not_your_domain`, `409 already_white_label`, `409 domain_lapsed`, `402 studio_required`.
+  - Each `Domain` gains `white_label`, and `GET /api/domains/resolve` answers it too.
+- **Promo prices on one-time products.** While a lower price runs, a product read (`GET /api/products/{id}` and the other product reads) carries `list_cents`, `list` and `promo_until` beside `price_cents`, which is what is charged now. With no promo those three fields are absent. An open order keeps the price it was made at.
+- `GET /api/page-credits/me` gains `domains: {included_with_lab, per_account, white_label}`.
+- Additive: nothing existing changed. No SDK method changed; the TypeScript and Python clients reach these doors with their plain `get` / `post` / `put` / `delete` calls.
+
 ## 2026-11-24 — rename a project; project templates
 
 - **Rename a project.** `PATCH /api/lab/projects/{id} {name}` (MCP `project_rename {id, name}`). Only the name changes.
