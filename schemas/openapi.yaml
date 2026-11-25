@@ -3283,7 +3283,11 @@ paths:
         once. `signet` (signed-in session only) → your own USDC Signet mandate pays: an
         autonomous mandate pays inside its caps at once, a guarded one answers
         `awaiting_approval` with an approve link. `fuel` is retired, refused with `rail`. Crypto rails pay the creator
-        their 80% instantly; card sales pay the creator on Fridays.
+        their 80% instantly; card sales pay the creator on Fridays. A product on a promo price is charged at the price
+        its read shows; an open order keeps the price it was made at. White label (the product `GET /api/domains/white-label`
+        names) takes `domain`, one already set on your account: it removes Rokha's branding from that domain once paid. If you
+        hold a payment not yet used on a domain, the call uses it and answers `{ok, status: "applied", purchase_id, domain,
+        white_label: true, message}` with no charge.
       operationId: productCheckout
       security: [ { bearerAuth: [] } ]
       parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
@@ -3302,19 +3306,21 @@ paths:
                 token: { type: string, enum: [USDC, USDT, USDG], description: "evm — Base: USDC · Ethereum: USDC or USDT · Robinhood Chain: USDG (the chain's default when omitted)" }
                 tx_hash: { type: string, pattern: "^0x[0-9a-fA-F]{64}$", description: "evm — the landed transfer's hash; omit to open the order (amount + House address), then present it" }
                 ref_code: { type: string, maxLength: 40, description: "A referral code — the referrer's page handle from rokha.ai/?ref=<handle>. The referrer earns 5% of the price, out of Rokha's share (never your own code, never on a hire of Rokha's own agent)." }
+                domain: { type: string, maxLength: 253, example: "www.example.com", description: "White label only: the domain to remove Rokha's branding from. It must be a domain already set on your account (`PUT /api/domains`)." }
       responses:
         '200':
-          description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card / usdc / sol instructions — the `sol` shape is `SolCheckout`)"
+          description: "Checkout started or settled (`status`: paid · settling · awaiting_approval · applied; or card / usdc / sol instructions — the `sol` shape is `SolCheckout`). `applied` is white label only: a payment you already made was used on `domain`, nothing was charged."
           content:
             application/json:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/SolCheckout'
                   - { type: object, additionalProperties: true }
-        '400': { description: "`payer_wallet` — usdc / sol need the Solana public key the payment is sent FROM", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
-        '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate" }
+        '400': { description: "`payer_wallet` — usdc / sol need the Solana public key the payment is sent FROM · white label: `domain_required` — name the domain · `bad_domain` — not a plain host name", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
+        '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate · white label: `studio_required` — the Lab is needed on the account" }
         '403': { description: "`key_cannot_spend` — an rk_ key cannot spend a mandate" }
-        '409': { description: "`sales_open_after_friday` · `yours` · `already_pending`" }
+        '404': { description: "white label: `not_your_domain` — no domain of yours by that name; set it first" }
+        '409': { description: "`sales_open_after_friday` · `yours` · `already_pending` · white label: `already_white_label` — that domain already has the branding removed · `domain_lapsed` — its TXT record is gone; put it back first. No white label refusal charges anything." }
         '429': { description: "`too_many_open` — orders already await payment; pay or let one expire first", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
         '503': { description: "sol: `price_stale` · `price_unavailable` (no fresh SOL/USD read — no order was made) · `rail_off` (SOL rail not configured) · `unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
   /api/products/{id}/access:
@@ -7084,9 +7090,11 @@ paths:
       tags: [pages]
       summary: "Your domains"
       description: >-
-        `{ok, lab, limit, cname_target, domains: [Domain]}`. `lab` says whether your account has the Lab right now; `limit` is how many domains an account holds (5). Each `Domain` is
-        `{domain, page, status, live, tls, records, next}`: `status` is `pending` · `verified` · `lapsed`, and `records` are the two DNS records to add, a TXT at `_rokha.<domain>` that proves the
-        domain is yours (keep it in place) and a CNAME that sends visitors to your page. Over MCP: `page_domain_status {}` lists the same. Your own sign-in only: a key issued for one agent
+        `{ok, lab, limit, cname_target, domains: [Domain], white_label_price}`. `lab` says whether your account has the Lab right now; `limit` is how many domains an account holds (5). Each `Domain` is
+        `{domain, page, status, live, white_label, tls, records, certificate?, next}`: `status` is `pending` · `verified` · `lapsed`, and `records` are the DNS records to add, a TXT at `_rokha.<domain>` that proves the
+        domain is yours (keep it in place) and a CNAME that sends visitors to your page. A verified domain outside Rokha's certificates carries a third record, a certificate CNAME, and
+        `certificate: {status}`; it answers once that is `issued`. `white_label` is true once Rokha's branding is removed from that domain, and `white_label_price` is what removing it costs
+        right now (`null` while it is not sold). Over MCP: `page_domain_status {}` lists the same. Your own sign-in only: a key issued for one agent
         answers `403 owner_only`.
       operationId: domainsMine
       security: [ { bearerAuth: [] } ]
@@ -7103,6 +7111,11 @@ paths:
                   limit: { type: integer, example: 5 }
                   cname_target: { type: string }
                   domains: { type: array, items: { $ref: '#/components/schemas/PageDomain' } }
+                  white_label_price:
+                    oneOf:
+                      - { $ref: '#/components/schemas/WhiteLabelPrice' }
+                      - { type: 'null' }
+                    description: "What removing Rokha's branding from one domain costs right now, with `paid_unused`; `null` while it is not sold"
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
@@ -7111,7 +7124,7 @@ paths:
       summary: "Point a domain at one of your pages, or move it to another"
       description: >-
         Body `{domain, page}`. `domain` is a host name like `www.example.com`; `page` is one of your own pages, `@handle` (your page or one of your agents) or `@handle/<rig-slug>`. Included with
-        the Lab. One domain shows one page. The answer carries the two DNS records to add at your DNS host; then check with `POST /api/domains/verify`. Calling again with a new `page` moves a
+        the Lab. One domain shows one page, at the root of the domain. The answer carries the DNS records to add at your DNS host (a bare apex needs a DNS host with ALIAS or CNAME flattening); then check with `POST /api/domains/verify`. Calling again with a new `page` moves a
         domain already set and keeps its proof. Sign-in and payment stay on rokha.ai, and the page keeps a small Built on Rokha line. Over MCP: `page_domain_set {domain, page}`
         (`off: true` removes it).
       operationId: domainSet
@@ -7126,6 +7139,7 @@ paths:
               properties:
                 domain: { type: string, maxLength: 253, example: "www.example.com" }
                 page: { type: string, maxLength: 130, example: "@handle" }
+                helper: { type: boolean, description: "Optional. Once the domain is white label: keep Rokha on the page as its helper (true) or not (false). Left out, it stays as it was." }
       responses:
         '200':
           description: "`{ok, domain}`"
@@ -7151,7 +7165,9 @@ paths:
       description: >-
         Body `{domain}`. Reads the TXT record at `_rokha.<domain>` and answers `{ok, domain, checked?}`. With the record in place the domain becomes `verified` and is yours alone: any other
         account's claim on it is removed. `checked` is a note when nothing changed: the record is not there yet, or DNS could not be read just now. A verified domain is checked again from time
-        to time; if the record stays gone it becomes `lapsed` until you put it back. Over MCP: `page_domain_status {domain}`.
+        to time; if the record stays gone it becomes `lapsed` until you put it back. A verified domain outside Rokha's certificates then carries a third record, a certificate
+        CNAME, and `certificate: {status}` (`requested` · `validating` · `issued` · `failed`); add that record too, and the domain answers once the certificate is issued. `next` says what is
+        left. Over MCP: `page_domain_status {domain}`.
       operationId: domainVerify
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -7205,8 +7221,8 @@ paths:
       tags: [pages]
       summary: "Which page does this domain show? (public)"
       description: >-
-        `{ok, mapped: false}`, or `{ok, mapped: true, host, page, ref}` for a verified domain whose owner has the Lab right now. `page` is the path it shows (`/@handle` or
-        `/@handle/<rig-slug>`) and `ref` the page's handle. It says nothing about who owns the domain. A domain that shows a page is read-only: on it, sign-in, payment and account doors, and any
+        `{ok, mapped: false}`, or `{ok, mapped: true, host, page, white_label, ref}` for a verified domain whose owner has the Lab right now. `page` is the path it shows (`/@handle` or
+        `/@handle/<rig-slug>`), `ref` the page's handle, and `white_label` is true when Rokha's branding is removed from that domain. It says nothing about who owns the domain. A domain that shows a page is read-only: on it, sign-in, payment and account doors, and any
         request carrying a credential, answer `403 use_rokha_ai`.
       operationId: domainResolve
       parameters:
@@ -7225,7 +7241,30 @@ paths:
                   mapped: { type: boolean }
                   host: { type: string }
                   page: { type: string }
+                  white_label: { type: boolean, description: "true = Rokha's branding is removed on this domain" }
+                  helper: { type: boolean, description: "With white_label: true = the owner kept Rokha on the page as its helper" }
                   ref: { type: string }
+
+  /api/domains/white-label:
+    get:
+      tags: [pages]
+      summary: "What removing Rokha's branding from one domain costs (public)"
+      description: >-
+        The price right now, with no account: `{ok, product_id, price_cents, price, list_cents, list, promo_cents?, promo_until?, per: "domain", removes, needs, buy, no_refunds}`.
+        `price_cents` is what is charged now; `promo_cents` and `promo_until` are present only while a lower price runs. One payment removes Rokha's branding from one domain:
+        buy with `POST /api/products/{product_id}/checkout {rail, domain}` (MCP `product_checkout {product_id, domain, rail}`). It needs the Lab on the domain's account and is kept if the
+        Lab lapses and returns. Sign-in and payment still happen on rokha.ai. All payments are final. Read the price here; it is the founder's to change.
+      operationId: domainWhiteLabelPrice
+      responses:
+        '200':
+          description: "The price"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { type: object, properties: { ok: { type: boolean } } }
+                  - { $ref: '#/components/schemas/WhiteLabelPrice' }
+        '404': { description: "`{ok: false}` — not sold right now" }
 
   # ============================================================
   # The media library — keep images, video and audio; one stable link each
@@ -8825,7 +8864,8 @@ paths:
         one agent page are included; each further sub-page takes one credit, $9 one time
         (`price_cents` is the live number), by card, USDC or SOL. A free account has no
         sub-pages. A page that existed before credits holds no slot and is never asked.
-        Unlinking a page frees its slot and credit for reuse; it refunds nothing.
+        Unlinking a page frees its slot and credit for reuse; it refunds nothing. `domains` says what the Lab
+        includes for a domain of your own and what removing Rokha's branding from one costs right now.
       operationId: pageCreditsMe
       security: [ { bearerAuth: [] } ]
       responses:
@@ -8843,6 +8883,15 @@ paths:
                   credits_total: { type: integer }
                   credits_free: { type: integer }
                   included_rig_used: { type: boolean }
+                  domains:
+                    type: object
+                    properties:
+                      included_with_lab: { type: boolean }
+                      per_account: { type: integer, example: 5 }
+                      white_label:
+                        oneOf:
+                          - { $ref: '#/components/schemas/WhiteLabelPrice' }
+                          - { type: 'null' }
                   no_refunds_note: { type: string }
         '503': { description: Unreadable }
   /api/page-credits/checkout:
@@ -9323,8 +9372,11 @@ components:
         ref: { type: string }
         title: { type: string }
         model: { type: string, enum: [one_time, monthly, per_run] }
-        price_cents: { type: integer }
+        price_cents: { type: integer, description: "What is charged now" }
         price: { type: string, example: "$15" }
+        list_cents: { type: integer, description: "Only while a lower price runs on a one-time product: the list price" }
+        list: { type: string, description: "Only while a lower price runs: the list price, in words" }
+        promo_until: { type: string, format: date-time, description: "Only while a lower price runs: when it ends. After it, `price_cents` is the list price." }
         runs_per_pack: { type: [integer, 'null'] }
         active: { type: boolean }
         checkout_url: { type: string }
@@ -9697,9 +9749,13 @@ components:
         page: { type: string, example: "/@handle" }
         status: { type: string, enum: [pending, verified, lapsed] }
         live: { type: boolean, description: "true once verified" }
+        white_label: { type: boolean, description: "true once Rokha's branding is removed from this domain (a one-time purchase per domain)" }
+        helper: { type: boolean, description: "Only matters once white_label is true: true keeps Rokha on the page as its helper; false (the default) takes it off. Set it with `helper` on PUT /api/domains or `page_domain_set`." }
         tls: { type: string, description: "`covered` when its certificate is in place, `pending` while it is being set up" }
         records:
           type: array
+          maxItems: 3
+          description: "The TXT that proves the domain and the CNAME that points it; a verified domain that needs a certificate of its own adds a third, the certificate CNAME"
           items:
             type: object
             properties:
@@ -9707,7 +9763,32 @@ components:
               name: { type: string }
               value: { type: string }
               why: { type: string }
+        certificate:
+          type: object
+          description: "Only on a verified domain that needs a certificate of its own"
+          properties:
+            status: { type: string, enum: [requested, validating, issued, failed] }
+            detail: { type: string, description: "Why it failed, when it did" }
         next: { type: string, description: "The next step, in words" }
+
+    WhiteLabelPrice:
+      type: object
+      additionalProperties: true
+      description: "What removing Rokha's branding from one domain costs right now. Read it; never assume a number."
+      properties:
+        product_id: { type: string, format: uuid, description: "Buy with POST /api/products/{product_id}/checkout {rail, domain} (MCP product_checkout)" }
+        price_cents: { type: integer, description: "What is charged now" }
+        price: { type: string }
+        list_cents: { type: integer, description: "The list price" }
+        list: { type: string }
+        promo_cents: { type: integer, description: "Present only while a lower price runs; equal to price_cents" }
+        promo_until: { type: string, format: date-time, description: "Present only while a lower price runs: when it ends" }
+        per: { type: string, enum: [domain] }
+        removes: { type: string }
+        needs: { type: string }
+        buy: { type: string }
+        no_refunds: { type: boolean }
+        paid_unused: { type: integer, description: "Only on your own reads: payments you made that are not yet used on a domain. A checkout uses one first, with no charge." }
 
     MediaItem:
       type: object
