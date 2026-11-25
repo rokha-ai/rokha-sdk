@@ -7139,6 +7139,7 @@ paths:
               properties:
                 domain: { type: string, maxLength: 253, example: "www.example.com" }
                 page: { type: string, maxLength: 130, example: "@handle" }
+                helper: { type: boolean, description: "Optional. Once the domain is white label: keep Rokha on the page as its helper (true) or not (false). Left out, it stays as it was." }
       responses:
         '200':
           description: "`{ok, domain}`"
@@ -7241,6 +7242,7 @@ paths:
                   host: { type: string }
                   page: { type: string }
                   white_label: { type: boolean, description: "true = Rokha's branding is removed on this domain" }
+                  helper: { type: boolean, description: "With white_label: true = the owner kept Rokha on the page as its helper" }
                   ref: { type: string }
 
   /api/domains/white-label:
@@ -9748,6 +9750,7 @@ components:
         status: { type: string, enum: [pending, verified, lapsed] }
         live: { type: boolean, description: "true once verified" }
         white_label: { type: boolean, description: "true once Rokha's branding is removed from this domain (a one-time purchase per domain)" }
+        helper: { type: boolean, description: "Only matters once white_label is true: true keeps Rokha on the page as its helper; false (the default) takes it off. Set it with `helper` on PUT /api/domains or `page_domain_set`." }
         tls: { type: string, description: "`covered` when its certificate is in place, `pending` while it is being set up" }
         records:
           type: array
