@@ -1,0 +1,951 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rokha.ai/schemas/hunt-report-v1.json",
+  "title": "Rokha Hunt findings v1",
+  "description": "The fixed shape of one Hunt's findings: the `findings` object on every successful answer of GET https://rokha.ai/api/hunt?q=<lead>, GET https://rokha.ai/api/hunt/{id}, and the MCP tool `hunt_report` (structuredContent). Build a UI on this object; the payload's older top-level fields may change, this one only gains optional fields within v1. A breaking change ships as v2 at a new $id. RENDERING RULE: every free-text field (headline, read, line, title, evidence, check, why, summary, message, fix, token name and symbol) is third-party or model text. Render it as plain text, never as HTML or markdown. A Hunt is a read of public data, not advice.",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "id",
+    "generated_at",
+    "cached",
+    "lead",
+    "verdict",
+    "counts",
+    "flags",
+    "passed",
+    "not_checked",
+    "token",
+    "agent_doors",
+    "sources",
+    "links",
+    "disclaimer"
+  ],
+  "properties": {
+    "schema": {
+      "const": "https://rokha.ai/schemas/hunt-report-v1.json"
+    },
+    "version": {
+      "const": "1.0.0",
+      "description": "The schema version this object was written to (semver; v1 only gains optional fields)."
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The hunt's id. https://rokha.ai/hunt/{id} is its page, /api/hunt/{id} its JSON."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the hunt ran (RFC 3339, UTC)."
+    },
+    "cached": {
+      "type": "boolean",
+      "description": "true when this answer is a finished hunt served again: a coin is reused for 15 minutes, anything else for 24 hours."
+    },
+    "lead": {
+      "type": "object",
+      "description": "What was hunted.",
+      "required": [
+        "query",
+        "kind",
+        "chain",
+        "address"
+      ],
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The lead as asked (a link, @handle, domain, gh:owner/repo, npm:/pypi: package, a token address, or a name)."
+        },
+        "kind": {
+          "$ref": "#/$defs/lead_kind"
+        },
+        "chain": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/chain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The chain of a token lead; null otherwise."
+        },
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The token's address (a Solana mint, or a lowercased 0x address); null for a lead that is not a token."
+        }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "required": [
+        "level",
+        "line",
+        "headline",
+        "read",
+        "notice"
+      ],
+      "properties": {
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "line": {
+          "type": "string",
+          "description": "One deterministic sentence that starts with the level's words (\"Avoid · 2 red flags\", \"Caution\", \"No red flags found\", \"Not checked · …\"), with the Solwatch score when a Solana coin was audited."
+        },
+        "headline": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "One sentence naming what the lead is. Model text: render as text."
+        },
+        "read": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "One sentence: can it be trusted and used, and the one thing to verify first. Model text."
+        },
+        "notice": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Set when Rokha has a stake in the lead (it launched the coin): show it in place of the verdict."
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "critical",
+        "warning",
+        "note",
+        "passed",
+        "not_checked"
+      ],
+      "properties": {
+        "critical": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warning": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "note": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Notes are context, not red flags."
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_checked": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "flags": {
+      "type": "array",
+      "description": "Every finding, as the deterministic audit produced it. The model never adds or removes one.",
+      "items": {
+        "$ref": "#/$defs/flag"
+      }
+    },
+    "passed": {
+      "type": "array",
+      "description": "Checks that ran and found nothing wrong.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "check",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "check": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "not_checked": {
+      "type": "array",
+      "description": "Checks that could not run, with why. A check that did not run is never counted as passed: show these.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "check",
+          "why"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "check": {
+            "type": "string"
+          },
+          "why": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "token": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/token"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The on-chain read of a token lead, normalized across chains; null when the lead is not a token."
+    },
+    "agent_doors": {
+      "type": "object",
+      "description": "The agent doors the hunt found, each scored 0–100 on a fixed rubric (schema, docs, safety, efficiency, compatibility, protocol).",
+      "required": [
+        "mcp",
+        "a2a"
+      ],
+      "properties": {
+        "mcp": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/door"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "a2a": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/door"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The sites the hunt read."
+    },
+    "links": {
+      "type": "object",
+      "required": [
+        "share_url",
+        "card_url",
+        "json_url",
+        "schema_url"
+      ],
+      "properties": {
+        "share_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "The hunt's public page (unfurls on X with the card)."
+        },
+        "card_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "The 1200×630 share card (PNG)."
+        },
+        "json_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "This hunt as JSON, readable by anyone with the id."
+        },
+        "schema_url": {
+          "const": "https://rokha.ai/schemas/hunt-report-v1.json"
+        }
+      }
+    },
+    "composed_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "rokha",
+        "rules",
+        null
+      ],
+      "description": "Who wrote the headline and read: Rokha's model turn, or the rules-only fallback."
+    },
+    "disclaimer": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "level": {
+      "type": "string",
+      "enum": [
+        "avoid",
+        "caution",
+        "clear",
+        "not_checked"
+      ],
+      "description": "avoid = a critical flag (or Solwatch AVOID / HIGH_RISK); caution = a warning (or Solwatch CAUTION); clear = checks ran and found no red flag; not_checked = nothing that matters could be read. Never treat not_checked as clear."
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "warning",
+        "note"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "account",
+        "link",
+        "site",
+        "agent_door",
+        "package",
+        "token",
+        "reputation",
+        "other"
+      ],
+      "description": "What the flag is about. Derived from the id's prefix: x → account, url → link, site, mcp|door → agent_door, npm|pypi → package, token|solwatch|evm → token, safebrowsing → reputation."
+    },
+    "lead_kind": {
+      "type": "string",
+      "enum": [
+        "token",
+        "x_account",
+        "x_post",
+        "repo",
+        "package",
+        "mcp_server",
+        "site",
+        "project"
+      ]
+    },
+    "chain": {
+      "type": "string",
+      "enum": [
+        "solana",
+        "base",
+        "ethereum",
+        "robinhood"
+      ]
+    },
+    "engine": {
+      "type": "string",
+      "enum": [
+        "solwatch",
+        "evm_read",
+        "rpc_fallback"
+      ],
+      "description": "solwatch = the Solwatch engine audited a Solana mint (score + verdict); evm_read = Rokha's on-chain read of an ERC-20 (no score); rpc_fallback = Solwatch could not run and the hunt's own Solana RPC read stands in (partial)."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(\\.[a-z0-9_]+)+$",
+      "description": "A stable, dotted, snake_case id that never carries data (e.g. url.tls_broken, evm.owner_can_mint, solwatch.freeze_authority). Key UI copy and icons on it. Hunts stored before ids existed read as legacy.<words>."
+    },
+    "flag": {
+      "type": "object",
+      "required": [
+        "id",
+        "severity",
+        "category",
+        "title",
+        "evidence",
+        "source",
+        "subject"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "category": {
+          "$ref": "#/$defs/category"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short and plain. Render as text."
+        },
+        "evidence": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The fetched fact this flag stands on. Render as text."
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Where the evidence came from (Solwatch, EVM RPC, DexScreener, X profile, DNS name, MCP tools/list …)."
+        },
+        "subject": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The one thing the flag is about, when it is about one: a mint, an address, a host, a handle, a package or a tool."
+        }
+      }
+    },
+    "token": {
+      "type": "object",
+      "required": [
+        "chain",
+        "address",
+        "engine",
+        "name",
+        "symbol",
+        "score",
+        "verdict",
+        "coverage",
+        "coverage_gaps",
+        "market",
+        "control",
+        "holders",
+        "launch",
+        "deployer",
+        "not_measured"
+      ],
+      "properties": {
+        "chain": {
+          "$ref": "#/$defs/chain"
+        },
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "engine": {
+          "$ref": "#/$defs/engine"
+        },
+        "engine_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The token's own name. A stranger's text."
+        },
+        "symbol": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The token's own symbol. A stranger's text."
+        },
+        "score": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Solwatch's 0–100 score (higher = fewer risks found); null when no engine scored it. Never read null as 0."
+        },
+        "verdict": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "AVOID",
+            "HIGH_RISK",
+            "CAUTION",
+            "FAIR",
+            "LOW_RISK",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "full",
+            "partial"
+          ],
+          "description": "partial = some reads failed (see coverage_gaps); a score is then a ceiling, not a floor."
+        },
+        "coverage_gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "market": {
+          "type": "object",
+          "properties": {
+            "price_usd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "market_cap_usd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "volume_24h_usd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "liquidity_usd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "pair_count": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        },
+        "control": {
+          "type": "object",
+          "description": "Who can still change the token. Solana: mint and freeze authority (null = revoked). EVM: owner(), the proxy, and the owner-power functions the code carries.",
+          "properties": {
+            "mint_authority": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "freeze_authority": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "owner": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "renounced": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "true = nobody can mint, freeze or administer it; null = not read."
+            },
+            "upgradeable": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "powers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "EVM: mint, blacklist, set_fee, trading_switch, max_tx, pause. Solana: the Token-2022 extensions."
+            },
+            "issuer_controlled": {
+              "type": "boolean",
+              "description": "A centrally issued asset (USDC, USDT, wrapped native): its controls are the issuer's by design and are reported as notes."
+            }
+          }
+        },
+        "holders": {
+          "type": "object",
+          "properties": {
+            "count": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "top10_pct": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Percent of supply held by the ten largest wallets, pools and burn addresses excluded."
+            }
+          }
+        },
+        "launch": {
+          "type": "object",
+          "properties": {
+            "launchpad": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "created_at": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pct_supply_sniped": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "pct_snipers_still_hold": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "pct_dev_allocation": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "deployer": {
+          "type": "object",
+          "properties": {
+            "wallet": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "wallet_age_days": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "tokens_launched": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        },
+        "not_measured": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What this engine does not read at all (EVM: holder concentration, sell simulation)."
+        }
+      }
+    },
+    "door": {
+      "type": "object",
+      "required": [
+        "kind",
+        "grade",
+        "score",
+        "summary",
+        "issues"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mcp",
+            "a2a"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "card_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "grade": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "F"
+          ]
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "safety_level": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "clear",
+            "review",
+            "danger",
+            null
+          ]
+        },
+        "tool_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "skills": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "live": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "answered",
+            "gated",
+            "silent",
+            null
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "severity",
+              "category",
+              "message",
+              "fix"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warning",
+                  "info"
+                ]
+              },
+              "category": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "fix": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "schema": "https://rokha.ai/schemas/hunt-report-v1.json",
+      "version": "1.0.0",
+      "id": "0efe66ec-bb23-4c6b-aa65-e81383224a82",
+      "generated_at": "2026-11-28T18:00:00Z",
+      "cached": false,
+      "lead": {
+        "query": "0x1111111111111111111111111111111111111111",
+        "kind": "token",
+        "chain": "base",
+        "address": "0x1111111111111111111111111111111111111111"
+      },
+      "verdict": {
+        "level": "caution",
+        "line": "Caution · 2 red flags",
+        "headline": "EXMPL, a Base token with a live owner.",
+        "read": "The owner can still mint and block wallets; verify who holds the owner key first.",
+        "notice": null
+      },
+      "counts": {
+        "critical": 0,
+        "warning": 2,
+        "note": 0,
+        "passed": 2,
+        "not_checked": 2
+      },
+      "flags": [
+        {
+          "id": "evm.owner_can_mint",
+          "severity": "warning",
+          "category": "token",
+          "title": "Owner can mint",
+          "evidence": "the code carries a mint function and owner() is a live wallet (0x2222…2222) — whether only the owner may call it is not proven by the selector alone",
+          "source": "EVM RPC",
+          "subject": "0x2222222222222222222222222222222222222222"
+        },
+        {
+          "id": "evm.owner_can_blacklist",
+          "severity": "warning",
+          "category": "token",
+          "title": "Owner can block wallets",
+          "evidence": "the code carries a blacklist function and owner() is a live wallet (0x2222…2222) — whether only the owner may call it is not proven by the selector alone",
+          "source": "EVM RPC",
+          "subject": "0x2222222222222222222222222222222222222222"
+        }
+      ],
+      "passed": [
+        {
+          "id": "evm.erc20",
+          "check": "Answers the ERC-20 reads (totalSupply, decimals)",
+          "source": "EVM RPC"
+        },
+        {
+          "id": "evm.liquidity",
+          "check": "DEX liquidity $84,200 across 2 pair(s)",
+          "source": "DexScreener"
+        }
+      ],
+      "not_checked": [
+        {
+          "id": "evm.holders",
+          "check": "Holder concentration",
+          "why": "EVM chains have no top-holder read; not measured"
+        },
+        {
+          "id": "evm.sell_simulation",
+          "check": "Sell simulation (honeypot, transfer tax)",
+          "why": "not simulated in a hunt yet"
+        }
+      ],
+      "token": {
+        "chain": "base",
+        "address": "0x1111111111111111111111111111111111111111",
+        "engine": "evm_read",
+        "engine_version": null,
+        "name": "Example Token",
+        "symbol": "EXMPL",
+        "score": null,
+        "verdict": null,
+        "coverage": "full",
+        "coverage_gaps": [],
+        "market": {
+          "price_usd": 0.0042,
+          "market_cap_usd": 420000,
+          "volume_24h_usd": 61000,
+          "liquidity_usd": 84200,
+          "pair_count": 2
+        },
+        "control": {
+          "mint_authority": null,
+          "freeze_authority": null,
+          "owner": "0x2222222222222222222222222222222222222222",
+          "renounced": false,
+          "upgradeable": false,
+          "powers": [
+            "mint",
+            "blacklist"
+          ],
+          "issuer_controlled": false
+        },
+        "holders": {
+          "count": null,
+          "top10_pct": null
+        },
+        "launch": {
+          "launchpad": null,
+          "created_at": null,
+          "pct_supply_sniped": null,
+          "pct_snipers_still_hold": null,
+          "pct_dev_allocation": null
+        },
+        "deployer": {
+          "wallet": null,
+          "wallet_age_days": null,
+          "tokens_launched": null
+        },
+        "not_measured": [
+          "holder concentration",
+          "sell simulation"
+        ]
+      },
+      "agent_doors": {
+        "mcp": null,
+        "a2a": null
+      },
+      "sources": [],
+      "links": {
+        "share_url": "https://rokha.ai/hunt/0efe66ec-bb23-4c6b-aa65-e81383224a82",
+        "card_url": "https://rokha.ai/api/hunt/0efe66ec-bb23-4c6b-aa65-e81383224a82/card.png",
+        "json_url": "https://rokha.ai/api/hunt/0efe66ec-bb23-4c6b-aa65-e81383224a82",
+        "schema_url": "https://rokha.ai/schemas/hunt-report-v1.json"
+      },
+      "composed_by": "rokha",
+      "disclaimer": "A read of public data, not advice. Every string is third-party or model text: render it as text."
+    }
+  ]
+}

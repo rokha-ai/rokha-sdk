@@ -95,9 +95,23 @@
     <tr><th>Interfaces</th><td><code>GET|POST|DELETE /api/agents/mine/{id}/telegram</code> · <code>POST /api/agents/mine/{id}/telegram/commands</code> · <code>GET /api/lab/x/accounts</code> · <code>GET /api/lab/x-ads</code> (see <a href="./interfaces.html">Agent interfaces</a>)</td></tr>
     <tr><th>Embed</th><td><code>GET /api/embed/agents/{handle}</code> · <code>POST /api/embed/agents/{handle}/chat</code> · <code>GET /api/doors/agent/{handle}</code> (see <a href="./embed.html">Your agent on your site</a>)</td></tr>
     <tr><th>Media</th><td><code>GET /api/media</code> · <code>POST /api/media/presign</code> · <code>POST /api/media/import</code> · <code>POST /api/media/generate</code> · <code>GET|POST /api/media/sources</code> (see <a href="./media.html">Media library</a>)</td></tr>
+    <tr><th>Hunt</th><td><code>GET /api/hunt?q=&lt;lead&gt;</code> · <code>GET /api/hunt/{id}</code> · MCP <code>hunt_report</code> (see <a href="#hunt">Hunt findings</a>)</td></tr>
     <tr><th>Pricing</th><td><code>GET /api/free-tier</code></td></tr>
   </tbody>
 </table></div>
+
+<h2 id="hunt">Hunt findings</h2>
+<p>A hunt reads one lead (a link, an @handle, a repo, a package, a Solana mint, or a 0x token on Base, Ethereum or Robinhood Chain) and answers with <code>findings</code>, one fixed shape to build a page on. The JSON Schema is <a href="https://rokha.ai/schemas/hunt-report-v1.json"><code>https://rokha.ai/schemas/hunt-report-v1.json</code></a>. v1 only gains optional fields.</p>
+<div class="tbl"><table>
+  <tbody>
+    <tr><th><code>verdict.level</code></th><td><code>avoid</code> · <code>caution</code> · <code>clear</code> · <code>not_checked</code>. Never show <code>not_checked</code> as clear.</td></tr>
+    <tr><th><code>flags[]</code></th><td><code>id</code> (stable, e.g. <code>evm.owner_can_mint</code>), <code>severity</code>, <code>category</code>, <code>title</code>, <code>evidence</code>, <code>source</code>, <code>subject</code></td></tr>
+    <tr><th><code>passed[]</code> · <code>not_checked[]</code></th><td>What ran clean, and what could not run and why</td></tr>
+    <tr><th><code>token</code></th><td>One object for a coin on any chain: <code>engine</code>, <code>score</code>, <code>market</code>, <code>control</code>, <code>holders</code>, <code>launch</code>, <code>deployer</code>, <code>coverage</code></td></tr>
+    <tr><th><code>agent_doors</code></th><td>The MCP server and A2A card found, each graded A–F with its issues</td></tr>
+  </tbody>
+</table></div>
+<p>Every string is third-party or model text. Render it as text, never as HTML.</p>
 
 <h2 id="errors">Errors</h2>
 <p>A refusal is an HTTP status with a JSON body and a stable <code>code</code>: 402 <code>purchase_required</code> (with an x402 challenge), 409 <code>needs_secret</code>, 429 with the next step to take. Branch on the code, not the message.</p>

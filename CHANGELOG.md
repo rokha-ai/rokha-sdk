@@ -6,6 +6,20 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-28 — Hunt findings in one fixed shape; Hunt reads EVM tokens
+
+### Added
+
+- **`findings` on every hunt (hunt.v1).** `GET /api/hunt?q=`, `GET /api/hunt/{id}` and MCP `hunt_report` (now with `structuredContent` and a typed `outputSchema`) carry `findings`: `lead`, `verdict.level` (`avoid` · `caution` · `clear` · `not_checked`), `counts`, `flags[]` with stable dotted `id`s and a `category`, `passed[]`, `not_checked[]`, one normalized `token` object for a coin on any chain, `agent_doors`, `links`. JSON Schema: `schemas/hunt-report-v1.json`, served at https://rokha.ai/schemas/hunt-report-v1.json. A hunt stored before ids existed reads its ids as `legacy.<words>`. Guide: docs.rokha.ai/api.html#hunt.
+- **EVM token leads.** A `0x…` token (Base by default; name `ethereum` or `robinhood` in the ask), or a DexScreener / Basescan / Etherscan / GMGN / Uniswap link naming one, is read on-chain: owner live or renounced, EIP-1967 proxy, the owner-power functions its code carries, DEX liquidity, verified source when the deployment has an explorer key. Holder concentration and a sell simulation are reported in `not_checked`. A 0x address with no contract code answers `no_lead` before any charge. New payload blocks: `lead`, `evm`, `coin_read`.
+- `red_flags[]` items gain `id` and `subject`; `checks_passed[]` and `not_checked[]` items gain `id`.
+
+### Fixed
+
+- The `/api/hunt` description said every repeat is cached for 24 hours; a coin is cached for 15 minutes.
+- The `error` enum lacked `daily_limit` and `allowance_unreadable`; `q` is optional (signed out with no `q`, the door answers its x402 price).
+
+
 ## 2026-11-28 — lock a Market listing behind a coin; Base and Elysium on hold gates; EVM and Signet wallet proofs
 
 ### Changed
