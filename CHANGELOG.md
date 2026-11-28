@@ -6,6 +6,49 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-27 — one standard page; the standard run view; an X account per project; X ads
+
+### BREAKING
+
+**Breaking removal (versions stay 1.0.0).** Every agent, rig, Market listing and builder has one standard page, included. There are no page prices, custom domains, white label, standalone pages, covers or custom stages any more. The doors below answer `410 retired` and are gone from the schema; the MCP tools are no longer listed.
+
+- **Custom domains and white label:** `GET|PUT /api/domains`, `POST /api/domains/verify`, `DELETE /api/domains/{host}`, `GET /api/domains/resolve`, `GET /api/domains/white-label`. MCP `page_domain_set`, `page_domain_status`. `POST /api/products/{id}/checkout` (MCP `product_checkout`) no longer takes `domain`, and its `applied` status and white-label refusals are gone.
+- **Page credits:** `GET /api/page-credits/me`, `POST /api/page-credits/checkout`. No door answers `402 subpage_fee` or `402 subpage_lab` any more.
+- **The standalone page:** every `/api/flat-pages*` and `/api/admin/flat-pages*` door.
+- **A rig page's own settings and extras:** `PUT /api/pages/me/rig/{slug}` (MCP `page_rig_config`), `/api/pages/{handle}/rig/{slug}/state`, `/hero`, `/interact`, `/interact/{id}`, `/adopt` and `/adopt/public`.
+- **The cover:** `PUT /api/pages/me/cover` (MCP `page_cover_set`, `page_cover_get`).
+- **Custom stages:** `GET /api/rigs/runs/{run_id}/stage`; MCP `rig_stage_set`, `rig_stage_get`; `rig_run`'s `render` argument (and its `stage_title`, `stage_html`). A rig's saved `content.stage` is no longer used, and `RokhaStageConfig` is gone from the schema. No HTML a run makes is shown (`app_html`, `rokha-app.html`).
+- **The run door:** `POST /api/rigs/run` and a funded run no longer answer a `stage` block. `stage_url` stays.
+- **The rig page read:** `GET /api/pages/{handle}/rig/{slug}` drops `theme`, `cover_html`, `stage_landing_html`, `stage_shared_html`, `has_designed_stage`, `display_mode` and `shared_audit_handle`.
+- **Page style:** `style` on `GET /api/pages/{handle}` and `GET /api/pages/me` is `accent`, `banner_url` and `tagline` only; `cover_html` is always `null`. Other style keys are no longer read or saved.
+- **`ui_navigate`:** `lab_stage: page`, `profile_tab: page` and `view: cover` are refused with what to do instead.
+
+### Added
+
+- **Style a page.** `PUT /api/pages/me/style {asset, accent?, banner_url?, tagline?}` (MCP `page_style_set`). `asset` is `"page"` (yours) or `"agent:<handle>"` (one of your agents). `accent` is `#rrggbb`, `banner_url` an https image of at most 500 characters, `tagline` one line of at most 140. Pass only what changes; `null` or `""` clears. Answers `{ok, asset, style}`. Refusals: `400 asset`, `400 style`, `401 sign_in`, `404 no_page`, `404 no_agent` (another account's agent answers the same 404). Free on every account. Guide: docs.rokha.ai/pages.html#style.
+- **An X account per project.** One login runs one X account per Lab project, each in its own context, on the owner's own X developer app (one app for all of them). Guide: docs.rokha.ai/interfaces.html#x-accounts.
+  - Your X app: `GET|PUT|DELETE /api/lab/x/app` (`PUT {api_key, api_secret}` answers `verified`, else `check`: `callback_not_listed` · `app_refused` · `rate_limited` · `network` · `x_refused`). List `https://rokha.ai/api/lab/x/accounts/callback` as the app's Callback URI.
+  - Accounts: `GET /api/lab/x/accounts?project=&check=` (MCP `x_accounts`), `POST /api/lab/x/accounts/connect {project?, agent?, from?}` (MCP `x_account_connect`, answers `authorize_url`, good for 15 minutes), `GET /api/lab/x/accounts/callback` (X's return; 303 to the Lab), `POST /api/lab/x/accounts/{id}/move {project?, agent?}` (MCP `x_account_move`), `DELETE /api/lab/x/accounts/{id}` (MCP `x_account_disconnect`).
+  - One account per project; one X account belongs to one Rokha account; up to 20. DMs are not read on these accounts. A post that repeats what another of your accounts posted in the last 24 hours is held (`cross_account_duplicate`). The Lab or the 1M hold; an `rk_` key reads but never connects, moves or disconnects.
+  - Refusals: `person_only`, `studio_required`, `house_default`, `house_account`, `no_app`, `callback_not_listed`, `app_refused`, `project_has_account`, `x_account_taken`, `accounts_full`, `too_many_pending`, `no_x_account`, `not_found`.
+  - New schema: `XAccount`.
+- **X ads.** Rokha or a Crew seat promotes a post Rokha already made for you, on your own X ads account, under a total spend cap you set (default 0: nothing spends). Every ad is made paused and its whole budget set aside first; you switch it on unless you let the Crew (`auto_activate`) and outside agents in seats (`outside_may_activate`).
+  - REST: `GET /api/lab/x-ads`, `PUT /api/lab/x-ads/settings`, `POST /api/lab/x-ads/campaigns`, `POST /api/lab/x-ads/campaigns/{id}/status`.
+  - MCP: `x_ads_status`, `x_ads_campaign`, `x_ads_set`, `x_ads_settings` (the person's own).
+  - New schemas: `XAdsSettings`, `XAdsCampaign`.
+- **`/api/info` `pages`** is in the schema (`PagesInfo`): the page kinds, their addresses, the tools and doors for each, and the style fields.
+- **SDKs.** TypeScript: `RokhaClient.setPageStyle()`, types `PageStyle`, `PageStylePatch`, `PageStyleResult`, `RigRunView`, `RigRunStep`; `RigsClient.getRun()` returns `RigRunView`. Python: `RokhaClient.set_page_style()`, types `PageStyle`, `RunView`, `RunStep`; `get_run()` returns `RunView`.
+
+### Changed
+
+- **The standard run view.** Every run shows in one view at `rokha.ai/run/<run_id>`: its steps with status and time, then its output drawn from its shape (the rig's `contract.output_schema` when it declares one). `GET /api/rigs/runs/{run_id}` answers `{ok, run_id, status, done, requirement, output, output_schema, steps: [{trace_id, step, name, node_id, status, created_at, duration_ms, error}], traces, visibility}`; `visibility` can also read `funded`. A `rokha_app` block is read as data.
+- **A rig's page** (`GET /api/pages/{handle}/rig/{slug}`) is served for any public, live listing and carries `title`, `summary`, `provider_id` and `external_id`.
+- **Agents** carry `banner_url` (set with `page_style_set` or `behavior.banner_url`). An agent's page is included; publishing one no longer asks for a page credit.
+- **The X console takes `project`.** `GET|PUT /api/lab/x/settings`, `GET /api/lab/x/recent`, `POST /api/lab/x/timeouts`, `DELETE /api/lab/x/timeouts/{x_user_id}`, `POST /api/lab/x/blocks`, `DELETE /api/lab/x/blocks/{x_user_id}` and `POST /api/lab/x/act` (MCP `x_settings`, `x_recent`, `x_timeout`, `x_timeout_clear`, `x_block`, `x_unblock`, `x_act`) take `project` and act on that project's account. They are no longer the House's alone: left out, the House reads @rokha_agent and anyone else reads their default project's account; a project with none answers `404 no_x_account`. On a project's account `x_act` replies under a post as that account; DMs stay @rokha_agent's (`dms_house_only`).
+- **`content_channel_add`** takes `project`.
+- `schemas/rig-template-v1.json` no longer suggests a `dashboard` knob.
+- Docs: Pages rewritten (one standard page, style, the run view); Agent interfaces gains X accounts per project, each account's controls and X ads; the API table and the `rokha-network` skill (5.2.0) follow.
+
 ## 2026-11-25 — your own domain; white label
 
 - **A page on a domain you own.** With the Lab, point a domain you own at one of your pages: your own page, an agent's page or a rig page. One domain shows one page, at the root of the domain; up to 5 domains an account. A free account has no custom domain.

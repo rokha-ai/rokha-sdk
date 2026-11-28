@@ -111,6 +111,8 @@ paths:
                 properties:
                   lab:
                     $ref: '#/components/schemas/LabInfo'
+                  pages:
+                    $ref: '#/components/schemas/PagesInfo'
 
   /llms.txt:
     get:
@@ -1346,8 +1348,8 @@ paths:
         `page_get` (any /@handle page; counts a genuine view), plus JWT-gated `page_me`
         (your page, or `{claimed:false, suggested_handle}`), `page_claim`
         (claim/update your public /@handle — owner is always the verified
-        bearer) and `page_rig_config` (mode / featured / linked for one of
-        your published rigs' sub-pages) — mirrors `/api/pages/*`.
+        bearer) and `page_style_set` (the standard page's accent, banner and
+        tagline, on your page or one of your agents) — mirrors `/api/pages/*`.
 
         RUNS AND TRACES: `trace_get` takes `id` (a trace UUID) or `run_id`
         (a run UUID — answered in the run door's shape: status, steps with
@@ -1361,13 +1363,9 @@ paths:
         `input_attachment` (signed-in only: the id of one of YOUR data
         attachments, fed to the run as fenced data; a `test_input`
         attachment marks the run as test data, never proven). EVERY `rig_run`
-        answer carries `run_id` and `stage_url` (the run's dashboard hosted on
-        rokha.ai — hand it to your user); with `wait: true` + `render: true`
-        it also carries `stage_title` and `stage_html` (the dashboard as one
-        self-contained HTML document, ≤ 200 KB, else `stage_html_note` says
-        why it is absent) — the rig author's HTML: render it only in a
-        sandboxed frame (`sandbox="allow-scripts"`, never
-        `allow-same-origin`); REST twin GET /api/rigs/runs/{run_id}/stage. A
+        answer carries `run_id` and `stage_url` (the run in the standard run
+        view on rokha.ai — hand it to your user); the run's steps and output
+        read at GET /api/rigs/runs/{run_id}. A
         PAID rig answers 402 `purchase_required` until the runner holds it.
         SALES + PACKS: `product_get` (public) names an item's price — kind
         `rig` | `skill` | `harness` | `agent` | `pack` — and, for an item that
@@ -1686,11 +1684,12 @@ paths:
         An agent's handle answers `{kind: "agent", agent}`: the agent, its rigs and its doors
         (a draft or private agent reads only for its owner). A builder's handle answers
         what /@handle renders — profile, links, badge, public creations,
-        30-day activity heartbeat, view counts, rig sub-pages. Carries the
+        30-day activity heartbeat, view counts, rig pages. Carries the
         builder's linked X when they have one: `x_handle` (no `@`, empty
         when unlinked), `x_verified` (X's own paid check — a NARROWER
         signal than the page's own `verified` mark), `x_verified_type`
-        (blue/business/government/''). A genuine open counts a page view (human OR agent); pass
+        (blue/business/government/''). `style` is `accent`, `banner_url` and `tagline` only;
+        `cover_html` is null. A genuine open counts a page view (human OR agent); pass
         `preview=1` for card/list hydration that must NOT count. Public, no auth.
       operationId: pageByHandle
       parameters:
@@ -1717,37 +1716,39 @@ paths:
         '200': { description: "Plain text", content: { text/plain: { schema: { type: string } } } }
         '404': { description: "No such page" }
 
-  /api/pages/me/cover:
+  /api/pages/me/style:
     put:
       tags: [pages]
-      summary: "Set your page's cover (MCP page_cover_set)"
+      summary: "Style a page (MCP page_style_set)"
       description: >-
-        The cover is the first thing a visitor to `/@handle` sees. Body `{html}`: one self-contained HTML fragment with inline CSS (a `<style>` tag is fine), no scripts, iframes, forms or
-        event handlers, up to 64 KB, images by https link. An empty `html` clears it back to the default welcome. Claim your page first.
-      operationId: pageCoverSet
+        Every asset has one standard page; this sets its three style fields. `asset` is `"page"`
+        (your rokha.ai/@handle) or `"agent:<handle>"` (one of your own agents). Pass only what
+        changes; `null` or `""` clears a field. Any other key (a cover, a theme, HTML) is not taken.
+        The owner is the verified token; an agent's key never reaches this door. Another account's
+        agent answers the same 404 as one that does not exist. Free on every account.
+      operationId: pageStyleSet
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [html]
-              properties:
-                html: { type: string }
+            schema: { $ref: '#/components/schemas/PageStylePatch' }
       responses:
         '200':
-          description: "Saved"
+          description: "Saved: the style as it now reads"
           content:
             application/json:
               schema:
                 type: object
+                required: [ok, asset, style]
                 properties:
                   ok: { type: boolean }
-                  bytes: { type: integer, description: "The size of the cover as stored" }
-                  cleared: { type: boolean }
-        '400': { description: "The cover was refused; the message names what to remove", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "Claim your page first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+                  asset: { type: string, example: "agent:sid" }
+                  style: { $ref: '#/components/schemas/PageStyle' }
+        '400': { description: "`asset` — not \"page\" or \"agent:<handle>\" · `style` — a field is malformed, or nothing to change; nothing is written", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_page` — claim your page first · `no_agent` — no agent of yours by that handle", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '500': { description: "`db_error` — nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/pages/{handle}/avatar:
     get:
@@ -1763,11 +1764,14 @@ paths:
   /api/pages/{handle}/rig/{slug}:
     get:
       tags: [pages]
-      summary: A rig sub-page (/@handle/slug)
+      summary: A rig's page (/@handle/slug)
       description: >-
-        One published rig presented under its owner's page — only for rigs
-        whose owner opted in (`linked`). Carries the owner's linked X
-        (`x_handle` / `x_verified` / `x_verified_type`). Public, no auth.
+        One published rig under its owner's page, served for any public, live
+        listing of theirs. It is the standard page: `title`, `summary`,
+        `provider_id` and `external_id` name the listing, and runs show in the
+        standard run view at `/run/<run_id>`. No custom stage, cover or theme.
+        Carries the owner's linked X (`x_handle` / `x_verified` /
+        `x_verified_type`). Public, no auth.
         Also carries what a run asks for: `inputs` (one entry per input port,
         `[{name, label, type, required, placeholder}]` — the names
         `POST /api/rigs/run` takes in `inputs`) and `secret_refs` (the key
@@ -1779,10 +1783,29 @@ paths:
         - { name: slug, in: path, required: true, schema: { type: string } }
       responses:
         '200':
-          description: The rig sub-page
+          description: The rig's page
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  handle: { type: string }
+                  display_name: { type: string }
+                  slug: { type: string }
+                  title: { type: string }
+                  summary: { type: [string, 'null'] }
+                  provider_id: { type: string }
+                  external_id: { type: string }
+                  listing_id: { type: string, format: uuid }
+                  source_id: { type: [string, 'null'], format: uuid }
+                  registry_ref: { type: string, description: "`<provider_id>/<external_id>`" }
+                  inputs: { type: array, items: { type: object, additionalProperties: true } }
+                  secret_refs: { type: array, items: { type: object, additionalProperties: true } }
+                  hide_input: { type: boolean }
+                  default_input: {}
+                  page_views: { type: integer }
+                  rig: { type: object, additionalProperties: true }
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -1800,6 +1823,9 @@ paths:
         unlinked), `x_verified` (X's own paid check), `x_verified_type`
         (blue/business/government/''). Reading this also refreshes a stale
         link, so it is the cheapest way to keep an agent's view current.
+        `style` is the standard page's three fields only (`accent`,
+        `banner_url`, `tagline`, each absent when unset); `cover_html` is
+        always null.
       operationId: myPage
       security:
         - bearerAuth: []
@@ -1956,43 +1982,6 @@ paths:
                       token: { type: string, nullable: true }
         '400': { description: "not a payable EVM address · unknown chain · a token that chain does not take" }
         '412': { description: "claim a handle first" }
-  /api/pages/me/rig/{slug}:
-    put:
-      tags: [pages]
-      summary: Configure one of your rig sub-pages (JWT)
-      description: >-
-        Owner config for ONE published rig on your page — mode ('builder'
-        detail view | 'app' app-output surface), featured (headline it in
-        your SHOWCASE; single slot, featuring one un-features the rest),
-        linked (make the public /@handle/slug link — opt-in; rigs get no
-        sub-page by default). Claim your page first. SUB-PAGES (2026-11-02): with the
-        Lab, your account page plus one rig page and one agent page are included; the
-        moment another rig BECOMES a page (`linked` or `auto_showcase`) it takes one page
-        credit, $9 one time (`GET /api/page-credits/me`, `POST /api/page-credits/checkout`),
-        and answers 402 until you hold one. A page that already exists is never asked;
-        unlinking frees its slot and credit (no refund). A free account has no sub-pages.
-        The founder and the House are exempt.
-        MCP `page_rig_config` answers the same 402s.
-      operationId: configRigSubpage
-      security:
-        - bearerAuth: []
-      parameters:
-        - { name: slug, in: path, required: true, schema: { type: string } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                mode: { type: string, enum: [builder, app] }
-                featured: { type: boolean }
-                linked: { type: boolean }
-      responses:
-        '200': { description: '{ ok, slug, rig_pages }' }
-        '400': { description: Bad slug/mode, nothing to set, or too many configs }
-        '402': { description: "`subpage_fee` — your included rig page is in use; another takes one page credit (`price_cents`, `checkout`, `upgrade`) · `subpage_lab` — a free account has no sub-pages; they come with the Lab", content: { application/json: { schema: { $ref: '#/components/schemas/SubpageRefusal' } } } }
-        '404': { description: Claim your page first }
 
   # ============================================================
   # Discovery
@@ -2355,14 +2344,7 @@ paths:
                       method: { type: string }
                       url: { type: string }
                       headers: { type: object, additionalProperties: { type: string } }
-                  stage_url: { type: string, format: uri, description: "The run's dashboard, hosted on rokha.ai (https://rokha.ai/run/<run_id>) — hand it to your user; it shows to whoever may read the run" }
-                  stage:
-                    type: object
-                    description: "GET this once the run is done for `{title, html}` to render yourself in a sandboxed frame (GET /api/rigs/runs/{run_id}/stage)"
-                    properties:
-                      method: { type: string, const: GET }
-                      url: { type: string }
-                      headers: { type: object, additionalProperties: { type: string } }
+                  stage_url: { type: string, format: uri, description: "The run in the standard run view on rokha.ai (https://rokha.ai/run/<run_id>) — hand it to your user; it shows to whoever may read the run" }
                   next: { type: string }
         '400':
           description: "`bad_rig` · `missing_input` · `unknown_input` · `bad_input` · `input_too_large` · `too_many_inputs`"
@@ -2452,8 +2434,12 @@ paths:
                   run_id: { type: string, format: uuid }
                   status: { type: string, description: "starting · running · success · partial · error" }
                   done: { type: boolean }
-                  visibility: { type: string, enum: [public, private], description: "Absent on the empty `starting` view" }
-                  output: { description: "The last step's result, once done (a stage run carries a rokha_app block)" }
+                  visibility: { type: string, enum: [public, private, funded], description: "Absent on the empty `starting` view. `funded`: a run an owner-funded door paid for, read by its caller" }
+                  requirement: { description: "Once done: what the run still needs (a key, a purchase, the Lab) when it stopped on a requirement, else null" }
+                  output: { description: "The last step's result, once done; null while running" }
+                  output_schema:
+                    description: "The rig's declared `contract.output_schema` (JSON Schema), else null. The standard run view draws `output` by this shape: an object as fields, a list of objects as a table, numbers as readings, a string as text"
+                    oneOf: [{ type: object, additionalProperties: true }, { type: 'null' }]
                   steps:
                     type: array
                     items:
@@ -2461,7 +2447,11 @@ paths:
                       properties:
                         trace_id: { type: string, description: "Readable at GET /api/traces/{id}" }
                         step: { type: string }
+                        name: { type: string, description: "The step's name (the same as `step`)" }
+                        node_id: { description: "The step's node id in the rig, or null" }
                         status: { type: string }
+                        created_at: { type: [string, 'null'], format: date-time }
+                        duration_ms: { type: [number, 'null'] }
                         error: { description: "The step's error object, or null" }
                   traces: { type: array, items: { type: object, additionalProperties: true } }
         '400':
@@ -2484,61 +2474,6 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RigDoorError' }
-
-  /api/rigs/runs/{run_id}/stage:
-    get:
-      tags: [rigs]
-      summary: "A finished run's dashboard as one HTML document — the hosted stage"
-      description: >-
-        Readable by exactly who may read the run (the same rule as
-        `GET /api/rigs/runs/{run_id}`: the runner by Bearer token or `x-anon-session-id`, anyone
-        for a PUBLIC rig's run). `html` is the page the run drew (`source: run` — a designed stage
-        template lands there), else the platform's default form over the run's output
-        (`source: default`). The HTML is the rig author's and HOSTILE: render it only in a
-        sandboxed frame (`iframe sandbox="allow-scripts"`, never `allow-same-origin`, CSP
-        `default-src 'none'`) — or hand your user `stage_url`, the same dashboard hosted on
-        rokha.ai. 202 while the run is still going.
-      operationId: getRigRunStage
-      security:
-        - bearerAuth: []
-        - {}
-      parameters:
-        - { name: run_id, in: path, required: true, schema: { type: string, format: uuid } }
-        - { name: x-anon-session-id, in: header, required: false, schema: { type: string, format: uuid } }
-      responses:
-        '200':
-          description: The dashboard
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean, const: true }
-                  run_id: { type: string, format: uuid }
-                  done: { type: boolean, const: true }
-                  status: { type: string }
-                  title: { type: string }
-                  html: { type: string, description: "One self-contained HTML document (≤ 600 KB). HOSTILE — sandbox it." }
-                  source: { type: string, enum: [run, default] }
-                  stage_url: { type: string, format: uri, description: "The hosted page: https://rokha.ai/run/<run_id>" }
-                  render: { type: string, description: "How to render html safely" }
-        '202':
-          description: "Still running — poll again in a few seconds"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  run_id: { type: string, format: uuid }
-                  done: { type: boolean, const: false }
-                  status: { type: string }
-                  next: { type: string }
-        '400': { description: "`bad_run_id` — a run id is a UUID", content: { application/json: { schema: { $ref: '#/components/schemas/RigDoorError' } } } }
-        '401': { description: "`token_rejected`", content: { application/json: { schema: { $ref: '#/components/schemas/RigDoorError' } } } }
-        '404': { description: "`run_not_found` — not your run and not a public rig's run", content: { application/json: { schema: { $ref: '#/components/schemas/RigDoorError' } } } }
-        '422': { description: "`stage_too_large` — over 600 KB; read the run's output instead", content: { application/json: { schema: { $ref: '#/components/schemas/RigDoorError' } } } }
-        '502': { description: "`traces_unavailable` — try again", content: { application/json: { schema: { $ref: '#/components/schemas/RigDoorError' } } } }
 
   /api/rigs/{id}:
     get:
@@ -3284,10 +3219,7 @@ paths:
         autonomous mandate pays inside its caps at once, a guarded one answers
         `awaiting_approval` with an approve link. `fuel` is retired, refused with `rail`. Crypto rails pay the creator
         their 80% instantly; card sales pay the creator on Fridays. A product on a promo price is charged at the price
-        its read shows; an open order keeps the price it was made at. White label (the product `GET /api/domains/white-label`
-        names) takes `domain`, one already set on your account: it removes Rokha's branding from that domain once paid. If you
-        hold a payment not yet used on a domain, the call uses it and answers `{ok, status: "applied", purchase_id, domain,
-        white_label: true, message}` with no charge.
+        its read shows; an open order keeps the price it was made at.
       operationId: productCheckout
       security: [ { bearerAuth: [] } ]
       parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
@@ -3306,21 +3238,19 @@ paths:
                 token: { type: string, enum: [USDC, USDT, USDG], description: "evm — Base: USDC · Ethereum: USDC or USDT · Robinhood Chain: USDG (the chain's default when omitted)" }
                 tx_hash: { type: string, pattern: "^0x[0-9a-fA-F]{64}$", description: "evm — the landed transfer's hash; omit to open the order (amount + House address), then present it" }
                 ref_code: { type: string, maxLength: 40, description: "A referral code — the referrer's page handle from rokha.ai/?ref=<handle>. The referrer earns 5% of the price, out of Rokha's share (never your own code, never on a hire of Rokha's own agent)." }
-                domain: { type: string, maxLength: 253, example: "www.example.com", description: "White label only: the domain to remove Rokha's branding from. It must be a domain already set on your account (`PUT /api/domains`)." }
       responses:
         '200':
-          description: "Checkout started or settled (`status`: paid · settling · awaiting_approval · applied; or card / usdc / sol instructions — the `sol` shape is `SolCheckout`). `applied` is white label only: a payment you already made was used on `domain`, nothing was charged."
+          description: "Checkout started or settled (`status`: paid · settling · awaiting_approval; or card / usdc / sol instructions — the `sol` shape is `SolCheckout`)"
           content:
             application/json:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/SolCheckout'
                   - { type: object, additionalProperties: true }
-        '400': { description: "`payer_wallet` — usdc / sol need the Solana public key the payment is sent FROM · white label: `domain_required` — name the domain · `bad_domain` — not a plain host name", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
-        '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate · white label: `studio_required` — the Lab is needed on the account" }
+        '400': { description: "`payer_wallet` — usdc / sol need the Solana public key the payment is sent FROM", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
+        '402': { description: "x402 payment refused (underpaid, wrong payTo/mint, replayed) · no_mandate" }
         '403': { description: "`key_cannot_spend` — an rk_ key cannot spend a mandate" }
-        '404': { description: "white label: `not_your_domain` — no domain of yours by that name; set it first" }
-        '409': { description: "`sales_open_after_friday` · `yours` · `already_pending` · white label: `already_white_label` — that domain already has the branding removed · `domain_lapsed` — its TXT record is gone; put it back first. No white label refusal charges anything." }
+        '409': { description: "`sales_open_after_friday` · `yours` · `already_pending`" }
         '429': { description: "`too_many_open` — orders already await payment; pay or let one expire first", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
         '503': { description: "sol: `price_stale` · `price_unavailable` (no fresh SOL/USD read — no order was made) · `rail_off` (SOL rail not configured) · `unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/SaleRefusal' } } } }
   /api/products/{id}/access:
@@ -4118,7 +4048,7 @@ paths:
         `?run=` doors; `doors.agent_door` is the MCP endpoint an agent
         pastes. The same `href` / `cta` shape rides every `/api/market`
         tile: the title opens `/market/<kind>/<provider>/<external_id>`
-        (a Rokha rig with a sub-page keeps `/@handle/<slug>`, a seat or
+        (a Rokha rig keeps its page at `/@handle/<slug>`, a seat or
         page MCP server keeps `/@handle`), Connect opens the Lab connect
         door, Run it the Lab run door, Clone it `/studio?adopt=`.
       operationId: getMarketObject
@@ -5185,8 +5115,8 @@ paths:
       tags: [agents]
       summary: "Change one of your agents (MCP agent_update)"
       description: >-
-        The same body and checks as `POST /api/agents/mine` (`AgentCreate`). Taking an agent live and public makes its page at `/@handle`; on the Lab the first agent page is included
-        and each further one takes a page credit (402 `subpage_fee`).
+        The same body and checks as `POST /api/agents/mine` (`AgentCreate`). Taking an agent live and public makes its page at `/@handle`, included. Its style
+        (accent, banner, tagline) is `PUT /api/pages/me/style {asset: "agent:<handle>"}`.
       operationId: updateAgent
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -5201,7 +5131,7 @@ paths:
             application/json:
               schema: { type: object, additionalProperties: true }
         '400': { description: "A field was refused; the message names it", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`publish_cap` · `subpage_fee`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`publish_cap`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "No agent of yours by that id", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '409': { description: "The handle is taken", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
@@ -5498,7 +5428,7 @@ paths:
       description: |
         Readable by the hire's buyer, the agent's owner, or a Rokha admin; anyone else gets the
         same 404 as a missing id. Poll it to watch a task: each run carries `stage_url`, the
-        run's dashboard, and its traces read at `GET /api/rigs/runs/{run_id}`.
+        run in the standard run view, and its traces read at `GET /api/rigs/runs/{run_id}`.
       operationId: getHire
       security: [{ bearerAuth: [] }]
       parameters:
@@ -7082,191 +7012,6 @@ paths:
         '503': { description: "`unavailable` — the listing could not be read; nothing changed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   # ============================================================
-  # Your own domain — point a domain you control at one of your pages
-  # ============================================================
-
-  /api/domains:
-    get:
-      tags: [pages]
-      summary: "Your domains"
-      description: >-
-        `{ok, lab, limit, cname_target, domains: [Domain], white_label_price}`. `lab` says whether your account has the Lab right now; `limit` is how many domains an account holds (5). Each `Domain` is
-        `{domain, page, status, live, white_label, tls, records, certificate?, next}`: `status` is `pending` · `verified` · `lapsed`, and `records` are the DNS records to add, a TXT at `_rokha.<domain>` that proves the
-        domain is yours (keep it in place) and a CNAME that sends visitors to your page. A verified domain outside Rokha's certificates carries a third record, a certificate CNAME, and
-        `certificate: {status}`; it answers once that is `issued`. `white_label` is true once Rokha's branding is removed from that domain, and `white_label_price` is what removing it costs
-        right now (`null` while it is not sold). Over MCP: `page_domain_status {}` lists the same. Your own sign-in only: a key issued for one agent
-        answers `403 owner_only`.
-      operationId: domainsMine
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200':
-          description: "Your domains"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  lab: { type: boolean }
-                  limit: { type: integer, example: 5 }
-                  cname_target: { type: string }
-                  domains: { type: array, items: { $ref: '#/components/schemas/PageDomain' } }
-                  white_label_price:
-                    oneOf:
-                      - { $ref: '#/components/schemas/WhiteLabelPrice' }
-                      - { type: 'null' }
-                    description: "What removing Rokha's branding from one domain costs right now, with `paid_unused`; `null` while it is not sold"
-        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-    put:
-      tags: [pages]
-      summary: "Point a domain at one of your pages, or move it to another"
-      description: >-
-        Body `{domain, page}`. `domain` is a host name like `www.example.com`; `page` is one of your own pages, `@handle` (your page or one of your agents) or `@handle/<rig-slug>`. Included with
-        the Lab. One domain shows one page, at the root of the domain. The answer carries the DNS records to add at your DNS host (a bare apex needs a DNS host with ALIAS or CNAME flattening); then check with `POST /api/domains/verify`. Calling again with a new `page` moves a
-        domain already set and keeps its proof. Sign-in and payment stay on rokha.ai, and the page keeps a small Built on Rokha line. Over MCP: `page_domain_set {domain, page}`
-        (`off: true` removes it).
-      operationId: domainSet
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [domain, page]
-              properties:
-                domain: { type: string, maxLength: 253, example: "www.example.com" }
-                page: { type: string, maxLength: 130, example: "@handle" }
-                helper: { type: boolean, description: "Optional. Once the domain is white label: keep Rokha on the page as its helper (true) or not (false). Left out, it stays as it was." }
-      responses:
-        '200':
-          description: "`{ok, domain}`"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  domain: { $ref: '#/components/schemas/PageDomain' }
-        '400': { description: "`bad_domain` — not a plain host name · `reserved_domain` — not available · `bad_page` — not `@handle` or `@handle/<rig-slug>`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` — no page or agent of yours by that handle", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '409': { description: "`too_many` — an account holds up to 5 domains; remove one first", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-
-  /api/domains/verify:
-    post:
-      tags: [pages]
-      summary: "Check a domain's DNS now"
-      description: >-
-        Body `{domain}`. Reads the TXT record at `_rokha.<domain>` and answers `{ok, domain, checked?}`. With the record in place the domain becomes `verified` and is yours alone: any other
-        account's claim on it is removed. `checked` is a note when nothing changed: the record is not there yet, or DNS could not be read just now. A verified domain is checked again from time
-        to time; if the record stays gone it becomes `lapsed` until you put it back. A verified domain outside Rokha's certificates then carries a third record, a certificate
-        CNAME, and `certificate: {status}` (`requested` · `validating` · `issued` · `failed`); add that record too, and the domain answers once the certificate is issued. `next` says what is
-        left. Over MCP: `page_domain_status {domain}`.
-      operationId: domainVerify
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [domain]
-              properties:
-                domain: { type: string, maxLength: 253 }
-      responses:
-        '200':
-          description: "`{ok, domain, checked?}`"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  domain: { $ref: '#/components/schemas/PageDomain' }
-                  checked: { type: string }
-        '400': { description: "`bad_domain` · `reserved_domain`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` — no domain of yours by that name", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-
-  /api/domains/{host}:
-    parameters:
-      - { name: host, in: path, required: true, schema: { type: string }, description: "The domain, like www.example.com" }
-    delete:
-      tags: [pages]
-      summary: "Remove one of your domains"
-      operationId: domainRemove
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200':
-          description: "`{ok, removed}`"
-          content:
-            application/json:
-              schema: { type: object, properties: { ok: { type: boolean }, removed: { type: string } } }
-        '400': { description: "`bad_domain` · `reserved_domain`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`owner_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_found` — no domain of yours by that name", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '503': { description: "`unreadable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-
-  /api/domains/resolve:
-    get:
-      tags: [pages]
-      summary: "Which page does this domain show? (public)"
-      description: >-
-        `{ok, mapped: false}`, or `{ok, mapped: true, host, page, white_label, ref}` for a verified domain whose owner has the Lab right now. `page` is the path it shows (`/@handle` or
-        `/@handle/<rig-slug>`), `ref` the page's handle, and `white_label` is true when Rokha's branding is removed from that domain. It says nothing about who owns the domain. A domain that shows a page is read-only: on it, sign-in, payment and account doors, and any
-        request carrying a credential, answer `403 use_rokha_ai`.
-      operationId: domainResolve
-      parameters:
-        - { name: host, in: query, required: true, schema: { type: string } }
-      responses:
-        '200':
-          description: "The mapping"
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                required: [ok, mapped]
-                properties:
-                  ok: { type: boolean }
-                  mapped: { type: boolean }
-                  host: { type: string }
-                  page: { type: string }
-                  white_label: { type: boolean, description: "true = Rokha's branding is removed on this domain" }
-                  helper: { type: boolean, description: "With white_label: true = the owner kept Rokha on the page as its helper" }
-                  ref: { type: string }
-
-  /api/domains/white-label:
-    get:
-      tags: [pages]
-      summary: "What removing Rokha's branding from one domain costs (public)"
-      description: >-
-        The price right now, with no account: `{ok, product_id, price_cents, price, list_cents, list, promo_cents?, promo_until?, per: "domain", removes, needs, buy, no_refunds}`.
-        `price_cents` is what is charged now; `promo_cents` and `promo_until` are present only while a lower price runs. One payment removes Rokha's branding from one domain:
-        buy with `POST /api/products/{product_id}/checkout {rail, domain}` (MCP `product_checkout {product_id, domain, rail}`). It needs the Lab on the domain's account and is kept if the
-        Lab lapses and returns. Sign-in and payment still happen on rokha.ai. All payments are final. Read the price here; it is the founder's to change.
-      operationId: domainWhiteLabelPrice
-      responses:
-        '200':
-          description: "The price"
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - { type: object, properties: { ok: { type: boolean } } }
-                  - { $ref: '#/components/schemas/WhiteLabelPrice' }
-        '404': { description: "`{ok: false}` — not sold right now" }
-
-  # ============================================================
   # The media library — keep images, video and audio; one stable link each
   # ============================================================
 
@@ -8223,13 +7968,16 @@ paths:
   /api/lab/x/settings:
     get:
       tags: [desk]
-      summary: "Rokha's X settings (House only)"
+      summary: "An X account's settings (per project)"
       description: >-
-        How House Rokha's own X account (@rokha_agent) answers: who gets DM answers, accepting DM requests, the mentions mode,
-        caps, the standing note fed into every X turn, the spam guard, how she treats other agents, and trusted ids. Rokha's own
-        account only, from a person's web session in the Lab; every other account is `403 house_only`. MCP `x_settings` (no fields).
+        How a project's X account answers: the mentions mode, caps, the standing note fed into every X turn, the spam guard,
+        how it treats other agents, and trusted ids. `project` names the project (an id or a name); left out, the House reads
+        @rokha_agent (where DM settings apply too) and anyone else reads their default project's account. A project with no
+        account answers `404 no_x_account`. From a person's web session in the Lab. MCP `x_settings {project?}`.
       operationId: labXSettings
       security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: project, in: query, required: false, schema: { type: string, maxLength: 80 }, description: "A project id or name" }
       responses:
         '200':
           description: "`{ok, controls, mentions, account, lanes, defaults}`"
@@ -8247,13 +7995,14 @@ paths:
                   defaults: { $ref: '#/components/schemas/XControls' }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     put:
       tags: [desk]
-      summary: "Change Rokha's X settings (House only)"
+      summary: "Change an X account's settings (per project)"
       description: >-
-        A patch: send only the fields to change; `guard` and `agents` merge key by key. A bad value refuses the whole patch
-        and writes nothing. Answers the same shape as GET. MCP `x_settings {…}`.
+        A patch: send only the fields to change, plus `project` to name the project's account; `guard` and `agents` merge key
+        by key. A bad value refuses the whole patch and writes nothing. Answers the same shape as GET. MCP `x_settings {…}`.
       operationId: labXSettingsUpdate
       security: [ { bearerAuth: [] } ]
       requestBody:
@@ -8270,19 +8019,21 @@ paths:
         '400': { description: "`bad_patch` · `unknown_field` · `bad_value` · `too_long` · `too_many`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/x/recent:
     get:
       tags: [desk]
-      summary: "Rokha's recent X decisions, timeouts and blocks (House only)"
+      summary: "An X account's recent decisions, timeouts and blocks (per project)"
       description: >-
-        DM turns, mentions and every guard call (silent, strike, timeout, block, agent caps), each with who, when, why, an
-        excerpt and the conversation id; plus current timeouts and blocks. MCP `x_recent`.
+        DM turns (House only), mentions and every guard call (silent, strike, timeout, block, agent caps), each with who,
+        when, why, an excerpt and the conversation id; plus current timeouts and blocks. MCP `x_recent {project?}`.
       operationId: labXRecent
       security: [ { bearerAuth: [] } ]
       parameters:
+        - { name: project, in: query, required: false, schema: { type: string, maxLength: 80 }, description: "A project id or name" }
         - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
       responses:
         '200':
@@ -8299,12 +8050,13 @@ paths:
                   blocks: { type: array, items: { type: object, additionalProperties: true } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/x/timeouts:
     post:
       tags: [desk]
-      summary: "Put an X sender in timeout (House only)"
+      summary: "Put an X sender in timeout (per project)"
       description: >-
         Body `{x_user_id | handle, minutes?, reason?}`. Rokha reads nothing from them until it lifts (default: the guard's
         timeout length). A handle resolves only when it is linked to a Rokha page. MCP `x_timeout`.
@@ -8321,6 +8073,7 @@ paths:
                 handle: { type: string, description: "An @handle linked to a Rokha page" }
                 minutes: { type: integer, minimum: 10, maximum: 10080 }
                 reason: { type: string, maxLength: 120 }
+                project: { type: string, maxLength: 80, description: "A project id or name" }
       responses:
         '200':
           description: "`{ok, x_user_id, minutes, reason}`"
@@ -8330,17 +8083,19 @@ paths:
         '400': { description: "`bad_handle` · the sender could not be named", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/x/timeouts/{x_user_id}:
     delete:
       tags: [desk]
-      summary: "Lift an X sender's timeout (House only)"
+      summary: "Lift an X sender's timeout (per project)"
       description: "The path takes a numeric X user id or a linked handle. Answers `{ok, x_user_id, cleared}`. MCP `x_timeout_clear`."
       operationId: labXTimeoutClear
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: x_user_id, in: path, required: true, schema: { type: string } }
+        - { name: project, in: query, required: false, schema: { type: string, maxLength: 80 }, description: "A project id or name" }
       responses:
         '200':
           description: "`{ok, x_user_id, cleared}`"
@@ -8349,12 +8104,13 @@ paths:
               schema: { type: object, additionalProperties: true }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/x/blocks:
     post:
       tags: [desk]
-      summary: "Block an X user on every Rokha X lane (House only)"
+      summary: "Block an X user on every Rokha X lane (per project)"
       description: >-
         Body `{x_user_id?, handle?, reason?}`. DMs and mentions from them get no reply. MCP `x_block`.
       operationId: labXBlock
@@ -8369,6 +8125,7 @@ paths:
                 x_user_id: { type: string, pattern: '^[0-9]{1,25}$' }
                 handle: { type: string, maxLength: 32 }
                 reason: { type: string, maxLength: 160 }
+                project: { type: string, maxLength: 80, description: "A project id or name" }
       responses:
         '200':
           description: "`{ok, x_user_id, handle, blocked, reason}`"
@@ -8378,18 +8135,20 @@ paths:
         '400': { description: "`bad_handle`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/x/blocks/{x_user_id}:
     delete:
       tags: [desk]
-      summary: "Unblock an X user (House only)"
+      summary: "Unblock an X user (per project)"
       description: "The path takes a numeric X user id or a handle. Answers `{ok, x_user_id, handle, unblocked}`. MCP `x_unblock`."
       operationId: labXUnblock
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: x_user_id, in: path, required: true, schema: { type: string } }
+        - { name: project, in: query, required: false, schema: { type: string, maxLength: 80 }, description: "A project id or name" }
       responses:
         '200':
           description: "`{ok, x_user_id, handle, unblocked}`"
@@ -8398,17 +8157,18 @@ paths:
               schema: { type: object, additionalProperties: true }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/lab/x/act:
     post:
       tags: [desk]
-      summary: "Act on one X DM or post (House only)"
+      summary: "Act on one X DM or post (per project)"
       description: >-
         Either `handle` + `instruction`: name an X account and give context; Rokha finds that account's DM with her,
         reads it and sends the next message with that context, whatever its age (`queued: true`; nothing is sent when
         they never messaged her). Or `target`: a DM conversation id (from `/api/lab/x/recent`) or a post URL or id.
-        `text` sends now: into a DM she already holds, or as an @rokha_agent reply under the post. `instruction` files
+        `text` sends now: into a DM she already holds, or as a reply under the post from the project's account. `instruction` files
         a card on Rokha's board for the Support seat to work. Both: the text is sent and the instruction filed. MCP
         `x_act`.
       operationId: labXAct
@@ -8424,6 +8184,7 @@ paths:
                 target: { type: string, maxLength: 300 }
                 text: { type: string, maxLength: 600 }
                 instruction: { type: string, maxLength: 1000 }
+                project: { type: string, maxLength: 80, description: "A project id or name. On a project's own account `target` + `text` replies under a post as that account and `instruction` files a Support card; DMs and `handle` answer `dms_house_only`" }
       responses:
         '200':
           description: "`{ok, target, sent?, card?}` · with `handle`: `{ok, target, handle, x_user_id, queued, note}`"
@@ -8440,9 +8201,377 @@ paths:
         '400': { description: "`bad_target` · `bad_handle` · `not_found` · `nothing_to_do`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '402': { description: "`studio_required` — the Lab is needed; the body names the doors", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '403': { description: "`house_only` — Rokha's own account only · `person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '404': { description: "`not_held` — no DM Rokha already exchanged in", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_held` — no DM Rokha already exchanged in · `no_x_account` — that project has no X account", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '502': { description: "`send_failed` — X refused the send", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/app:
+    get:
+      tags: [desk]
+      summary: "Your X developer app (MCP x_accounts reads it too)"
+      description: >-
+        One X developer app of yours carries every X account you connect: save its API Key and Secret once, then each
+        account signs in to it. This answers whether it is saved, the callback URL to list in the app's User
+        authentication settings, and the setup steps. Never key material. A person's web session in the Lab, with the Lab
+        or the 1M hold.
+      operationId: labXAppGet
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: "`{ok, saved, callback_url, setup}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  saved: { type: boolean }
+                  callback_url: { type: string, format: uri, example: "https://rokha.ai/api/lab/x/accounts/callback" }
+                  setup: { type: array, items: { type: string } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [desk]
+      summary: "Save your X developer app's API Key and Secret"
+      description: >-
+        Body `{api_key, api_secret}` (developer.x.com → the app → Keys and tokens). Saved to your vault, then checked by
+        asking X for a sign-in token with the callback: `verified` true means accounts can sign in now. Otherwise `check`
+        says why (`callback_not_listed` · `app_refused` · `rate_limited` · `network` · `x_refused`) and `message` what to fix.
+      operationId: labXAppSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [api_key, api_secret]
+              properties:
+                api_key: { type: string }
+                api_secret: { type: string }
+      responses:
+        '200':
+          description: "`{ok, saved: true, verified, check?, message?, callback_url, setup}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  saved: { type: boolean }
+                  verified: { type: boolean }
+                  check: { type: [string, 'null'], enum: [callback_not_listed, app_refused, rate_limited, network, x_refused, null] }
+                  message: { type: [string, 'null'] }
+                  callback_url: { type: string, format: uri }
+                  setup: { type: array, items: { type: string } }
+        '400': { description: "`bad_keys` — the API Key and Secret are needed", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [desk]
+      summary: "Remove your X developer app's keys"
+      description: "Accounts signed in to this app stop posting until the app is saved again. Answers `{ok, saved: false, note}`."
+      operationId: labXAppDelete
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: "`{ok, saved: false, note}`" }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/accounts:
+    get:
+      tags: [desk]
+      summary: "Your X accounts, one per project (MCP x_accounts)"
+      description: >-
+        Every X account you connected, each with its project, the agent bound to it, whether its keys still work and its
+        content channel; plus whether your X app is saved and its callback URL. `check` (default true) asks X whether each
+        account's keys work, at most every 10 minutes. Your House's default project stays @rokha_agent and takes no account
+        (`house_default`). Turning on X's Automated label on each account is yours to do (`automated_label`).
+      operationId: labXAccounts
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: project, in: query, required: false, schema: { type: string, maxLength: 80 }, description: "Only this project's account (an id or a name)" }
+        - { name: check, in: query, required: false, schema: { type: boolean, default: true } }
+      responses:
+        '200':
+          description: The accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  accounts: { type: array, items: { $ref: '#/components/schemas/XAccount' } }
+                  app: { type: object, properties: { saved: { type: boolean }, callback_url: { type: string } } }
+                  callback_url: { type: string, format: uri }
+                  automated_label: { type: string }
+                  house_default: { type: boolean }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no project of yours by that name", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/accounts/connect:
+    post:
+      tags: [desk]
+      summary: "Connect an X account to a project (MCP x_account_connect)"
+      description: >-
+        On your own X app (save it first: `PUT /api/lab/x/app`). Answers `authorize_url`: the person opens it, signs in to
+        X as that account and approves; X returns to `GET /api/lab/x/accounts/callback` and everything in that project then
+        speaks as that account. It expires in 15 minutes. Or `from: agent_keys` binds one of your agents that already holds
+        its four pasted X keys, at once. One account per project; one X account belongs to one Rokha account (up to 20).
+      operationId: labXAccountConnect
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project: { type: string, maxLength: 80, description: "A project id or name; left out = your default project" }
+                agent: { type: string, maxLength: 64, description: "One of your agents: it answers this account's mentions (with its X on)" }
+                from: { type: string, enum: [oauth, agent_keys], default: oauth }
+      responses:
+        '200':
+          description: "`{ok, authorize_url, callback_url, project, project_name, agent, expires_in_minutes, note}` · with `agent_keys`: `{ok, account, connected}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  authorize_url: { type: string, format: uri }
+                  callback_url: { type: string, format: uri }
+                  project: { type: [string, 'null'] }
+                  project_name: { type: string }
+                  agent: { type: [string, 'null'] }
+                  expires_in_minutes: { type: integer, const: 15 }
+                  note: { type: string }
+                  account: { $ref: '#/components/schemas/XAccount' }
+                  connected: { type: boolean }
+        '400': { description: "`no_app` — save your X app first · `callback_not_listed` · `app_refused` · `bad_body`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` · `house_default` — the House's default project stays @rokha_agent · `house_account` — the House's own X cannot be connected", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no project or agent of yours by that name", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`project_has_account` · `x_account_taken` — another Rokha account holds it · `accounts_full` (20) · `too_many_pending` (5 open sign-ins)", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/accounts/callback:
+    get:
+      tags: [desk]
+      summary: "Where X returns after an account signs in"
+      description: >-
+        X's redirect, with `oauth_token` + `oauth_verifier`, or `denied`. No session is read: the sign-in it completes is
+        one-shot and expires after 15 minutes. Answers 303 to `/lab?x_account=connected&handle=<handle>`, or
+        `/lab?x_account=<code>` (`denied` · `bad_callback` · `unknown_sign_in` · `expired` · `x_account_taken` · …).
+        List this URL as the Callback URI in your X app.
+      operationId: labXAccountCallback
+      parameters:
+        - { name: oauth_token, in: query, required: false, schema: { type: string } }
+        - { name: oauth_verifier, in: query, required: false, schema: { type: string } }
+        - { name: denied, in: query, required: false, schema: { type: string } }
+      responses:
+        '303': { description: "Back to the Lab, with the outcome in the query" }
+
+  /api/lab/x/accounts/{id}/move:
+    post:
+      tags: [desk]
+      summary: "Move an X account to another project, or bind it to an agent (MCP x_account_move)"
+      description: "Body `{project?, agent?}`: its content channel moves with it; `agent: null` unbinds. Answers `{ok, account}`."
+      operationId: labXAccountMove
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: "The account's id or @handle" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project: { type: string, maxLength: 80 }
+                agent: { type: [string, 'null'], maxLength: 64 }
+      responses:
+        '200':
+          description: "`{ok, account}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  account: { $ref: '#/components/schemas/XAccount' }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` · `house_default`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: "`project_has_account` — that project already has one", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x/accounts/{id}:
+    delete:
+      tags: [desk]
+      summary: "Disconnect an X account (MCP x_account_disconnect)"
+      description: "Its tokens are deleted from your vault and its content channel removed. Answers `{ok, removed, handle}`."
+      operationId: labXAccountDisconnect
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: "The account's id or @handle" }
+      responses:
+        '200': { description: "`{ok, removed, handle}`" }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x-ads:
+    get:
+      tags: [desk]
+      summary: "X ads: the connected ads account, the cap and the ads Rokha made (MCP x_ads_status)"
+      description: >-
+        Rokha, a Crew seat or an outside agent in a seat can promote a post Rokha already made for you, on your own X grant
+        with ads permission ("Connect X ads"). Nothing spends past the cap you set (default 0: nothing spends). Every ad is
+        made paused. Answers your settings, what is set aside and left, the last 20 ads, whether X is connected (`x`), the
+        ads accounts to pick from until one is set, funding and 7 days of results. The project is the `x-rokha-project`
+        header, else your default project. A person's web session in the Lab.
+      operationId: labXAdsStatus
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: The X ads state
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  settings: { $ref: '#/components/schemas/XAdsSettings' }
+                  reserved_usd: { type: number }
+                  left_usd: { type: number }
+                  campaigns: { type: array, items: { $ref: '#/components/schemas/XAdsCampaign' } }
+                  x: { type: object, properties: { connected: { type: boolean }, error: { type: string }, message: { type: string } } }
+                  accounts: { type: array, items: { type: object, properties: { id: { type: string }, name: { type: string }, currency: { type: string } } } }
+                  funding: { type: array, items: { type: object, additionalProperties: true } }
+                  stats_7d: {}
+                  next: { type: string }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only` — a web session in the Lab, never a key", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x-ads/settings:
+    put:
+      tags: [desk]
+      summary: "X ads settings: the ads account, the cap, who may switch an ad on (MCP x_ads_settings)"
+      description: >-
+        The person's own click only. Pick the ads account (`GET /api/lab/x-ads` lists them) and optionally a funding
+        instrument, set the total spend cap in dollars (0 stops new ads), and choose whether the Crew (`auto_activate`) and
+        outside agents in seats (`outside_may_activate`, needs `auto_activate`) may switch ads on.
+      operationId: labXAdsSettings
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                account_id: { type: string, maxLength: 32 }
+                funding_instrument_id: { type: string, maxLength: 32 }
+                cap_usd: { type: number, minimum: 0, maximum: 10000 }
+                auto_activate: { type: boolean }
+                outside_may_activate: { type: boolean }
+      responses:
+        '200':
+          description: "`{ok, settings}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  settings: { $ref: '#/components/schemas/XAdsSettings' }
+        '400': { description: "`bad_patch` or a field the message names", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`store_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x-ads/campaigns:
+    post:
+      tags: [desk]
+      summary: "Promote one of Rokha's posts (MCP x_ads_campaign)"
+      description: >-
+        Promote a post Rokha already made for you (`post_id`, or the posted content `card`); any other post is refused.
+        The whole `total_usd` is set aside under your cap before X is called; the campaign, line item, targeting and
+        promoted post are made on X paused. `activate: true` switches it on only where the hand may (the person; Rokha and
+        the seats with `auto_activate`); otherwise a Needs you card asks the person.
+      operationId: labXAdsCampaign
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [daily_usd, total_usd]
+              properties:
+                post_id: { type: string, maxLength: 32, description: "The X post id (digits)" }
+                card: { type: string, description: "A posted content card's id, instead of post_id" }
+                objective: { type: string, enum: [ENGAGEMENTS, WEBSITE_CLICKS, REACH, VIDEO_VIEWS, FOLLOWERS], default: ENGAGEMENTS }
+                daily_usd: { type: number, exclusiveMinimum: 0 }
+                total_usd: { type: number, exclusiveMinimum: 0 }
+                days: { type: integer, minimum: 1, maximum: 30, default: 7 }
+                languages: { type: array, maxItems: 5, items: { type: string, minLength: 2, maxLength: 2 } }
+                keywords: { type: array, maxItems: 10, items: { type: string, maxLength: 40 } }
+                name: { type: string, maxLength: 80 }
+                activate: { type: boolean, default: false }
+                project: { type: string }
+      responses:
+        '200':
+          description: "`{ok, id, campaign_id, line_item_id, post_id, objective, daily_usd, total_usd, days, status, waiting_on_person?, card?}`"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  ok: { type: boolean }
+                  id: { type: string, format: uuid }
+                  campaign_id: { type: string }
+                  line_item_id: { type: string }
+                  post_id: { type: string }
+                  status: { type: string, enum: [paused, active] }
+                  waiting_on_person: { type: boolean }
+                  card: { type: [string, 'null'] }
+        '400': { description: "a field the message names · over the cap · not one of Rokha's posts", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`person_only`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '502': { description: "`x_ads_failed` · `x_ads_busy` · `net` — the reservation is cancelled", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/lab/x-ads/campaigns/{id}/status:
+    post:
+      tags: [desk]
+      summary: "Switch an ad on or pause it (MCP x_ads_set)"
+      description: "Body `{status: active | paused}`. Pausing is always allowed; switching on follows the same rule as `activate`."
+      operationId: labXAdsSet
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid }, description: "The id `GET /api/lab/x-ads` lists" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [active, paused] }
+      responses:
+        '200': { description: "`{ok, id, status}`" }
+        '403': { description: "`person_only` · `person_switches_on` — only the person may switch it on", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '502': { description: "`x_ads_failed`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
   /api/agents/{handle}/animations:
     get:
@@ -8532,390 +8661,6 @@ paths:
         '200': { description: "`{ok: true}`" }
         '401': { description: "`sign_in`" }
         '404': { description: "`not_found`" }
-
-  # ============================================================
-  # Pages — pages bought before the pay-once page was retired, and sub-page credits ($9)
-  # ============================================================
-
-  /api/flat-pages/info:
-    get:
-      tags: [pages]
-      summary: "A bought page — what it includes, the limits and the doors (public)"
-      description: >-
-        The pay-once page is no longer sold: `POST /api/flat-pages/checkout` answers 410. Pages
-        already bought stay up, with their editor, their order status and their chat extensions.
-        This read describes such a page: a page at rokha.ai/@handle with an agent on it (Rokha, or
-        any public unpriced agent its owner allows), 30 days of chat with its agent from the day
-        it went live, and 30 more for the same price again. All payments are final. No refunds.
-      operationId: flatPageInfo
-      responses:
-        '200':
-          description: The offer
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  product: { type: string, const: flat_page }
-                  price_cents: { type: integer, example: 9900 }
-                  price_usd: { type: string, example: "99.00" }
-                  one_time: { type: boolean }
-                  includes: { type: string }
-                  house_chat_days: { type: integer, example: 30 }
-                  login: { type: string, const: free }
-                  subscription_needed: { type: boolean, const: false }
-                  rails: { type: array, items: { type: string, enum: [card, usdc, sol, rokha] } }
-                  no_refunds: { type: boolean }
-                  no_refunds_note: { type: string }
-                  limits: { type: object, properties: { chats_per_day: { type: integer }, chats_per_visitor_per_day: { type: integer }, max_input_chars: { type: integer }, max_output_tokens: { type: integer }, agent_reads_chars: { type: integer } } }
-                  doors: { type: object, additionalProperties: { type: string } }
-  /api/flat-pages/agents:
-    get:
-      tags: [pages]
-      summary: "The agents a page may put on itself (public)"
-      description: "Live, public agents that are unpriced, or whose owner allowed them on pages (`PUT /api/flat-pages/agents/{handle}/allow`)."
-      operationId: flatPageAgents
-      responses:
-        '200': { description: "`{ok, agents: [{handle, name, tagline}]}`" }
-  /api/flat-pages/checkout:
-    post:
-      tags: [pages]
-      summary: "Retired: buy a pay-once page (answers 410)"
-      deprecated: true
-      description: >-
-        Retired. This door no longer opens orders and answers `410 retired`. Pages are built in
-        the Lab and hosted with it. A page already bought keeps its editor
-        (`GET /api/flat-pages/editor`), its order status and its extensions.
-      operationId: flatPageCheckout
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [rail]
-              properties:
-                rail: { type: string, enum: [card, usdc, sol, rokha] }
-                payer_wallet: { type: string, description: "usdc / sol / rokha — the Solana wallet the payment is sent FROM" }
-                email: { type: string, format: email, description: "Only when the account has no email on file" }
-      responses:
-        '200': { description: "The order: `reference`, `kind: page`, `price_cents`, `no_refunds: true`, and the rail's payment details (`checkout_url`, or the exact amount, `pay_to` and `expires_at`)" }
-        '400': { description: "`bad_rail` · `bad_payer` · `bad_email`" }
-        '401': { description: Sign in }
-        '410': { description: "`retired` — this offer is no longer sold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
-        '429': { description: "`too_many_orders` — 12 open checkouts an hour" }
-  /api/flat-pages/order:
-    get:
-      tags: [pages]
-      summary: "Poll your own order (JWT)"
-      operationId: flatPageOrder
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: reference, in: query, required: true, schema: { type: string } }
-      responses:
-        '200': { description: "`{ok, status: awaiting_payment | paid | expired, rail, expires_at, page_id}` — `page_id` once settled" }
-        '404': { description: "`no_order` — no order of yours by that reference" }
-  /api/flat-pages/mine:
-    get:
-      tags: [pages]
-      summary: "Your pages of their own (JWT)"
-      operationId: flatPagesMine
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: "`{ok, has_email, pages: [{id, handle, status: draft | live}]}`" }
-  /api/flat-pages/editor:
-    get:
-      tags: [pages]
-      summary: "Read one of your pages for editing (JWT)"
-      description: "`?page=<id>` names one of yours; without it, the newest. A foreign id and a missing id both answer 404 `no_page`."
-      operationId: flatPageEditorRead
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      responses:
-        '200':
-          description: The page
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                properties:
-                  page_id: { type: string, format: uuid }
-                  status: { type: string, enum: [draft, live] }
-                  handle: { type: [string, 'null'] }
-                  draft: { $ref: '#/components/schemas/FlatPageDraft' }
-                  review: { type: object, properties: { state: {}, note: {} } }
-                  hidden: { type: boolean, description: "Hidden by a moderator" }
-                  own_key: { type: boolean, description: "The owner's own Anthropic key is on file — it lifts the chat clock and caps" }
-                  media: { type: array, items: { type: object, properties: { id: { type: string, format: uuid }, content_type: { type: string }, bytes: { type: integer } } } }
-                  docs: { type: array, items: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string }, chars: { type: integer } } } }
-                  chats_today: { type: integer }
-                  chats_cap: { type: integer }
-                  cap_hit: { type: boolean }
-                  house_chat_until: { type: [string, 'null'], format: date-time }
-                  clock: { type: string, enum: [not_started, running, ends_within_7_days, ended] }
-                  extend_price_cents: { type: integer }
-                  agent_reads_chars: { type: integer }
-        '404': { description: "`no_page`" }
-    put:
-      tags: [pages]
-      summary: "Save the draft (JWT)"
-      description: >-
-        The whole draft, validated: `display_name` (≤ 80, the reserved-name rules), `handle`
-        (3–32 of a-z 0-9 - _, reserved names refused, fixed once the page has been published),
-        `tagline`, up to 12 sections of title + body, https links only, `logo` and `images` from
-        this page's own uploads, `agent` `{kind: rokha}` or `{kind: agent, handle}` (a live,
-        public, unpriced agent), `about_coin`. Text only — no HTML anywhere.
-      operationId: flatPageEditorSave
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/FlatPageDraft' }
-      responses:
-        '200': { description: "Saved" }
-        '400': { description: "`bad_content` (the message names the field) · `bad_handle`" }
-        '404': { description: "`no_page`" }
-        '409': { description: "`handle_taken` · `handle_locked`" }
-        '429': { description: "Too many writes this hour" }
-  /api/flat-pages/editor/publish:
-    post:
-      tags: [pages]
-      summary: "Publish the draft (JWT)"
-      description: >-
-        Needs a name, a handle and some words. A page about a coin, or with crypto words in it,
-        goes to a person's review first (`state: pending`); otherwise it goes live at
-        `/@handle` and its 30 days of chat start. A moderator's hide is never cleared by a
-        publish.
-      operationId: flatPagePublish
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      responses:
-        '200': { description: "`{ok, state: live, url}` · `{ok, state: pending}`" }
-        '400': { description: "`incomplete`" }
-        '403': { description: "`hidden` — hidden by a moderator; email admin@rokha.ai" }
-        '404': { description: "`no_page`" }
-  /api/flat-pages/editor/extend:
-    post:
-      tags: [pages]
-      summary: "30 more days of chat, the same price, one time (JWT)"
-      description: "The page must be live (409 `not_live` before). The days are added when the payment settles, to the later of now or the current end."
-      operationId: flatPageExtend
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [rail]
-              properties:
-                rail: { type: string, enum: [card, usdc, sol, rokha] }
-                payer_wallet: { type: string }
-      responses:
-        '200': { description: "The order (`kind: extend`), as on the checkout" }
-        '409': { description: "`not_live` — publish the page first" }
-  /api/flat-pages/editor/media:
-    post:
-      tags: [pages]
-      summary: "Upload an image to one of your pages (JWT; the raw bytes as the body)"
-      description: "PNG, JPEG, WebP or GIF, sniffed from the bytes (never SVG or HTML), at most 1.5 MB, 12 per page. `?page=<id>`."
-      operationId: flatPageMediaUpload
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      requestBody:
-        required: true
-        content:
-          image/*: { schema: { type: string, format: binary } }
-      responses:
-        '200': { description: "`{ok, id, content_type}`" }
-        '409': { description: "`too_many` — 12 images at most" }
-        '413': { description: "`too_big`" }
-        '415': { description: "`bad_image`" }
-  /api/flat-pages/editor/media/{id}:
-    get:
-      tags: [pages]
-      summary: "Your own preview of an upload (JWT)"
-      operationId: flatPageMediaPreview
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      responses:
-        '200': { description: The image }
-        '404': { description: Not this page's upload }
-    delete:
-      tags: [pages]
-      summary: "Remove an upload (JWT)"
-      operationId: flatPageMediaDelete
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      responses:
-        '200': { description: "`{ok: true}`" }
-        '404': { description: Not this page's upload }
-  /api/flat-pages/media/{id}:
-    get:
-      tags: [pages]
-      summary: "A published page's image (public)"
-      description: "Served with the sniffed type, `nosniff` and a sandboxing CSP."
-      operationId: flatPageMediaPublic
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-      responses:
-        '200': { description: The image }
-        '404': { description: Not found }
-  /api/flat-pages/editor/docs:
-    post:
-      tags: [pages]
-      summary: "Upload a text document the page's agent may read (JWT; the raw bytes as the body)"
-      description: "`.txt` or `.md` only (no PDF), UTF-8, at most 64 KB, 5 per page. `?page=<id>&name=<file name>`. The agent reads it as data, never as instructions."
-      operationId: flatPageDocUpload
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-        - { name: name, in: query, required: true, schema: { type: string } }
-      requestBody:
-        required: true
-        content:
-          text/plain: { schema: { type: string } }
-          text/markdown: { schema: { type: string } }
-      responses:
-        '200': { description: "`{ok, id, name, chars}`" }
-        '409': { description: "`too_many` — 5 documents at most" }
-        '415': { description: "`bad_doc` — the message says why" }
-  /api/flat-pages/editor/docs/{id}:
-    delete:
-      tags: [pages]
-      summary: "Remove a document (JWT)"
-      operationId: flatPageDocDelete
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
-        - { name: page, in: query, required: false, schema: { type: string, format: uuid } }
-      responses:
-        '200': { description: "`{ok: true}`" }
-        '404': { description: Not this page's document }
-  /api/flat-pages/agents/{handle}/allow:
-    put:
-      tags: [pages]
-      summary: "Let your PRICED agent sit on pages of their own (its owner, JWT)"
-      description: "An unpriced public agent is always selectable; a priced one only when its owner allows it here. `{allow: true | false}`."
-      operationId: flatPageAgentAllow
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: handle, in: path, required: true, schema: { type: string } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object, required: [allow], properties: { allow: { type: boolean } } }
-      responses:
-        '200': { description: "`{ok: true}`" }
-        '404': { description: Not your agent }
-  /api/flat-pages/chat/{handle}:
-    post:
-      tags: [pages]
-      summary: "Ask a page's agent (public — a person in a browser)"
-      description: >-
-        The agent answers from the page's own text and documents, with no tools; the page's
-        content and your message reach the model as data. Limits: 800 characters in, a short
-        answer out, the last 4 turns of `history`; 50 a visitor a day, 1,000 a page a day, and
-        the page's chat clock (30 days from going live, extended by the owner, or lifted by the
-        owner's own key). Crawlers are refused. Never paste a private key or a seed phrase: the
-        agent refuses to read one.
-      operationId: flatPageChat
-      parameters:
-        - { name: handle, in: path, required: true, schema: { type: string } }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [message]
-              properties:
-                message: { type: string, maxLength: 800 }
-                history: { type: array, maxItems: 4, items: { type: object, properties: { role: { type: string, enum: [user, assistant] }, text: { type: string } } } }
-      responses:
-        '200': { description: "`{ok, reply, payer: house | owner}`" }
-        '400': { description: "`empty` · `too_long`" }
-        '403': { description: "`browser_only` — a crawler" }
-        '404': { description: "`no_page` — no live page by that handle" }
-        '429': { description: "`visitor_cap` · `page_cap` · `lane_cap`" }
-        '402': { description: "`chat_ended` — the page's 30 days are over; its owner can extend them or add their own key" }
-        '503': { description: "`unreadable`" }
-  /api/page-credits/me:
-    get:
-      tags: [pages]
-      summary: "Your sub-page credits (JWT)"
-      description: >-
-        With the Lab (the month) your account page plus one rig page and
-        one agent page are included; each further sub-page takes one credit, $9 one time
-        (`price_cents` is the live number), by card, USDC or SOL. A free account has no
-        sub-pages. A page that existed before credits holds no slot and is never asked.
-        Unlinking a page frees its slot and credit for reuse; it refunds nothing. `domains` says what the Lab
-        includes for a domain of your own and what removing Rokha's branding from one costs right now.
-      operationId: pageCreditsMe
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200':
-          description: Your credits
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  price_cents: { type: integer, example: 900 }
-                  exempt: { type: boolean, description: "The founder and the House" }
-                  lab: { type: boolean }
-                  credits_total: { type: integer }
-                  credits_free: { type: integer }
-                  included_rig_used: { type: boolean }
-                  domains:
-                    type: object
-                    properties:
-                      included_with_lab: { type: boolean }
-                      per_account: { type: integer, example: 5 }
-                      white_label:
-                        oneOf:
-                          - { $ref: '#/components/schemas/WhiteLabelPrice' }
-                          - { type: 'null' }
-                  no_refunds_note: { type: string }
-        '503': { description: Unreadable }
-  /api/page-credits/checkout:
-    post:
-      tags: [pages]
-      summary: "Buy one sub-page credit (JWT, a Lab account)"
-      description: "Opens an order on your account (`kind: credit`): `card` answers a Stripe `checkout_url`; `usdc`, `sol` or `rokha` with `payer_wallet` answer exact pay instructions. The credit is written to your account when the payment settles, never before. All payments are final."
-      operationId: pageCreditCheckout
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [rail]
-              properties:
-                rail: { type: string, enum: [card, usdc, sol, rokha] }
-                payer_wallet: { type: string }
-      responses:
-        '200': { description: The order }
-        '400': { description: "`bad_rail` · `bad_payer`" }
-        '402': { description: "`subpage_lab` — page credits are for Lab accounts" }
-        '429': { description: "`too_many_orders`" }
 
   # ============================================================
   # Schedules — run a saved rig, or wake one of your agents, on a cadence
@@ -9298,6 +9043,11 @@ components:
         glyph: { type: string }
         avatar_url: { type: string }
         accent: { type: string }
+        behavior:
+          type: object
+          additionalProperties: true
+          properties:
+            banner_url: { type: [string, 'null'], description: "The agent page's banner: an https image, at most 500 characters (left out of an update, the stored one stays). Every agent answer carries it as `banner_url`" }
         model: { type: string, description: "A model the owner can pay for; a locked non-house model is capped to the house default on the agent's own allowance" }
         toolkit: { type: array, items: { type: string } }
         rigs: { type: array, items: { type: string } }
@@ -9740,55 +9490,100 @@ components:
           properties:
             mentions: { type: string, enum: [commands, all, off], description: "Tags: slash commands only, all, or off" }
 
-    PageDomain:
+    PageStyle:
       type: object
-      additionalProperties: true
-      description: "One domain on your account, with the DNS records to add"
+      description: "The standard page's style. Each field is absent (or null) when unset."
       properties:
-        domain: { type: string, example: "www.example.com" }
-        page: { type: string, example: "/@handle" }
-        status: { type: string, enum: [pending, verified, lapsed] }
-        live: { type: boolean, description: "true once verified" }
-        white_label: { type: boolean, description: "true once Rokha's branding is removed from this domain (a one-time purchase per domain)" }
-        helper: { type: boolean, description: "Only matters once white_label is true: true keeps Rokha on the page as its helper; false (the default) takes it off. Set it with `helper` on PUT /api/domains or `page_domain_set`." }
-        tls: { type: string, description: "`covered` when its certificate is in place, `pending` while it is being set up" }
-        records:
-          type: array
-          maxItems: 3
-          description: "The TXT that proves the domain and the CNAME that points it; a verified domain that needs a certificate of its own adds a third, the certificate CNAME"
-          items:
-            type: object
-            properties:
-              type: { type: string, enum: [TXT, CNAME] }
-              name: { type: string }
-              value: { type: string }
-              why: { type: string }
-        certificate:
-          type: object
-          description: "Only on a verified domain that needs a certificate of its own"
-          properties:
-            status: { type: string, enum: [requested, validating, issued, failed] }
-            detail: { type: string, description: "Why it failed, when it did" }
-        next: { type: string, description: "The next step, in words" }
+        accent: { type: [string, 'null'], pattern: '^#[0-9a-f]{6}$', example: "#22d3ee" }
+        banner_url: { type: [string, 'null'], maxLength: 500, description: "An https image link" }
+        tagline: { type: [string, 'null'], maxLength: 140 }
 
-    WhiteLabelPrice:
+    PageStylePatch:
+      type: object
+      required: [asset]
+      description: "Pass at least one of accent, banner_url, tagline. null or \"\" clears a field."
+      properties:
+        asset: { type: string, description: "\"page\" (your page) or \"agent:<handle>\" (one of your agents)", example: "page" }
+        accent: { type: [string, 'null'], pattern: '^#[0-9a-fA-F]{6}$' }
+        banner_url: { type: [string, 'null'], maxLength: 500, description: "https only; no quotes, spaces or angle brackets" }
+        tagline: { type: [string, 'null'], maxLength: 140, description: "One line of plain text" }
+
+    PagesInfo:
       type: object
       additionalProperties: true
-      description: "What removing Rokha's branding from one domain costs right now. Read it; never assume a number."
+      description: "`/api/info` `pages`: everything you make has one standard page, included. The kinds, their addresses, the tools and doors that make, read and style each."
       properties:
-        product_id: { type: string, format: uuid, description: "Buy with POST /api/products/{product_id}/checkout {rail, domain} (MCP product_checkout)" }
-        price_cents: { type: integer, description: "What is charged now" }
-        price: { type: string }
-        list_cents: { type: integer, description: "The list price" }
-        list: { type: string }
-        promo_cents: { type: integer, description: "Present only while a lower price runs; equal to price_cents" }
-        promo_until: { type: string, format: date-time, description: "Present only while a lower price runs: when it ends" }
-        per: { type: string, enum: [domain] }
-        removes: { type: string }
-        needs: { type: string }
-        buy: { type: string }
-        no_refunds: { type: boolean }
-        paid_unused: { type: integer, description: "Only on your own reads: payments you made that are not yet used on a domain. A checkout uses one first, with no charge." }
+        what: { type: string }
+        kinds:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+            properties:
+              url: { type: string }
+              shows: { type: string }
+              make: { type: string }
+              update: { type: string }
+              read: { type: string }
+              rest: { type: array, items: { type: string } }
+              needs: { type: string }
+        included: { type: string }
+        style:
+          type: object
+          properties:
+            tool: { type: string, const: page_style_set }
+            fields: { type: array, items: { type: string } }
+            tagline_max: { type: integer }
+            banner: { type: string }
+            assets: { type: string }
+        free: { type: object, additionalProperties: { type: integer } }
+        lab: { type: object, additionalProperties: true }
+        doors: { type: object, additionalProperties: { type: string } }
+        embed: { type: string }
+        tools: { type: array, items: { type: string } }
+        toolsets: { type: string }
+        more: { type: string }
+
+    XAccount:
+      type: object
+      description: "One X account connected to a Lab project. Tokens are never returned."
+      properties:
+        id: { type: string, format: uuid }
+        handle: { type: string }
+        x_user_id: { type: string }
+        url: { type: string, format: uri }
+        project: { type: [string, 'null'], description: "The project id; null = your default project" }
+        project_name: { type: string }
+        agent: { type: [string, 'null'], description: "The agent bound to it (that agent answers its mentions, with its X on)" }
+        source: { type: string, enum: [oauth, agent_keys] }
+        status: { type: string, enum: [active, auth_failed] }
+        checked_at: { type: [string, 'null'], format: date-time }
+        connected_at: { type: string, format: date-time }
+        channel: { type: string, description: "Its content channel (`x-<handle>`)" }
+        dms: { type: boolean, description: "Always false: DMs are not read on your own accounts" }
+        mentions: { type: boolean }
+        reminder: { type: string, description: "Turn on X's Automated label on the account" }
+
+    XAdsCampaign:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        campaign_id: { type: [string, 'null'] }
+        post_id: { type: string }
+        objective: { type: string, enum: [ENGAGEMENTS, WEBSITE_CLICKS, REACH, VIDEO_VIEWS, FOLLOWERS] }
+        daily_usd: { type: number }
+        total_usd: { type: number }
+        status: { type: string, description: "paused · active · cancelled …" }
+        created_at: { type: string, format: date-time }
+
+    XAdsSettings:
+      type: object
+      properties:
+        account_id: { type: [string, 'null'] }
+        funding_instrument_id: { type: [string, 'null'] }
+        cap_usd: { type: number, description: "The total spend cap; 0 = nothing spends" }
+        auto_activate: { type: boolean, description: "Rokha and the Crew may switch an ad on" }
+        outside_may_activate: { type: boolean, description: "Outside agents in seats may too (needs auto_activate)" }
 
     MediaItem:
       type: object
@@ -9867,14 +9662,11 @@ components:
         name: { type: string }
       required: [error]
 
-    # --- The rokha_app output contract (how a run presents itself as an APP) ---
-    # A run whose final result carries a top-level `rokha_app` object renders
-    # as a native dashboard on every Rokha app surface (the APP rail, the
-    # profile run panel, the rig product page). Additionally, a run may save
-    # ONE self-contained HTML file to ./rokha-app.html in its working
-    # directory (zero network, `</` escaped in embedded JSON, ~500 KB cap —
-    # oversized is dropped, not truncated); it rides the trace result as
-    # `app_html` and renders as the run's live app in a hard-sandboxed frame.
+    # --- The rokha_app output block ---
+    # A run whose final result carries a top-level `rokha_app` object is read
+    # as data by the standard run view: its title, verdict, score, metrics and
+    # sections. No HTML from a run is drawn (`app_html`, `rokha-app.html` and
+    # stage templates are not shown).
 
     RokhaApp:
       type: object
@@ -9961,8 +9753,7 @@ components:
           description: >-
             Re-run affordances rendered as native buttons; pressing one fires a
             fresh run of the same rig with the given input, billed to the
-            presser. An embedded rokha-app.html triggers the same via
-            postMessage({rokha:'app_action', action, input}) to its parent.
+            presser.
           items:
             type: object
             properties:
@@ -9974,46 +9765,6 @@ components:
                   label: { type: string, maxLength: 80 }
                   hint: { type: string, maxLength: 200 }
             required: [id, label]
-
-    RokhaStageConfig:
-      type: object
-      description: >-
-        A rig's DESIGNED STAGE — a stored, self-contained HTML dashboard
-        template carried as `content.stage` on the rig (and as `stage` in a
-        published listing's `metadata.rig`, where it rides adoption). At run
-        completion the runtime serializes the chosen step's JSON output,
-        escapes it for script context (every `<` becomes `\u003c`), replaces
-        every occurrence of the literal `__ROKHA_DATA__` slot with it, and
-        ships the result as the run's `app_html` — rendered in the hostile
-        sandboxed app frame (opaque origin, CSP `default-src 'none'`: inline
-        everything; external script/link/img URLs are refused at save because
-        they can never load). A run that emits its own `rokha_app` block or
-        `rokha-app.html` artifact WINS over the template. Set it over MCP with
-        `rig_stage_set`, read it back with `rig_stage_get`, or edit it in the
-        STAGE CONFIG panel — all three fill exactly this shape.
-      properties:
-        template_html:
-          type: string
-          maxLength: 400000
-          description: >-
-            The self-contained HTML document. Must contain the literal
-            `__ROKHA_DATA__` slot (e.g.
-            `<script>const DATA = __ROKHA_DATA__;</script>`), inline all
-            CSS/JS, and embed images as data: URIs. The injected document is
-            capped at 600k characters — over the cap the dashboard is dropped
-            (loudly), never truncated.
-        data_source:
-          type: string
-          description: >-
-            Which step's output feeds the template — `last_step` (default) or
-            `step:<tag>` (the step's tag/skill name, case-insensitive). Use
-            the named form when the rig's final step is a data-persist
-            receipt but the dashboard should show the analysis step's output.
-        title:
-          type: string
-          maxLength: 120
-          description: Optional dashboard title (named by the run epilogue).
-      required: [template_html]
 
     # --- Skills ---
 
@@ -10298,7 +10049,7 @@ components:
         cta_secondary:
           description: "`Clone it` → the Lab, on rigs that can be adopted; else null"
           oneOf: [ { $ref: '#/components/schemas/FrontCta' }, { type: 'null' } ]
-        tagline: { type: [string, 'null'], maxLength: 120, description: "The owner's one-liner, plain text clipped at a word: a page's editor tagline (else its bio); a rig's sub-page tagline (else the listing description); a skill's listing description; an agent's own tagline. null = none (clients show a default). User data — escape before rendering" }
+        tagline: { type: [string, 'null'], maxLength: 120, description: "The owner's one-liner, plain text clipped at a word: a page's editor tagline (else its bio); a rig page's tagline (else the listing description); a skill's listing description; an agent's own tagline. null = none (clients show a default). User data — escape before rendering" }
         link:
           description: "ONE link the owner configured — the first absolute http(s) link on their page (an agent: its X account). label ≤ 40 chars (the host when unlabelled). null when none. Render with rel=\"noopener noreferrer nofollow ugc\""
           oneOf: [ { $ref: '#/components/schemas/FrontCta' }, { type: 'null' } ]
@@ -10345,7 +10096,7 @@ components:
         title: { type: string }
         subtitle: { type: [string, 'null'], description: "Series / variant, or an MCP server's tool count" }
         handle: { type: [string, 'null'], description: "'@handle' for Rokha items; the upstream author for registry items" }
-        href: { type: string, description: "The object page (site path): /market/<kind>/<provider>/<external_id>; a Rokha rig with a sub-page keeps /@handle/<slug>; an agent, builder, marketer, seat or page MCP server keeps /@handle" }
+        href: { type: string, description: "The object page (site path): /market/<kind>/<provider>/<external_id>; a Rokha rig keeps its page at /@handle/<slug>; an agent, builder, marketer, seat or page MCP server keeps /@handle" }
         image: { type: [string, 'null'], description: "Product art (https or a site path) — never the owner's avatar on a rig/skill/mcp/agent" }
         avatar: { type: [string, 'null'], description: "builder / marketer tiles only" }
         tagline: { type: [string, 'null'] }
@@ -11049,38 +10800,6 @@ components:
         x402Version: { type: integer, description: "With `accepts`: only for a caller with a session (a JWT, an rk_ key or an anonymous session id)" }
         accepts: { type: array, items: { type: object, additionalProperties: true } }
 
-    SubpageRefusal:
-      type: object
-      required: [ok, error, code, message, kind, price_cents, checkout, upgrade]
-      properties:
-        ok: { type: boolean, const: false }
-        error: { type: string, enum: [subpage_fee, subpage_lab] }
-        code: { type: string, enum: [subpage_fee, subpage_lab] }
-        message: { type: string }
-        kind: { type: string, enum: [rig, agent] }
-        price_cents: { type: integer, example: 900 }
-        checkout: { type: string, example: "POST /api/page-credits/checkout {rail, payer_wallet?}" }
-        upgrade: { type: string, example: "/pricing#page-credit" }
-
-    FlatPageDraft:
-      type: object
-      description: "A page of its own, as its owner writes it. Text only."
-      properties:
-        display_name: { type: string, maxLength: 80 }
-        handle: { type: string, description: "3–32 of a-z 0-9 - _; fixed once published" }
-        tagline: { type: string }
-        logo: { type: [string, 'null'], format: uuid, description: "One of this page's uploads" }
-        images: { type: array, maxItems: 8, items: { type: string, format: uuid } }
-        sections: { type: array, maxItems: 12, items: { type: object, properties: { title: { type: string }, body: { type: string } } } }
-        links: { type: array, items: { type: object, additionalProperties: true }, description: "https only; marked as leaving the site" }
-        agent:
-          type: object
-          description: "`{kind: rokha}` (the default) or `{kind: agent, handle}` — a live, public agent that is unpriced or allowed on pages"
-          properties:
-            kind: { type: string, enum: [rokha, agent] }
-            handle: { type: string }
-        about_coin: { type: boolean, description: "A page about a coin goes to a person's review before it is live" }
-
     Schedule:
       type: object
       properties:
@@ -11759,7 +11478,7 @@ components:
       properties:
         run_id: { type: string }
         status: { type: string, description: "running · ok · error · stopped …" }
-        stage_url: { type: string, example: "https://rokha.ai/run/<run_id>", description: "The run's live dashboard" }
+        stage_url: { type: string, example: "https://rokha.ai/run/<run_id>", description: "The run in the standard run view" }
         started_at: { type: [string, 'null'], format: date-time }
         ended_at: { type: [string, 'null'], format: date-time }
         cost_micros: { type: [integer, 'null'], description: "Measured compute cost, micro-USD (null = not known yet)" }

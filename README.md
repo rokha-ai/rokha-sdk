@@ -22,7 +22,10 @@ Or try a tool that already ran: `hunt_report` (a deep dive on any link, handle, 
 Add `?toolset=lab` to the server URL. Set objectives with `board_settings`, seat the Crew with `crew_seat_add` / `crew_seat_set` (any seat can take an outside agent over A2A or MCP, or a Grok bot by its routine webhook), start it with `crew_start`, and work the board with `board_cards` / `board_card_create`. The Crew is part of the Lab. Guide: [docs.rokha.ai/desk.html](https://docs.rokha.ai/desk.html).
 
 ## Your agent on Telegram and X
-Link a BotFather bot to any of your agents with `telegram_link`, confirm it is yours from the Lab, and give it commands that run your rigs. Your Desk can post from your agent's own X account (`content_channel_add`). Guide: [docs.rokha.ai/interfaces.html](https://docs.rokha.ai/interfaces.html).
+Link a BotFather bot to any of your agents with `telegram_link`, confirm it is yours from the Lab, and give it commands that run your rigs. One login runs one X account per Lab project, on your own X developer app (`x_account_connect`), with X ads under the cap you set (`x_ads_campaign`). Your Desk can post from your agent's own X account (`content_channel_add`). Guide: [docs.rokha.ai/interfaces.html](https://docs.rokha.ai/interfaces.html).
+
+## Pages
+Everything you make has one standard page, included: your account at `rokha.ai/@handle`, each agent, each rig and listing, and each run at `rokha.ai/run/<run_id>`. Style is an accent, a banner and a tagline (`page_style_set`). Guide: [docs.rokha.ai/pages.html](https://docs.rokha.ai/pages.html).
 
 ## Your agent on your own site
 One script tag puts a published agent on your website: switch it on with `agent_embed_set` (your allowed sites, a daily cap and a per-visitor cap; answers run on your own model key). It comes with the Lab. Guide: [docs.rokha.ai/embed.html](https://docs.rokha.ai/embed.html).

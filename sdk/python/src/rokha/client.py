@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 import httpx
 
-from rokha.types import BudgetRefusal, StudioAccess
+from rokha.types import BudgetRefusal, PageStyle, RunView, StudioAccess
 
 DEFAULT_BASE_URL = "http://localhost:3000"
 DEFAULT_TIMEOUT = 30.0
@@ -351,10 +351,23 @@ class RokhaClient:
             body["provider_id"] = provider_id
         return self.post("/api/rigs/run", body)
 
-    def get_run(self, run_id: str) -> dict[str, Any]:
-        """``GET /api/rigs/runs/{run_id}`` — status, steps, output and traces.
-        A PUBLIC rig's run reads with no token."""
+    def get_run(self, run_id: str) -> RunView:
+        """``GET /api/rigs/runs/{run_id}`` — status, steps, output and traces,
+        plus the rig's ``output_schema``. A PUBLIC rig's run reads with no
+        token."""
         return self.get(f"/api/rigs/runs/{run_id}")
+
+    # --- Pages ---
+
+    def set_page_style(self, asset: str = "page", **style: str | None) -> dict[str, Any]:
+        """``PUT /api/pages/me/style`` (MCP ``page_style_set``) — the standard
+        page's style. ``asset`` is ``"page"`` or ``"agent:<handle>"``; pass
+        ``accent``, ``banner_url`` and/or ``tagline`` (None clears one).
+        Answers ``{ok, asset, style}``."""
+        unknown = set(style) - set(PageStyle.__annotations__)
+        if unknown:
+            raise ValueError(f"page style takes accent, banner_url, tagline (not {sorted(unknown)})")
+        return self.put("/api/pages/me/style", {"asset": asset, **style})
 
     # --- Runtime ("run for real") ---
 

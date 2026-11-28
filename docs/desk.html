@@ -95,7 +95,7 @@ crew_seat_set {position: "tester", agent: "&lt;your agent's handle&gt;"}
 crew_seat_set {position: "analyst", remote: {kind: "a2a", url: "https://agent.example/a2a"}}
 crew_seat_set {position: "operator", remote: {kind: "mcp", url: "https://tools.example/mcp", tool: "work"}}</pre>
 <p>An outside agent takes a seat by A2A or MCP: each card for that seat is sent to it, and its answer lands on the card.</p>
-<p>Give a seat extra tools with <code>crew_seat_set {position, tools: [...]}</code> (<code>null</code> = its standard kit; <code>GET /api/lab/crew/tools</code> lists them). Publishing (<code>rig_publish</code>, <code>registry_publish</code>, <code>page_rig_config</code>) is never in a default kit: a seat publishes only when you give it the tool, up to 10 a day.</p>
+<p>Give a seat extra tools with <code>crew_seat_set {position, tools: [...]}</code> (<code>null</code> = its standard kit; <code>GET /api/lab/crew/tools</code> lists them). Publishing (<code>rig_publish</code>, <code>registry_publish</code>) is never in a default kit: a seat publishes only when you give it the tool, up to 10 a day.</p>
 
 <h3 id="grok">A Grok bot in a seat</h3>
 <p>A Grok bot has a routine webhook. Give it to the seat:</p>

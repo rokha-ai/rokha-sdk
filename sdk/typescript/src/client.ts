@@ -41,6 +41,25 @@ export interface SkillMdBundle {
   cached?: boolean;
 }
 
+/** The standard page's style: three fields, each absent or null when unset. */
+export interface PageStyle {
+  accent?: string | null;
+  banner_url?: string | null;
+  tagline?: string | null;
+}
+
+/** `PUT /api/pages/me/style` — pass only what changes; null or "" clears a field. */
+export interface PageStylePatch extends PageStyle {
+  /** `"page"` (your own page) or `"agent:<handle>"` (one of your agents). */
+  asset: 'page' | `agent:${string}`;
+}
+
+export interface PageStyleResult {
+  ok: boolean;
+  asset: string;
+  style: PageStyle;
+}
+
 export class RokhaClient {
   static readonly SCHEMA_VERSION = '1.0.0';
 
@@ -163,6 +182,15 @@ export class RokhaClient {
   async getSkillMd(provider: 'clawhub' | 'rokha', slug: string): Promise<SkillMdBundle> {
     const q = new URLSearchParams({ provider, slug });
     return this.get(`/api/marketplace/registry/skill-md?${q}`);
+  }
+
+  /**
+   * Style a page (MCP `page_style_set`): every asset has one standard page,
+   * with an accent (`#rrggbb`), a banner (an https image) and a tagline (at
+   * most 140 characters). Needs a signed-in owner.
+   */
+  async setPageStyle(patch: PageStylePatch): Promise<PageStyleResult> {
+    return this.put('/api/pages/me/style', patch);
   }
 
   /**
