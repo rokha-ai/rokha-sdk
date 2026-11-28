@@ -133,3 +133,43 @@ class StudioAccess(TypedDict, total=False):
     current_period_end: str
     tokens: float
     lab: LabStatus
+
+
+class PageStyle(TypedDict, total=False):
+    """The standard page's style: accent (#rrggbb), banner_url (an https
+    image) and tagline (at most 140 characters). Absent or None = unset."""
+
+    accent: Optional[str]
+    banner_url: Optional[str]
+    tagline: Optional[str]
+
+
+class RunStep(TypedDict, total=False):
+    """One step of a run, as the standard run view lists it."""
+
+    trace_id: str
+    step: str
+    name: str
+    node_id: Optional[str]
+    status: str
+    created_at: Optional[str]
+    duration_ms: Optional[float]
+    error: Any
+
+
+class RunView(TypedDict, total=False):
+    """``GET /api/rigs/runs/{run_id}`` — the run as the standard run view
+    draws it. ``output`` is shaped by ``output_schema`` (the rig's
+    ``contract.output_schema``) when the rig declares one; ``visibility`` is
+    absent on the empty ``starting`` view."""
+
+    ok: bool
+    run_id: str
+    status: str
+    done: bool
+    requirement: Any
+    output: Any
+    output_schema: Optional[dict[str, Any]]
+    steps: list[RunStep]
+    traces: list[dict[str, Any]]
+    visibility: Literal["public", "private", "funded"]

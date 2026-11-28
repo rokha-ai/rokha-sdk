@@ -59,6 +59,37 @@ export interface RigRunAck {
   [extra: string]: unknown;
 }
 
+/** One step of a run, as the standard run view lists it. */
+export interface RigRunStep {
+  trace_id: string;
+  step: string;
+  name: string;
+  node_id: string | null;
+  status: string;
+  created_at: string | null;
+  duration_ms: number | null;
+  error: unknown;
+}
+
+/**
+ * `GET /api/rigs/runs/{run_id}` — the run as the standard run view draws it:
+ * its steps with status and time, then `output`, shaped by the rig's
+ * `contract.output_schema` when it declares one.
+ */
+export interface RigRunView {
+  ok: boolean;
+  run_id: string;
+  status: string;
+  done: boolean;
+  requirement: unknown;
+  output: unknown;
+  output_schema: Record<string, unknown> | null;
+  steps: RigRunStep[];
+  traces: Record<string, unknown>[];
+  /** Absent on the empty `starting` view. */
+  visibility?: 'public' | 'private' | 'funded';
+}
+
 export class RigsClient {
   constructor(
     private client: RokhaClient,
@@ -123,7 +154,7 @@ export class RigsClient {
   }
 
   /** A run's status, steps, output and traces. A PUBLIC rig's run reads with no token. */
-  async getRun(runId: string): Promise<Record<string, unknown>> {
+  async getRun(runId: string): Promise<RigRunView> {
     return this.req('GET', `/rigs/runs/${encodeURIComponent(runId)}`);
   }
 

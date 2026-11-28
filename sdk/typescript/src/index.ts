@@ -1,5 +1,5 @@
 export { RokhaClient, RokhaError } from './client.js';
-export type { SchemaCompatLevel, SchemaCompatReport } from './client.js';
+export type { SchemaCompatLevel, SchemaCompatReport, PageStyle, PageStylePatch, PageStyleResult } from './client.js';
 export { AgentsClient } from './agents.js';
 export { CliAuthClient } from './cli-auth.js';
 export type {
@@ -18,7 +18,7 @@ export { HarnessesClient } from './harnesses.js';
 export { MCPClient } from './mcp.js';
 export { MarketplaceClient } from './marketplace.js';
 export { RigsClient } from './rigs.js';
-export type { TraceRecord, TraceFilters, RigRunRequest, RigRunAck } from './rigs.js';
+export type { TraceRecord, TraceFilters, RigRunRequest, RigRunAck, RigRunStep, RigRunView } from './rigs.js';
 export { RuntimeClient } from './runtime.js';
 export type { TasteRequest, RunRequest, RunAck } from './runtime.js';
 export { WalletsClient } from './wallets.js';
