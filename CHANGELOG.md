@@ -6,6 +6,25 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-28 — Sigil, Rokha's blockchain tooling
+
+### Added
+
+- **Sigil: seven blockchain read tools**, each an MCP tool (toolset `sigil`: `?toolset=sigil`, also in `all`) and a REST door, `POST /api/sigil/{tool}` with the tool's arguments as the body (`{tool}` with or without the `sigil_` prefix). Read only: nothing is signed and nothing moves. Docs: https://docs.rokha.ai/sigil.html.
+  - `sigil_token {token, chain?}`: on Solana, mint and freeze authority, the top holder's and top ten's share, and the market. With `chain` `base`, `ethereum`, `bsc` or `robinhood`, an EVM contract's owner and whether it renounced, whether it is an EIP-1967 proxy, owner powers found in its bytecode (mint, pause, blacklist, fee and trading switches), and the market. No sell is simulated, so a honeypot is never ruled out (`not_checked`).
+  - `sigil_token_holders {token, limit?}`: a Solana token's largest holders (up to 20), each one's share of supply, and `known_as` for wallets Rokha tracks.
+  - `sigil_token_launch {token}`: the deployer wallet, its age and launches, snipers, same-slot buyers, the dev's share.
+  - `sigil_exit_quote {token, usd?}`: a live Jupiter quote of selling `usd` (default 1000) of a Solana token into USDC: `you_receive_usdc`, `loss_vs_mark_pct`, `price_impact_pct`.
+  - `sigil_wallet {wallet}`: a Solana wallet's holdings and value, age, and funders.
+  - `sigil_wallet_trades {wallet, limit?}`: its recent swaps (up to 50).
+  - `sigil_wallet_pnl {wallet, pages?}`: realised PnL, win rate and median hold time, computed by Rokha from its recent swaps (average cost, in SOL; a sale of tokens bought before the window never counts as profit).
+  - Priced like Hunt: 300 reads a day with the Lab; signed in, one free read a day, then $0.02 a read sold as a pack of 50 for $1 (House product `rokha-sigil`, bought with `product_checkout`). Refusals: `400` `bad_address`, `bad_chain`, `bad_usd`, `solana_only` (nothing spent); `402 purchase_required`; `429 sigil_cap`; `502` `not_a_mint`, `not_a_contract`, `no_price`, `node_error` (the run is handed back).
+- `/api/info` carries a `sigil` object; llms.txt and llms-full.txt carry a Sigil section.
+
+### Changed
+
+- **Signet price quotes** (MCP `signet_price`) no longer say "Signet cannot swap yet". Swaps run under a mandate (`signet_action`, action type `swap`).
+
 ## 2026-11-28 — lock a Market listing behind a coin; Base and Elysium on hold gates; EVM and Signet wallet proofs
 
 ### Changed

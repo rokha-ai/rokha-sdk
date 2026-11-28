@@ -60,6 +60,8 @@ tags:
     description: "Your files, given to a rig as data"
   - name: signals
     description: "Windsock: scored Solana token signals. Market data, never advice. Deeper reads need the Lab."
+  - name: sigil
+    description: "Sigil, Rokha's blockchain tooling: token, holder, launch, exit, wallet, trade and PnL reads. Read only; trades go through Signet."
   - name: desk
     description: "The Lab's Desk, Crew and Projects; Windsock wallet crews"
   - name: addons
@@ -4872,6 +4874,98 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ProofCallRequired' }
         '503': { description: "`unavailable` — the door's price could not be read; no free work on a priced door" }
+
+  /api/sigil/{tool}:
+    post:
+      tags: [sigil]
+      summary: "Sigil — one blockchain read: a token, its holders or launch, an exit quote, a wallet, its trades or its PnL"
+      description: |
+        Sigil is Rokha's own blockchain tooling. Each tool is also an MCP tool of the same name
+        (toolset `sigil`: `?toolset=sigil` or `all`). `{tool}` is the tool's name with or without
+        the `sigil_` prefix (`token` or `sigil_token`). The body is that tool's arguments.
+        - `sigil_token {token, chain?}` — `chain` is `solana` (default), `base`, `ethereum`, `bsc` or
+          `robinhood`. Solana: mint and freeze authority, top-holder share, market. EVM: owner and
+          whether it renounced, EIP-1967 proxy, owner powers found in the bytecode (mint, pause,
+          blacklist, fee and trading switches), market. No sell is simulated, so a honeypot is not
+          ruled out (`not_checked`).
+        - `sigil_token_holders {token, limit?}` — a Solana token's largest holders (up to 20), their
+          share of supply, and `known_as` for wallets Rokha tracks.
+        - `sigil_token_launch {token}` — the deployer wallet, its age and launches, snipers, same-slot
+          buyers, the dev's share.
+        - `sigil_exit_quote {token, usd?}` — a live Jupiter quote of selling `usd` (default 1000, at
+          most 1,000,000) of a Solana token into USDC: `you_receive_usdc`, `loss_vs_mark_pct`,
+          `price_impact_pct`. A quote only.
+        - `sigil_wallet {wallet}` — a Solana wallet's holdings and value, age, and the wallets that
+          funded it.
+        - `sigil_wallet_trades {wallet, limit?}` — its recent swaps (up to 50).
+        - `sigil_wallet_pnl {wallet, pages?}` — realised PnL, win rate and median hold time,
+          computed by Rokha from up to `pages` × 50 recent swaps (average cost, in SOL; USD at
+          today's SOL price). A sell of tokens bought before the window never counts as profit.
+        Every answer carries `tool`, `as_of` and `by`. A read of public data, never advice.
+        PRICED LIKE HUNT: the Lab includes 300 reads a day; a signed-in account gets one free read a
+        day, then $0.02 a read sold as a pack of 50 for $1 (House product `rokha-sigil`:
+        `GET /api/products?kind=runs&ref=rokha-sigil`, bought with `product_checkout`). The gate runs
+        before any read; a read that did no work hands its run back.
+      operationId: sigilRead
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - name: tool
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [token, token_holders, token_launch, exit_quote, wallet, wallet_trades, wallet_pnl, sigil_token, sigil_token_holders, sigil_token_launch, sigil_exit_quote, sigil_wallet, sigil_wallet_trades, sigil_wallet_pnl]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                token: { type: string, description: "A Solana mint, or a 0x contract with `chain`" }
+                chain: { type: string, enum: [solana, base, ethereum, bsc, robinhood] }
+                wallet: { type: string, description: "A Solana wallet address" }
+                usd: { type: number, exclusiveMinimum: 0, maximum: 1000000 }
+                limit: { type: integer, minimum: 1, maximum: 50 }
+                pages: { type: integer, minimum: 1, maximum: 4 }
+      responses:
+        '200':
+          description: The read
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  tool: { type: string }
+                  chain: { type: string }
+                  as_of: { type: string, format: date-time }
+                  by: { type: string }
+        '400':
+          description: "Refused before the gate, nothing spent: `bad_address`, `bad_chain`, `bad_usd`, `solana_only`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SigilRefusal' }
+        '402':
+          description: "`purchase_required` — the price, `free_trial`, `per_call` and `buy` (`product_checkout` with the `rokha-sigil` product id). A Lab account never meets it."
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProofCallRequired' }
+        '404': { description: "`unknown_tool` — the body lists `tools`" }
+        '429':
+          description: "`sigil_cap` — the day is spent (`code` `daily_limit`, or `daily_ceiling` across Rokha). Off the Lab it carries `ladder`; on the Lab, the message names the Sigil pack."
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SigilRefusal' }
+        '502':
+          description: "The read failed and its run was handed back: `not_a_mint`, `not_a_contract`, `no_price`, `helius_not_configured`, `node_error`, `sigil_failed`"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SigilRefusal' }
+        '503': { description: "`unavailable` — the price could not be read; no free work on a priced door" }
 
   /api/hunt:
     get:
@@ -10876,6 +10970,14 @@ components:
         code: { type: string, description: "Same as `error`" }
         message: { type: string }
 
+    SigilRefusal:
+      type: object
+      properties:
+        ok: { type: boolean, enum: [false] }
+        error: { type: string }
+        code: { type: string }
+        message: { type: string }
+        ladder: { type: object, additionalProperties: true }
     ProofCallRequired:
       type: object
       description: "The 402 a proof call (Hunt, Mark Check) answers to a caller without the Lab, a pack with runs left, or today's free call."

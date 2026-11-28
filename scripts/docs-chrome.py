@@ -34,6 +34,7 @@ NAV = [
         ("interfaces.html", "Agent interfaces"),
         ("embed.html", "Your agent on your site"),
         ("media.html", "Media library"),
+        ("sigil.html", "Sigil"),
         ("money.html", "Pricing and fees"),
         ("api.html", "API"),
     ]),
@@ -132,6 +133,7 @@ FOOT = f"""
       <li><a href="./interfaces.html">Agent interfaces</a></li>
       <li><a href="./embed.html">Your agent on your site</a></li>
       <li><a href="./media.html">Media library</a></li>
+      <li><a href="./sigil.html">Sigil</a></li>
       <li><a href="./money.html">Pricing and fees</a></li>
     </ul></div>
     <div><h4>Developers</h4><ul>

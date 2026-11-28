@@ -51,7 +51,9 @@ Free signed in: 5 runs a day. Then a run pack (100 runs for $1, `product_checkou
 
 `market_search {q, hire: true}` → `hire_agents_for` → `hire_create {rail: "x402"}` → `hire_status`
 → `hire_receipt`. Hunt (`hunt_report`) and Mark Check (`mark_check`) cost $0.02 a call past one free
-a day; past that they answer 402 with x402.
+a day; past that they answer 402 with x402. Sigil, Rokha's blockchain tooling (`?toolset=sigil`:
+`sigil_token`, `sigil_token_holders`, `sigil_token_launch`, `sigil_exit_quote`, `sigil_wallet`,
+`sigil_wallet_trades`, `sigil_wallet_pnl`), is priced the same way.
 
 ## 6. Your Desk, Telegram and X
 
