@@ -6,6 +6,24 @@ face of Rokha; the wire contract it depends on is
 `schemas/openapi.yaml`, served live at `/api/schema`.
 
 
+## 2026-11-28 — lock a Market listing behind a coin; Base and Elysium on hold gates; EVM and Signet wallet proofs
+
+### Changed
+
+- **Setting a hold gate needs the Lab or the 1M hold.** `PUT /api/agents/{handle}/hold` (MCP `agent_hold_set`) answers `402 studio_required` to an owner without either. Removing a gate (`DELETE`, or MCP `off: true`) never needs it. Gates already set keep working.
+
+### Added
+
+- **Lock any listing you own behind a coin.** A rig, skill, harness, MCP server or project template on the Market can be opened only to holders of a coin you name. `PUT /api/listing-hold {listing, provider?, chain?, coin?, symbol?, min_usd?, min_tokens?, free_per_day?, buy_url?}` (MCP `listing_hold_set`). `listing` is your listing's slug or id; pass only what changes. Needs the Lab or the 1M hold. It is live at once.
+  - Who gets in, in order: you; a caller whose own wallets hold the floor; a buyer of the listing's price (hold OR buy); a signed-in caller on one of your `free_per_day` free runs (0-100, default 0).
+  - Everyone else is refused with `403 hold_required` (`refused: "hold"`, the lock, and where they stand), or a `402` that offers the price as well. With `coin: null` the lock stands and nobody but you gets past it.
+  - The lock covers runs (every door), copies (a free run opens a run copy only; a remix is for you, holders and buyers) and reading the listing's body. Search results carry a `hold` object and leave the body out.
+  - `GET /api/listing-hold?provider=&slug=` (or `listing_id`) is public and answers the lock. With a bearer it adds `you: {holder, state, tokens?, usd?, free_run_left?}`. MCP `listing_hold_get` reads it. `DELETE /api/listing-hold {listing}` removes it.
+  - Refusals: `bad_listing`, `bad_chain`, `bad_coin`, `bad_lock`, `needs_min_tokens`, `bad_buy_url`, `sign_in`, `studio_required`, `key_refused` (set from the owner's own session, never an `rk_` key), `not_found`.
+- **Base and Elysium on hold gates and locks.** `PUT /api/agents/{handle}/hold` and `PUT /api/listing-hold` take `chain`: `solana` (default), `base` or `elysium`, and `min_tokens`, a floor in whole tokens instead of dollars. On Base the coin is an ERC-20 address. Elysium needs `min_tokens` (`400 needs_min_tokens`); it is accepted now and read once Rokha connects to its mainnet. New refusal on the agent gate: `bad_chain`.
+- **Prove an EVM wallet.** `POST /api/ladder/wallet-link/challenge` and `/verify` take an EVM address (`0x…`) as well as a Solana one, signed with EIP-191 `personal_sign` (a 65-byte 0x-hex signature). The wallet is stored in its EIP-55 form. A proved wallet counts at every hold gate and lock.
+- **Prove a Signet mandate's wallet, with no browser.** `POST /api/ladder/wallet-link/signet {mandate_id}` (MCP `signet_prove_wallet`) has the mandate sign Rokha's proof text through Signet's `sign` action. The mandate must be yours, grant `sign`, be on Autopilot and be on Solana. It is a signature, never a transaction, and it is recorded as a Signet action. Refusals: `no_mandate`, `mandate_inactive`, `mandate_expired`, `sign_not_granted`, `needs_autopilot`, `wrong_chain`, `no_session`.
+
 ## 2026-11-27 — one standard page; the standard run view; an X account per project; X ads
 
 ### BREAKING

@@ -3550,9 +3550,11 @@ paths:
       tags: [wallets]
       summary: "Start linking a wallet to this account — the message to sign"
       description: |
-        Signed in. Names a Solana wallet and gets back the exact text the
-        wallet must sign (ed25519 over a server nonce — the same proof a wallet
-        login is; a signature, never a transaction). One outstanding challenge
+        Signed in. Names a Solana wallet, or an EVM wallet (Base, Elysium), and
+        gets back the exact text the wallet must sign (ed25519 for Solana,
+        EIP-191 `personal_sign` for EVM, over a server nonce — the same proof a
+        wallet login is; a signature, never a transaction). An EVM wallet is
+        stored in its EIP-55 form. One outstanding challenge
         per account, ten minutes. Refused: another account's login wallet
         (409 — sign in with it instead), this account's own login wallet (it
         counts already), a malformed address (400).
@@ -3566,10 +3568,10 @@ paths:
               type: object
               required: [wallet]
               properties:
-                wallet: { type: string, description: "A Solana address (base58)" }
+                wallet: { type: string, description: "A Solana address (base58) or an EVM address (0x…)" }
       responses:
         '200': { description: The message to sign, content: { application/json: { schema: { type: object, properties: { wallet: { type: string }, message: { type: string } } } } } }
-        '400': { description: Not a Solana wallet, or this account's own login wallet }
+        '400': { description: Not a Solana or EVM wallet, or this account's own login wallet }
         '401': { description: Sign in first }
         '409': { description: That wallet is another account's login }
         '429': { description: One challenge at a time }
@@ -3589,12 +3591,37 @@ paths:
               required: [wallet, signature]
               properties:
                 wallet: { type: string }
-                signature: { type: string, description: "The 64-byte ed25519 signature — base58, or the bytes comma-joined" }
+                signature: { type: string, description: "Solana: the 64-byte ed25519 signature, base58 or the bytes comma-joined. EVM: the 65-byte personal_sign signature, 0x-hex" }
       responses:
         '200': { description: Linked, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, wallet: { type: string } } } } } }
         '400': { description: No, stale or mismatched challenge }
         '401': { description: Sign in first, or the signature does not verify }
         '409': { description: That wallet is another account's login }
+  /api/ladder/wallet-link/signet:
+    post:
+      tags: [wallets]
+      summary: "Link a Signet mandate's session wallet to this account"
+      description: >-
+        Signed in. The mandate (yours, granting `sign`, on Autopilot, Solana) signs Rokha's wallet-proof message through Signet's
+        `sign` action; the signature is verified and the link stored, so coins in that wallet count at any hold gate or hold lock.
+        A signature, never a transaction; recorded as a Signet action. Over MCP: `signet_prove_wallet {mandate_id}`.
+      operationId: walletLinkSignet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mandate_id]
+              properties:
+                mandate_id: { type: string, format: uuid }
+      responses:
+        '200': { description: Linked, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, wallet: { type: string }, via: { type: string }, request_id: { type: string } } } } } }
+        '400': { description: "`no_mandate` · `mandate_inactive` · `mandate_expired` · `sign_not_granted` · `needs_autopilot` · `wrong_chain` · `no_session`" }
+        '401': { description: Sign in first }
+        '409': { description: That wallet is another account's login }
+        '429': { description: One proof at a time }
   /api/ladder/wallet-link/remove:
     post:
       tags: [wallets]
@@ -6699,9 +6726,11 @@ paths:
       tags: [agents]
       summary: "Set or change the hold gate on an agent you own"
       description: >-
-        Body `{mint?, symbol?, min_usd?, free_per_day?, holder_per_day?, buy_url?, deny?}`; only the fields named change. `deny: {account, program, offset, stride, label?, url?}` links an insider list:
+        Body `{chain?, mint?, symbol?, min_usd?, min_tokens?, free_per_day?, holder_per_day?, buy_url?, deny?}`; only the fields named change.
+        `chain` is `solana` (default), `base` or `elysium`; `min_tokens` is a floor in whole tokens instead of dollars (Elysium requires it).
+        Setting a gate needs the Lab or the 1M hold (`402 studio_required`); removing one never does. `deny: {account, program, offset, stride, label?, url?}` links an insider list:
         an on-chain account owned by `program` whose data holds 32-byte wallets from `offset`, one every `stride` bytes; a visitor whose wallet is on it is turned away (`403 insider_denied`), holder or not. `deny: null` removes it. Visitors whose own wallets (the sign-in wallet, or one proved on the Profile) hold at least
-        `min_usd` dollars of the Solana coin `mint` get the agent in full; everyone else gets `free_per_day` free questions a day without its tools. `mint: null` clears the coin and keeps the gate.
+        `min_usd` dollars (or `min_tokens` whole tokens) of the coin `mint` on `chain` get the agent in full; everyone else gets `free_per_day` free questions a day without its tools. `mint: null` clears the coin and keeps the gate.
         Live at once. Over MCP: `agent_hold_set {agent, ...}`.
       operationId: agentHoldSet
       security: [ { bearerAuth: [] } ]
@@ -6716,8 +6745,9 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
-        '400': { description: "`bad_mint` · `bad_gate` · `bad_deny`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '400': { description: "`bad_mint` · `bad_chain` · `bad_gate` · `needs_min_tokens` · `bad_deny`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — setting a gate comes with the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '404': { description: "`not_found` — no such agent of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     delete:
       tags: [agents]
@@ -6727,6 +6757,76 @@ paths:
       responses:
         '200':
           description: "`{ok, gate: {gated: false}}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /api/listing-hold:
+    get:
+      tags: [marketplace]
+      summary: "A Market listing's hold lock, and where you stand at it"
+      description: >-
+        Public. Name the listing with `provider` (default `rokha`) + `slug`, or `listing_id`. `{ok, lock}`: `{locked: false}`, or
+        `{locked, live, chain, coin, symbol, floor: {min_usd | min_tokens, words}, free_per_day, buy_url, listing, rule}`. With a bearer it adds
+        `you: {holder, state, tokens?, usd?, free_run_left?}` (`owner` · `holder` · `short` · `no_wallet` · `unreadable` · `not_launched`).
+        A locked listing's owner and holders run it, copy it and read its body; a buyer of its price passes too (hold OR buy); a signed-in
+        caller gets the owner's free runs a day; everyone else is refused with `403 hold_required` (`refused: "hold"`, the lock, their standing),
+        or a `402` that offers the price as well. Search results carry the same `hold` object.
+      operationId: listingHoldGet
+      parameters:
+        - { name: provider, in: query, schema: { type: string } }
+        - { name: slug, in: query, schema: { type: string } }
+        - { name: listing_id, in: query, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: "The lock"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_listing`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '503': { description: "`unavailable`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [marketplace]
+      summary: "Lock one of your listings behind a coin"
+      description: >-
+        Body `{listing, provider?, chain?, coin?, symbol?, min_usd?, min_tokens?, free_per_day?, buy_url?}`: `listing` is your listing's slug or id;
+        only the fields named change. `chain` is `solana` (default), `base` or `elysium`; `min_tokens` is a floor in whole tokens (Elysium
+        requires it); `free_per_day` 0-100 (default 0); `coin: null` keeps the lock with no coin (nobody but you gets past it). A wallet counts
+        when the caller signed in with it, proved it (`/api/ladder/wallet-link/*`), or proved a Signet mandate's wallet. Needs the Lab or the 1M
+        hold. Live at once. Over MCP: `listing_hold_set {listing, ...}`.
+      operationId: listingHoldSet
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [listing], additionalProperties: true }
+      responses:
+        '200':
+          description: "`{ok, lock}`"
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: "`bad_listing` · `bad_chain` · `bad_coin` · `bad_lock` · `needs_min_tokens` · `bad_buy_url`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '401': { description: "`sign_in`", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '402': { description: "`studio_required` — locking comes with the Lab or the 1M hold", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: "`key_refused` — set by the owner's own session", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: "`not_found` — no such listing of yours", content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [marketplace]
+      summary: "Remove the lock from one of your listings"
+      operationId: listingHoldClear
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [listing], properties: { listing: { type: string }, provider: { type: string } } }
+      responses:
+        '200':
+          description: "`{ok, lock: {locked: false}}`"
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
