@@ -8,6 +8,7 @@
 | File | What |
 |------|------|
 | `openapi.yaml` | OpenAPI 3.1 spec covering every public Erebus endpoint. |
+| `hunt-report-v1.json` | JSON Schema (2020-12) for a Hunt's `findings` object (hunt.v1), served at https://rokha.ai/schemas/hunt-report-v1.json. |
 | `README.md` | This file — model, versioning rules, how to extend. |
 
 ## Why a schema layer

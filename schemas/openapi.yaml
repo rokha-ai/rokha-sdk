@@ -4876,18 +4876,33 @@ paths:
   /api/hunt:
     get:
       tags: [signals]
-      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name | Solana contract address>"
+      summary: "Hunt — a deep dive on any link. Query: ?q=<link | @handle | domain | gh:owner/repo | npm:pkg | pypi:pkg | name | Solana mint | 0x token on Base, Ethereum or Robinhood Chain>"
       description: |
         One lead in, one report out. Rokha crawls the project behind the lead — the site and its
         llms.txt, a live MCP server's tools/list, OpenAPI, the GitHub repo and manifests, npm/PyPI
         packages, the X account, and whether the Rokha Market already lists it — runs a
         deterministic red-flag audit, and writes the report from what was fetched: WHAT IT IS ·
         WHO'S BEHIND IT · AGENT SURFACES · ON ROKHA · RED FLAGS · BOTTOM LINE. A project's claims
-        are attributed to it; "not found" is said plainly. The same lead within 24h is served from
-        cache (`cached: true`). Reads only — nothing is posted, signed, paid or filed. Same builder
-        as the MCP tool `hunt_report` and the `hunt` rig. A Solana contract address — bare, or in a
-        pump.fun, DexScreener or Solscan link — is a lead too: the token is audited by Solwatch, and
-        Mark Check wraps the hunt. A read of public data, not advice.
+        are attributed to it; "not found" is said plainly. A repeat is served from cache
+        (`cached: true`, free): a coin for 15 minutes, anything else for 24 hours. Reads only —
+        nothing is posted, signed, paid or filed. Same builder as the MCP tool `hunt_report` and
+        the `hunt` rig. A token address is a lead too. A Solana mint — bare, or in a pump.fun,
+        DexScreener or Solscan link — is audited by Solwatch, and Mark Check wraps the hunt. A 0x
+        ERC-20 — bare (Base by default; add `ethereum` or `robinhood` to name the chain), or in a
+        DexScreener, Basescan, Etherscan, GMGN or Uniswap link — is read on-chain: owner live or
+        renounced, an EIP-1967 proxy, the owner-power functions its code carries (mint, blacklist,
+        fee setters, a trading switch, max-tx, pause), DEX liquidity, and verified source when the
+        deployment holds an explorer key. Holder concentration and a sell simulation are reported
+        as not measured on EVM. A 0x address with no contract code is refused before any charge.
+        A read of public data, not advice.
+        FINDINGS (hunt.v1): every successful answer carries `findings`, a fixed-shape object other
+        sites build UIs on — `verdict.level` (avoid · caution · clear · not_checked), `counts`,
+        `flags[]` with stable dotted ids (`url.tls_broken`, `evm.owner_can_mint`,
+        `solwatch.freeze_authority` …) and a `category`, `passed[]`, `not_checked[]` (a check that
+        did not run is never counted as passed), one normalized `token` object for a coin on any
+        chain, `agent_doors`, and `links`. Its JSON Schema is published at
+        https://rokha.ai/schemas/hunt-report-v1.json; v1 only gains optional fields. Render every
+        free-text field as text.
         Since 2026-10-29 the agent door is audited too: the MCP server and the A2A agent card the
         hunt finds are each scored on the public reference rubric — schema · docs · safety ·
         efficiency · compatibility · protocol — with a letter grade, the issues (each with a fix)
@@ -4903,7 +4918,7 @@ paths:
         - bearerAuth: []
         - {}
       parameters:
-        - { name: q, in: query, required: true, schema: { type: string, maxLength: 300 } }
+        - { name: q, in: query, required: false, description: "The lead. Omitted while signed out, the door answers its x402 price.", schema: { type: string, maxLength: 300 } }
       responses:
         '200':
           description: The hunt, or `ok:false` with an `error` code and the inputs it takes
@@ -4914,7 +4929,34 @@ paths:
                 additionalProperties: true
                 properties:
                   ok: { type: boolean }
-                  error: { type: string, enum: [missing_q, too_long, no_lead, not_cached, daily_ceiling, nothing_answered] }
+                  error: { type: string, enum: [missing_q, too_long, no_lead, not_cached, daily_limit, daily_ceiling, allowance_unreadable, nothing_answered] }
+                  per_day: { type: integer, description: "On a daily refusal: the caller's per-day number" }
+                  doors: { type: object, additionalProperties: true, description: "On a refusal: the ways past it" }
+                  schema: { type: string, const: "https://rokha.ai/schemas/hunt-report-v1.json" }
+                  findings:
+                    type: object
+                    additionalProperties: true
+                    description: "The fixed-shape hunt.v1 findings. The full contract is the JSON Schema at https://rokha.ai/schemas/hunt-report-v1.json"
+                    required: [schema, version, id, generated_at, cached, lead, verdict, counts, flags, passed, not_checked, token, agent_doors, sources, links, disclaimer]
+                    properties:
+                      schema: { type: string }
+                      version: { type: string }
+                      lead: { type: object, properties: { query: { type: string }, kind: { type: string, enum: [token, x_account, x_post, repo, package, mcp_server, site, project] }, chain: { type: string, nullable: true, enum: [solana, base, ethereum, robinhood] }, address: { type: string, nullable: true } } }
+                      verdict: { type: object, properties: { level: { type: string, enum: [avoid, caution, clear, not_checked] }, line: { type: string }, headline: { type: string, nullable: true }, read: { type: string, nullable: true }, notice: { type: string, nullable: true } } }
+                      counts: { type: object, properties: { critical: { type: integer }, warning: { type: integer }, note: { type: integer }, passed: { type: integer }, not_checked: { type: integer } } }
+                      flags: { type: array, items: { type: object, properties: { id: { type: string }, severity: { type: string, enum: [critical, warning, note] }, category: { type: string, enum: [account, link, site, agent_door, package, token, reputation, other] }, title: { type: string }, evidence: { type: string, nullable: true }, source: { type: string, nullable: true }, subject: { type: string, nullable: true } } } }
+                      passed: { type: array, items: { type: object, properties: { id: { type: string }, check: { type: string }, source: { type: string, nullable: true } } } }
+                      not_checked: { type: array, items: { type: object, properties: { id: { type: string }, check: { type: string }, why: { type: string, nullable: true } } } }
+                      token: { type: object, nullable: true, additionalProperties: true, description: "chain · address · engine (solwatch | evm_read | rpc_fallback) · name · symbol · score (null when unscored, never 0) · verdict · coverage · coverage_gaps · market · control · holders · launch · deployer · not_measured" }
+                      agent_doors: { type: object, properties: { mcp: { type: object, nullable: true, additionalProperties: true }, a2a: { type: object, nullable: true, additionalProperties: true } } }
+                      links: { type: object, properties: { share_url: { type: string }, card_url: { type: string }, json_url: { type: string }, schema_url: { type: string } } }
+                  lead: { type: object, additionalProperties: true, description: "The lead as parsed (the same object as findings.lead)" }
+                  mint: { type: string, nullable: true, description: "The Solana mint a token lead names" }
+                  solwatch: { type: object, nullable: true, additionalProperties: true, description: "The Solwatch audit's brief (score, verdict, token, mint, holders, liquidity, launch, deployer, coverage) on a Solana coin" }
+                  evm: { type: object, nullable: true, additionalProperties: true, description: "The on-chain read of a 0x token (chain, address, owner, owner_renounced, proxy, owner_powers, market, coverage, not_measured)" }
+                  coin_read: { type: boolean, nullable: true, description: "On a coin: did its on-chain audit run at all? false = Not checked, never clean" }
+                  signals: { type: object, additionalProperties: true, description: "What the crawl found (docs, llms.txt, OpenAPI, MCP url …)" }
+                  mints_seen: { type: array, items: { type: string }, description: "Solana mints mentioned in what was read (not audited unless they are the lead)" }
                   message: { type: string }
                   usage: { type: string }
                   target: { type: string }
@@ -4925,12 +4967,14 @@ paths:
                       type: object
                       additionalProperties: true
                       properties:
+                        id: { type: string, description: "Stable dotted id (see findings)" }
                         severity: { type: string, enum: [critical, warning, note] }
+                        subject: { type: string, nullable: true }
                         title: { type: string }
                         evidence: { type: string }
                         source: { type: string }
-                  checks_passed: { type: array, items: { type: object, properties: { check: { type: string }, source: { type: string } } } }
-                  not_checked: { type: array, items: { type: object, properties: { check: { type: string }, why: { type: string } } } }
+                  checks_passed: { type: array, items: { type: object, properties: { id: { type: string, nullable: true }, check: { type: string }, source: { type: string } } } }
+                  not_checked: { type: array, items: { type: object, properties: { id: { type: string, nullable: true }, check: { type: string }, why: { type: string } } } }
                   critical: { type: boolean }
                   sites: { type: array, items: { type: string } }
                   mcp_live: { type: boolean }
@@ -4976,7 +5020,7 @@ paths:
                           grade: { type: string, enum: [A, B, C, D, F] }
                           score: { type: integer, minimum: 0, maximum: 100 }
                           skills: { type: integer }
-                          live: { type: string, nullable: true, enum: [answered, gated, silent], description: "gated = the door answered 401/403 to the impossible-id probe, i.e. live behind credentials" }
+                          live: { type: string, nullable: true, enum: [answered, gated, silent, null], description: "gated = the door answered 401/403 to the impossible-id probe, i.e. live behind credentials" }
                           issues: { type: array, items: { type: object, properties: { id: { type: string }, severity: { type: string }, category: { type: string }, message: { type: string }, fix: { type: string } } } }
                           passed: { type: array, items: { type: string } }
                           summary: { type: string }
@@ -4999,7 +5043,7 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
       responses:
-        '200': { description: "The hunt — the same shape as /api/hunt, with cached: true" }
+        '200': { description: "The hunt — the same shape as /api/hunt, with cached: true, and `findings` (hunt.v1) even for a hunt stored before the schema existed (ids then read `legacy.<words>`)" }
         '404': { description: "`ok:false, error: no_such_hunt`" }
   /api/hunt/{id}/card.png:
     get:
